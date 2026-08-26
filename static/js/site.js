@@ -55,8 +55,36 @@
     targets.forEach((el) => observer.observe(el));
   }
 
+  // --- Depth descent (home page only): as you scroll toward the project cards, the fog
+  // thickens, ambient light dims, and distant city lights fade - "sinking deeper into
+  // Rapture" on the way to the destination, driven by a single --descent (0-1) CSS variable
+  // read by rapture.css. ---
+  function initDepthDescent() {
+    const backdrop = document.querySelector(".rapture-backdrop--interactive");
+    if (!backdrop || REDUCE_MOTION) return;
+
+    let ticking = false;
+
+    function update() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
+      backdrop.style.setProperty("--descent", progress.toFixed(3));
+      ticking = false;
+    }
+
+    window.addEventListener("scroll", function () {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    }, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initParallax();
     initScrollReveal();
+    initDepthDescent();
   });
 })();

@@ -61,13 +61,29 @@ body {
   will-change: transform;
 }
 
+/* --descent (0-1, set by JS on scroll, home page only): drives the "sinking deeper into
+   Rapture" mood as you scroll toward the project cards - fog thickens, light dims, distant
+   city lights fade out. Defaults to 0 (surface/no descent) on every page that doesn't set it. */
+.rapture-backdrop {
+  --descent: 0;
+}
+
 .rapture-backdrop .fog-layer {
   position: absolute;
   inset: 0;
+  transition: background 0.1s linear;
   background:
-    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(45, 107, 111, 0.28) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(28, 77, 84, 0.22) 0%, transparent 65%),
-    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, 0.55) 55%, var(--abyss) 100%);
+    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(45, 107, 111, calc(0.28 + var(--descent) * 0.25)) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(28, 77, 84, calc(0.22 + var(--descent) * 0.2)) 0%, transparent 65%),
+    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, calc(0.55 + var(--descent) * 0.4)) 55%, var(--abyss) 100%);
+}
+
+.rapture-backdrop .depth-dim {
+  position: absolute;
+  inset: 0;
+  background: var(--abyss);
+  opacity: calc(var(--descent) * 0.55);
+  transition: opacity 0.1s linear;
 }
 
 .rapture-backdrop .vignette {
@@ -79,6 +95,10 @@ body {
 /* --- Interactive skyline towers (home page only): each of the 4 spire buildings is a
    clickable nav target to its project page. --- */
 .rapture-backdrop--interactive svg { pointer-events: none; }
+.rapture-backdrop--interactive .distant-lights {
+  transition: opacity 0.1s linear;
+  opacity: calc(1 - var(--descent) * 0.85);
+}
 .rapture-backdrop--interactive .skyline-tower {
   pointer-events: auto;
   cursor: pointer;

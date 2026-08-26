@@ -49,11 +49,12 @@
       <rect x="1480" y="200" width="90" height="300"/>
     </g>
 
-    <!-- non-interactive lit windows on the fill buildings -->
-    <g fill="#e8c874" opacity="0.75">
+    <!-- non-interactive lit windows on the fill buildings (fade out with descent, like
+         distant city lights receding as you sink deeper) -->
+    <g fill="#e8c874" opacity="0.75" class="distant-lights">
       <rect x="1090" y="270" width="6" height="8"/>
     </g>
-    <g fill="#3fa7ad" opacity="0.55">
+    <g fill="#3fa7ad" opacity="0.55" class="distant-lights">
       <rect x="630" y="230" width="6" height="8"/>
       <rect x="655" y="270" width="6" height="8"/>
       <rect x="1500" y="240" width="6" height="8"/>
@@ -130,7 +131,7 @@
       <rect x="1260" y="140" width="115" height="360"/>
       <polygon points="1260,140 1317,55 1375,140"/>
     </g>
-    <g fill="#e8c874" opacity="0.75">
+    <g fill="#e8c874" opacity="0.75" class="distant-lights">
       <rect x="1290" y="190" width="6" height="8"/>
       <rect x="1320" y="230" width="6" height="8"/>
       <rect x="1340" y="270" width="6" height="8"/>
@@ -140,6 +141,7 @@
     <rect x="0" y="480" width="1600" height="20" fill="#030609" opacity="0.8"/>
   </svg>
   <div class="fog-layer"></div>
+  <div class="depth-dim"></div>
   <div class="vignette"></div>
   <div class="grain"></div>
 </div>
