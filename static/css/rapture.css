@@ -52,12 +52,13 @@ body {
 
 .rapture-backdrop svg {
   position: absolute;
-  bottom: 0;
+  bottom: -80px; /* extra buffer below the viewport edge so parallax drift never exposes a gap */
   left: 50%;
   transform: translateX(-50%);
   width: max(140%, 1600px);
   height: auto;
   opacity: 0.9;
+  will-change: transform;
 }
 
 .rapture-backdrop .fog-layer {
@@ -99,6 +100,17 @@ body {
 .skyline-tower:focus-visible .tower-shape rect:first-child {
   stroke: var(--brass-bright);
   stroke-width: 2;
+}
+
+/* --- Scroll reveal: panels/tiles/cards rise and fade in the first time they enter view --- */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .tower-label {
