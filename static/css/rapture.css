@@ -58,15 +58,14 @@ body {
 
 .rapture-backdrop svg {
   position: absolute;
-  top: 0; /* anchored to the top (not bottom) so building ROOFS stay fixed in place as the
-              "extended floors" effect grows the SVG downward on scroll */
+  bottom: -80px; /* buffer so upward scroll-pan never exposes a gap at the bottom */
   left: 50%;
   transform: translateX(-50%);
   width: max(140%, 1600px);
   height: auto;
   opacity: 1;
   filter: saturate(1.15) brightness(1.1);
-  will-change: transform, height;
+  will-change: transform;
 }
 
 .rapture-backdrop--night svg {
@@ -80,27 +79,21 @@ body {
   --descent: 0;
 }
 
+/* The fog itself is the ONLY depth-descent effect: as --descent grows (home page, scroll-
+   driven), these same teal/green blooms simply grow larger and stronger, gradually wrapping
+   around more of the buildings - no separate tint, no third color. */
 .rapture-backdrop .fog-layer {
   position: absolute;
   inset: 0;
   transition: background 0.1s linear;
   background:
-    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(63, 150, 155, 0.36) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(40, 108, 118, 0.3) 0%, transparent 65%),
-    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, 0.5) 55%, var(--abyss) 100%);
+    radial-gradient(ellipse calc(60% + var(--descent) * 25%) calc(40% + var(--descent) * 30%) at 20% 85%, rgba(63, 150, 155, calc(0.36 + var(--descent) * 0.3)) 0%, transparent 65%),
+    radial-gradient(ellipse calc(70% + var(--descent) * 25%) calc(50% + var(--descent) * 30%) at 80% 90%, rgba(40, 108, 118, calc(0.3 + var(--descent) * 0.25)) 0%, transparent 65%),
+    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, calc(0.5 + var(--descent) * 0.3)) 55%, var(--abyss) 100%);
 }
 
-/* Purple bloom: blends in as a THIRD atmospheric tone alongside the existing brass/teal as you
-   scroll (--descent, home page only) - not a darkening effect and not a replacement for the
-   teal fog, both coexist. Medium purple/medium brass, matched in intensity rather than muddying
-   into a darker brown by keeping this an additive glow, not a multiply/darken blend. */
 .rapture-backdrop .depth-dim {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 65% 55% at 65% 20%, rgba(150, 110, 200, calc(var(--descent) * 0.4)) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 45% at 15% 55%, rgba(130, 95, 185, calc(var(--descent) * 0.3)) 0%, transparent 70%);
-  transition: opacity 0.1s linear;
+  display: none;
 }
 
 .rapture-backdrop .vignette {

@@ -6,9 +6,8 @@
 
   // --- Parallax: the skyline drifts slower than the page scrolls, so it reads as sitting
   // behind/below the content rather than pasted flat onto it. Skipped on the home page's
-  // interactive backdrop - there, the viewBox-growth effect in initDepthDescent() already
-  // supplies scroll-driven motion (revealing lower floors), and letting both effects fight
-  // over the same transform/positioning would just look janky. ---
+  // interactive backdrop - there, initInfiniteAscent() below drives a much larger, UNBOUNDED
+  // upward pan instead, and the two effects would otherwise fight over the same transform. ---
   function initParallax() {
     const backdrop = document.querySelector(".rapture-backdrop");
     if (backdrop && backdrop.classList.contains("rapture-backdrop--interactive")) return;
@@ -60,32 +59,18 @@
     targets.forEach((el) => observer.observe(el));
   }
 
-  // --- Depth descent (home page only): as you scroll toward the project cards, a purple
-  // atmospheric tone blends in and the skyline reveals far more floors than it first appeared
-  // to have - "these buildings looked like 20 stories, but they never end" - driven by a
-  // single --descent (0-1) CSS variable (read by rapture.css) plus a direct viewBox height
-  // change (SVG attributes aren't reachable from CSS). Building ROOFS stay visually fixed
-  // because the SVG is top-anchored (see .rapture-backdrop svg { top: 0 } in rapture.css) -
-  // growing the viewBox only reveals more of what's drawn BELOW them, never moves the top. ---
-  function initDepthDescent() {
+  // --- Fog descent (home page only): --descent (0-1, capped at full page scroll) drives the
+  // fog-layer growing/strengthening in rapture.css - the ONLY depth effect now, no separate
+  // tint. ---
+  function initFogDescent() {
     const backdrop = document.querySelector(".rapture-backdrop--interactive");
-    const svg = backdrop && backdrop.querySelector("svg");
-    if (!backdrop || !svg) return;
+    if (!backdrop) return;
 
-    const BASE_VIEWBOX_HEIGHT = 570; // must match the SVG's authored viewBox height
-    const MAX_EXTRA_HEIGHT = 2200; // how many extra "floors" of viewBox become revealable
     let ticking = false;
-
     function update() {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       const progress = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
       backdrop.style.setProperty("--descent", progress.toFixed(3));
-
-      if (!REDUCE_MOTION) {
-        const extraHeight = progress * MAX_EXTRA_HEIGHT;
-        const totalHeight = BASE_VIEWBOX_HEIGHT + extraHeight;
-        svg.setAttribute("viewBox", `0 -70 1600 ${totalHeight.toFixed(0)}`);
-      }
       ticking = false;
     }
 
@@ -99,9 +84,38 @@
     update();
   }
 
+  // --- Infinite ascent (home page only): the skyline pans UPWARD, unbounded, as you scroll -
+  // building tops scroll off the top of the screen and never return, continuously replaced by
+  // the extended lower floors already drawn in the SVG (see _backdrop_home.html, height=2400
+  // rects) and by the "deep buildings" group positioned further down still. Deliberately NOT
+  // clamped to a max offset (unlike the old parallax) - the buildings are meant to look like
+  // they never end, not just drift a little. ---
+  function initInfiniteAscent() {
+    const backdrop = document.querySelector(".rapture-backdrop--interactive");
+    const svg = backdrop && backdrop.querySelector("svg");
+    if (!backdrop || !svg || REDUCE_MOTION) return;
+
+    const ASCENT_FACTOR = 0.9; // pixels the skyline pans upward per pixel scrolled
+    let ticking = false;
+
+    function update() {
+      const offset = window.scrollY * ASCENT_FACTOR;
+      svg.style.transform = `translateX(-50%) translateY(-${offset}px)`;
+      ticking = false;
+    }
+
+    window.addEventListener("scroll", function () {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initParallax();
     initScrollReveal();
-    initDepthDescent();
+    initFogDescent();
+    initInfiniteAscent();
   });
 })();
