@@ -47,19 +47,30 @@ body {
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  /* Daytime default (home page): lighter sky. .rapture-backdrop--night (the other 3 pages)
+     overrides this to a darker, dimmer variant of the exact same scene below. */
+  background: linear-gradient(180deg, #3a5a68 0%, #24404c 40%, #0f2230 100%);
+}
+
+.rapture-backdrop--night {
   background: linear-gradient(180deg, #0f2230 0%, #0a1b26 40%, #050c14 100%);
 }
 
 .rapture-backdrop svg {
   position: absolute;
-  bottom: -80px; /* extra buffer below the viewport edge so parallax drift never exposes a gap */
+  top: 0; /* anchored to the top (not bottom) so building ROOFS stay fixed in place as the
+              "extended floors" effect grows the SVG downward on scroll */
   left: 50%;
   transform: translateX(-50%);
   width: max(140%, 1600px);
   height: auto;
   opacity: 1;
-  filter: saturate(1.15) brightness(1.08);
-  will-change: transform;
+  filter: saturate(1.15) brightness(1.1);
+  will-change: transform, height;
+}
+
+.rapture-backdrop--night svg {
+  filter: saturate(0.85) brightness(0.55);
 }
 
 /* --descent (0-1, set by JS on scroll, home page only): drives the "sinking deeper into
@@ -74,16 +85,21 @@ body {
   inset: 0;
   transition: background 0.1s linear;
   background:
-    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(63, 150, 155, calc(0.36 + var(--descent) * 0.25)) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(40, 108, 118, calc(0.3 + var(--descent) * 0.2)) 0%, transparent 65%),
-    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, calc(0.5 + var(--descent) * 0.4)) 55%, var(--abyss) 100%);
+    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(63, 150, 155, 0.36) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(40, 108, 118, 0.3) 0%, transparent 65%),
+    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, 0.5) 55%, var(--abyss) 100%);
 }
 
+/* Purple bloom: blends in as a THIRD atmospheric tone alongside the existing brass/teal as you
+   scroll (--descent, home page only) - not a darkening effect and not a replacement for the
+   teal fog, both coexist. Medium purple/medium brass, matched in intensity rather than muddying
+   into a darker brown by keeping this an additive glow, not a multiply/darken blend. */
 .rapture-backdrop .depth-dim {
   position: absolute;
   inset: 0;
-  background: var(--abyss);
-  opacity: calc(var(--descent) * 0.55);
+  background:
+    radial-gradient(ellipse 65% 55% at 65% 20%, rgba(150, 110, 200, calc(var(--descent) * 0.4)) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 15% 55%, rgba(130, 95, 185, calc(var(--descent) * 0.3)) 0%, transparent 70%);
   transition: opacity 0.1s linear;
 }
 
@@ -115,6 +131,13 @@ body {
 .rapture-backdrop--interactive .distant-lights {
   transition: opacity 0.1s linear;
   opacity: calc(1 - var(--descent) * 0.85);
+}
+/* Deep buildings sit below the initial viewBox and are physically revealed as the viewBox
+   grows (see initDepthDescent in site.js) - this fade adds a deliberate "coming into view"
+   feel on top of that reveal, rather than looking like a hard clip. */
+.rapture-backdrop--interactive .deep-buildings {
+  transition: opacity 0.4s ease;
+  opacity: calc(min(1, var(--descent) * 2.5));
 }
 .rapture-backdrop--interactive .skyline-tower {
   pointer-events: auto;

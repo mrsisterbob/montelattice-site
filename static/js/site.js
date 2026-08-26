@@ -5,8 +5,13 @@
   const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // --- Parallax: the skyline drifts slower than the page scrolls, so it reads as sitting
-  // behind/below the content rather than pasted flat onto it. ---
+  // behind/below the content rather than pasted flat onto it. Skipped on the home page's
+  // interactive backdrop - there, the viewBox-growth effect in initDepthDescent() already
+  // supplies scroll-driven motion (revealing lower floors), and letting both effects fight
+  // over the same transform/positioning would just look janky. ---
   function initParallax() {
+    const backdrop = document.querySelector(".rapture-backdrop");
+    if (backdrop && backdrop.classList.contains("rapture-backdrop--interactive")) return;
     const svg = document.querySelector(".rapture-backdrop svg");
     if (!svg || REDUCE_MOTION) return;
 
@@ -55,20 +60,32 @@
     targets.forEach((el) => observer.observe(el));
   }
 
-  // --- Depth descent (home page only): as you scroll toward the project cards, the fog
-  // thickens, ambient light dims, and distant city lights fade - "sinking deeper into
-  // Rapture" on the way to the destination, driven by a single --descent (0-1) CSS variable
-  // read by rapture.css. ---
+  // --- Depth descent (home page only): as you scroll toward the project cards, a purple
+  // atmospheric tone blends in and the skyline reveals far more floors than it first appeared
+  // to have - "these buildings looked like 20 stories, but they never end" - driven by a
+  // single --descent (0-1) CSS variable (read by rapture.css) plus a direct viewBox height
+  // change (SVG attributes aren't reachable from CSS). Building ROOFS stay visually fixed
+  // because the SVG is top-anchored (see .rapture-backdrop svg { top: 0 } in rapture.css) -
+  // growing the viewBox only reveals more of what's drawn BELOW them, never moves the top. ---
   function initDepthDescent() {
     const backdrop = document.querySelector(".rapture-backdrop--interactive");
-    if (!backdrop || REDUCE_MOTION) return;
+    const svg = backdrop && backdrop.querySelector("svg");
+    if (!backdrop || !svg) return;
 
+    const BASE_VIEWBOX_HEIGHT = 570; // must match the SVG's authored viewBox height
+    const MAX_EXTRA_HEIGHT = 2200; // how many extra "floors" of viewBox become revealable
     let ticking = false;
 
     function update() {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       const progress = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
       backdrop.style.setProperty("--descent", progress.toFixed(3));
+
+      if (!REDUCE_MOTION) {
+        const extraHeight = progress * MAX_EXTRA_HEIGHT;
+        const totalHeight = BASE_VIEWBOX_HEIGHT + extraHeight;
+        svg.setAttribute("viewBox", `0 -70 1600 ${totalHeight.toFixed(0)}`);
+      }
       ticking = false;
     }
 
