@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Job Outreach Engine &middot; Monte Lattice{% endblock %}
+{% block content %}
+
+<div class="section">
+  <span class="project-card__tag"></span>
+  <h1>Job Outreach Engine</h1>
+  <p>An AI-screened job-search pipeline: sources listings from multiple boards, screens and
+  tailors outreach against a strict evidence bank (no hallucinated experience), logs everything
+  to a CRM, and runs through a swipe-reply Telegram bot. This page reflects live metrics from the
+  system I actually use daily.</p>
+</div>
+
+<div class="section">
+  <h2>Pipeline Metrics</h2>
+  <div class="metric-row" id="metric-tiles">
+    <div class="metric-tile"><span class="value" id="m-applied">&mdash;</span><span class="label">Applications Sent</span></div>
+    <div class="metric-tile"><span class="value" id="m-interviews">&mdash;</span><span class="label">Interviews</span></div>
+    <div class="metric-tile"><span class="value" id="m-reply-rate">&mdash;</span><span class="label">Reply Rate</span></div>
+  </div>
+</div>
+
+<div class="section ornate-panel">
+  <h3>Applications &amp; Interviews by Source</h3>
+  <canvas id="source-chart" height="90"></canvas>
+</div>
+
+<div class="section ornate-panel">
+  <h3>Daily Activity (Last 90 Days)</h3>
+  <canvas id="activity-chart" height="90"></canvas>
+</div>
+
+<p id="no-data-msg" class="status-msg" style="display:none;">
+  No pipeline data recorded yet &mdash; metrics will populate once the engine has run and logged outcomes.
+</p>
+
+<script>
+async function loadJobEngineDashboard() {
+  const res = await fetch('/api/job-engine/summary');
+  const data = await res.json();
+
+  if (!data.data_available) {
+    document.getElementById('no-data-msg').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('m-applied').textContent = data.total_applied;
+  document.getElementById('m-interviews').textContent = data.total_interviews;
+  document.getElementById('m-reply-rate').textContent = data.reply_rate_pct + '%';
+
+  const sources = Object.keys(data.by_source);
+  new Chart(document.getElementById('source-chart'), {
+    type: 'bar',
+    data: {
+      labels: sources,
+      datasets: [
+        { label: 'Applied', data: sources.map(s => data.by_source[s].applied), backgroundColor: '#8a712f' },
+        { label: 'Interview', data: sources.map(s => data.by_source[s].interview), backgroundColor: '#e8c874' },
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#a8a190' } }, x: { ticks: { color: '#a8a190' } } }, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+  });
+
+  new Chart(document.getElementById('activity-chart'), {
+    type: 'line',
+    data: {
+      labels: data.daily_activity.map(d => d.date),
+      datasets: [
+        { label: 'Drafts Staged', data: data.daily_activity.map(d => d.drafts_staged), borderColor: '#c9a24b', tension: 0.2 },
+        { label: 'Applied', data: data.daily_activity.map(d => d.applied_count), borderColor: '#4a8a5c', tension: 0.2 },
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#a8a190' } }, x: { ticks: { color: '#a8a190' } } }, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+  });
+}
+loadJobEngineDashboard();
+</script>
+
+{% endblock %}

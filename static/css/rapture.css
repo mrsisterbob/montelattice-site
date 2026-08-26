@@ -1,0 +1,245 @@
+/* Rapture Art Deco theme: dark teal/navy depths, brass/gold accents, geometric ornament.
+   Shared across every page on the site for a consistent identity. */
+
+:root {
+  --deep-navy: #0a1420;
+  --panel-navy: #0f2233;
+  --panel-navy-light: #16324a;
+  --teal: #1c4d54;
+  --brass: #c9a24b;
+  --brass-bright: #e8c874;
+  --brass-dim: #8a712f;
+  --ivory: #e8e2d0;
+  --ivory-dim: #a8a190;
+  --rust-red: #a8412f;
+  --success-green: #4a8a5c;
+  --border-ornate: var(--brass-dim);
+  --font-display: "Cinzel", "Playfair Display", Georgia, serif;
+  --font-body: "EB Garamond", Georgia, "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--deep-navy);
+  color: var(--ivory);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at top, rgba(28, 77, 84, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(10, 20, 32, 0.9) 0%, var(--deep-navy) 70%);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--brass-bright);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  margin: 0 0 0.6em 0;
+}
+
+h1 { font-size: 2.4rem; text-transform: uppercase; letter-spacing: 0.12em; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--brass); }
+
+a { color: var(--brass-bright); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+p { color: var(--ivory-dim); }
+
+/* --- Ornate border frame, used on cards/panels --- */
+.ornate-panel {
+  position: relative;
+  background: linear-gradient(180deg, var(--panel-navy) 0%, var(--panel-navy-light) 100%);
+  border: 1px solid var(--border-ornate);
+  padding: 28px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), inset 0 0 40px rgba(0,0,0,0.25);
+}
+
+.ornate-panel::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(201, 162, 75, 0.35);
+  pointer-events: none;
+}
+
+/* corner rivets */
+.ornate-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 3px at 12px 12px, var(--brass-dim) 98%, transparent 100%),
+    radial-gradient(circle 3px at calc(100% - 12px) 12px, var(--brass-dim) 98%, transparent 100%),
+    radial-gradient(circle 3px at 12px calc(100% - 12px), var(--brass-dim) 98%, transparent 100%),
+    radial-gradient(circle 3px at calc(100% - 12px) calc(100% - 12px), var(--brass-dim) 98%, transparent 100%);
+}
+
+/* --- Top nav --- */
+.rapture-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 36px;
+  border-bottom: 2px solid var(--brass-dim);
+  background: rgba(10, 20, 32, 0.85);
+  backdrop-filter: blur(4px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rapture-nav .brand {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  color: var(--brass-bright);
+  text-transform: uppercase;
+}
+
+.rapture-nav .links { display: flex; gap: 28px; }
+.rapture-nav .links a {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+.rapture-nav .links a:hover, .rapture-nav .links a.active {
+  color: var(--brass-bright);
+  text-decoration: none;
+  border-bottom: 1px solid var(--brass-bright);
+}
+
+/* --- Layout containers --- */
+.page-wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
+.section { margin-bottom: 56px; }
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brass-dim), transparent);
+  margin: 40px 0;
+}
+
+/* --- Project card grid (home page) --- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.project-card {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(201, 162, 75, 0.15), 0 0 0 1px rgba(0,0,0,0.4);
+  text-decoration: none;
+}
+.project-card .tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--deep-navy);
+  background: var(--brass);
+  padding: 3px 10px;
+  margin-bottom: 10px;
+}
+.project-card .tag.private { background: var(--rust-red); color: var(--ivory); }
+.project-card p { margin: 0; font-size: 0.92rem; }
+
+/* --- Metric tiles --- */
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 18px;
+}
+
+.metric-tile {
+  text-align: center;
+  padding: 20px 12px;
+  border: 1px solid var(--border-ornate);
+  background: rgba(255,255,255,0.02);
+}
+
+.metric-tile .value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--brass-bright);
+  display: block;
+}
+
+.metric-tile .label {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+}
+
+/* --- Forms --- */
+input, button, select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.rapture-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-ornate);
+  color: var(--ivory);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.rapture-input:focus { outline: 1px solid var(--brass-bright); }
+
+.rapture-button {
+  background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+  color: var(--deep-navy);
+  border: none;
+  padding: 10px 24px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.rapture-button:hover { background: var(--brass-bright); }
+
+.rapture-button.secondary {
+  background: transparent;
+  border: 1px solid var(--brass-dim);
+  color: var(--brass);
+}
+
+.status-msg { font-size: 0.9rem; margin-top: 8px; color: var(--ivory-dim); }
+.status-msg.error { color: var(--rust-red); }
+.status-msg.success { color: var(--success-green); }
+
+canvas { max-width: 100%; }
+
+footer {
+  text-align: center;
+  padding: 32px;
+  color: var(--ivory-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  border-top: 1px solid var(--brass-dim);
+}
+
+@media (max-width: 640px) {
+  .rapture-nav { flex-direction: column; gap: 12px; padding: 16px; }
+  .rapture-nav .links { gap: 16px; flex-wrap: wrap; justify-content: center; }
+  h1 { font-size: 1.7rem; }
+}

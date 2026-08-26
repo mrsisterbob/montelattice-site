@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Monte Lattice{% endblock %}
+{% block content %}
+
+<div class="section" style="text-align:center; padding: 24px 0 8px;">
+  <h1>Monte Lattice</h1>
+  <p style="max-width: 640px; margin: 0 auto; font-size: 1.05rem;">
+    Systems built to remove friction from the parts of life that shouldn't require
+    manual repetition &mdash; job search, document filing, market monitoring, and
+    personal finance.
+  </p>
+</div>
+
+<div class="divider"></div>
+
+<div class="section card-grid">
+
+  <a class="project-card ornate-panel" href="/job-engine">
+    <span class="tag">Utility &middot; Public</span>
+    <h3>Job Outreach Engine</h3>
+    <p>An AI-screened, deterministic job-search pipeline with a live CRM, resume compiler,
+    and outcome tracking. Built and used daily.</p>
+  </a>
+
+  <a class="project-card ornate-panel" href="/docfiler">
+    <span class="tag">Marketing &middot; Public</span>
+    <h3>Docfiler</h3>
+    <p>Automated document intake and filing for small law firms and RIAs &mdash; classify,
+    rename, and route client files without opening every one by hand.</p>
+  </a>
+
+  <a class="project-card ornate-panel" href="/crypto">
+    <span class="tag">Utility &middot; Public</span>
+    <h3>Crypto Trading Engine</h3>
+    <p>A market-regime dashboard tracking gamma exposure, funding rates, and open interest
+    across BTC/ETH and tracked altcoins, feeding a validated breakout strategy.</p>
+  </a>
+
+  <a class="project-card ornate-panel" href="/budget">
+    <span class="tag private">Private</span>
+    <h3>Budget Tracker</h3>
+    <p>Personal income and spending tracker. Access restricted.</p>
+  </a>
+
+</div>
+
+{% endblock %}

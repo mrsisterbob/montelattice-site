@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Monte Lattice{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rapture.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% block head_extra %}{% endblock %}
+</head>
+<body>
+  <nav class="rapture-nav">
+    <a class="brand" href="/">Monte Lattice</a>
+    <div class="links">
+      <a href="/job-engine" class="{{ 'active' if active_page == 'job-engine' else '' }}">Job Engine</a>
+      <a href="/docfiler" class="{{ 'active' if active_page == 'docfiler' else '' }}">Docfiler</a>
+      <a href="/crypto" class="{{ 'active' if active_page == 'crypto' else '' }}">Crypto Engine</a>
+      <a href="/budget" class="{{ 'active' if active_page == 'budget' else '' }}">Budget (Private)</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer>Monte Lattice &middot; Kevin Miller</footer>
+</body>
+</html>

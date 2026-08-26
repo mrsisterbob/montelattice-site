@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Private &middot; Monte Lattice</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rapture.css') }}">
+</head>
+<body>
+  <div class="page-wrap" style="max-width: 420px; padding-top: 120px;">
+    <div class="ornate-panel">
+      <h2 style="text-align:center;">Private Access</h2>
+      <form method="POST">
+        <input class="rapture-input" type="password" name="password" placeholder="Password" autofocus required>
+        <button class="rapture-button" type="submit" style="width:100%;">Enter</button>
+      </form>
+      {% if error %}<div class="status-msg error">{{ error }}</div>{% endif %}
+    </div>
+  </div>
+</body>
+</html>

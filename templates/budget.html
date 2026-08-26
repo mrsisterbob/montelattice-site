@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Budget &middot; Monte Lattice{% endblock %}
+{% block content %}
+
+<div class="section" style="display:flex; justify-content: space-between; align-items:center;">
+  <h1 style="margin:0;">Budget Tracker</h1>
+  <a class="rapture-button secondary" href="/budget/logout">Log Out</a>
+</div>
+
+<div class="section ornate-panel">
+  <h3>Income vs Expenses</h3>
+  <canvas id="income-chart" height="90"></canvas>
+</div>
+
+<div class="section ornate-panel">
+  <h3>Spending Breakdown</h3>
+  <canvas id="wheel-chart" height="90"></canvas>
+</div>
+
+<p class="status-msg">To import a new statement, use the budget-tracker app directly (this page is read-only).</p>
+
+<script>
+async function loadBudgetCharts() {
+  const incomeRes = await fetch('/api/budget/income-over-time');
+  const incomeData = await incomeRes.json();
+  new Chart(document.getElementById('income-chart'), {
+    type: 'bar',
+    data: {
+      labels: incomeData.months,
+      datasets: [
+        { label: 'Income', data: incomeData.income, backgroundColor: '#4a8a5c' },
+        { label: 'Expenses', data: incomeData.expenses, backgroundColor: '#a8412f' },
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#a8a190' } }, x: { ticks: { color: '#a8a190' } } }, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+  });
+
+  const wheelRes = await fetch('/api/budget/spending-wheel');
+  const wheelData = await wheelRes.json();
+  new Chart(document.getElementById('wheel-chart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(wheelData.bucket_totals),
+      datasets: [{ data: Object.values(wheelData.bucket_totals), backgroundColor: ['#a8412f', '#c9a24b', '#8a712f'] }]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+  });
+}
+loadBudgetCharts();
+</script>
+
+{% endblock %}
