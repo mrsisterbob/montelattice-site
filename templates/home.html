@@ -44,4 +44,26 @@
 
 </div>
 
+<div id="tower-label" class="tower-label"></div>
+
+<script>
+(function () {
+  const label = document.getElementById('tower-label');
+  const towers = document.querySelectorAll('.skyline-tower');
+  towers.forEach(function (tower) {
+    tower.addEventListener('mouseenter', function () {
+      label.textContent = tower.getAttribute('data-label');
+      label.classList.add('visible');
+    });
+    tower.addEventListener('mousemove', function (e) {
+      label.style.left = (e.clientX + 16) + 'px';
+      label.style.top = (e.clientY - 8) + 'px';
+    });
+    tower.addEventListener('mouseleave', function () {
+      label.classList.remove('visible');
+    });
+  });
+})();
+</script>
+
 {% endblock %}

@@ -59,7 +59,7 @@ def login_required(view):
 # ---------------------------------------------------------------------------
 @app.route("/")
 def home():
-    return render_template("home.html")
+    return render_template("home.html", active_page="home")
 
 
 @app.route("/job-engine")
