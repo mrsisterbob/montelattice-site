@@ -117,6 +117,30 @@ body {
   filter: drop-shadow(0 0 6px rgba(232, 200, 116, 0.9));
 }
 .skyline-tower:focus-visible { outline: none; }
+
+/* Fake-3D: each tower "rises" toward the viewer and its dark side-face brightens slightly on
+   hover, simulating a light catching an extruded surface. transform-box: fill-box makes
+   transform-origin relative to the tower's own bounding box, not the whole SVG viewport, so
+   every tower lifts from its own base regardless of its x-position. Real perspective/rotateY
+   isn't used here - it renders inconsistently on SVG children across browsers; a scale + shadow
+   reads as "lifting toward you" just as well without that risk. */
+.skyline-tower {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.3s ease;
+}
+.skyline-tower:hover,
+.skyline-tower:focus-visible {
+  transform: scale(1.035) translateY(-4px);
+}
+.skyline-tower .tower-side {
+  transition: opacity 0.3s ease;
+  opacity: 0.9;
+}
+.skyline-tower:hover .tower-side,
+.skyline-tower:focus-visible .tower-side {
+  opacity: 0.5;
+}
 .skyline-tower:focus-visible .tower-shape rect:first-child {
   stroke: var(--brass-bright);
   stroke-width: 2;

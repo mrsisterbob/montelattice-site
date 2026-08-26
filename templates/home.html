@@ -13,6 +13,55 @@
 
 <div class="divider ornate"><span class="mark">&#9670;</span></div>
 
+<div class="section" style="max-width: 720px; margin: 0 auto;">
+  <div class="ornate-panel">
+    <h2>Why This Exists</h2>
+    <p>Four months into an internship I expected to keep, it ended without warning, and the
+    job search that followed made one thing clear: waiting on a broken hiring process to work
+    in your favor isn't a plan. Each of these systems started the same way &mdash; a real,
+    specific friction I was living through, automated because doing it by hand once was enough.
+    The job engine exists because cold outreach shouldn't mean a hundred identical emails. Docfiler
+    exists because I spent real hours renaming backdated client files by hand at a wealth
+    management firm, for a problem software should have already solved. The crypto engine exists
+    because a signal worth trusting should be measured, not felt. None of these were built as
+    portfolio pieces first &mdash; they were built to be used, and the portfolio is what happens
+    when you keep the receipts.</p>
+  </div>
+</div>
+
+<div class="section" style="max-width: 720px; margin: 0 auto;">
+  <div class="ornate-panel">
+    <h2>How These Connect</h2>
+    <p>Underneath four different problems sits one architecture, reused deliberately rather than
+    rebuilt each time: a scheduler that runs continuously instead of waiting to be invoked, a
+    Telegram bot as the control surface for anything that needs a human decision, a local
+    database as the source of truth with everything else &mdash; Sheets, dashboards, alerts
+    &mdash; as a view onto it, and AI used strictly as a classifier or router, never as the
+    author of anything that ends up in front of another person. The job engine and the crypto
+    engine share the exact same alerting and configuration pattern. Docfiler and the job engine
+    share the same discipline around never letting a model invent a fact it wasn't given. Building
+    the second and third system was faster than the first, because the hard architectural
+    decisions were already made once.</p>
+  </div>
+</div>
+
+<div class="section" style="max-width: 900px; margin: 0 auto;">
+  <div class="ornate-panel">
+    <h3 style="text-align:center; margin-bottom: 20px;">Live From the Job Engine</h3>
+    <div class="metric-row" id="teaser-metrics">
+      <div class="metric-tile"><span class="value" id="teaser-applied">&mdash;</span><span class="label">Applications Sent</span></div>
+      <div class="metric-tile"><span class="value" id="teaser-interviews">&mdash;</span><span class="label">Interviews</span></div>
+      <div class="metric-tile"><span class="value" id="teaser-reply-rate">&mdash;</span><span class="label">Reply Rate</span></div>
+    </div>
+    <p id="teaser-no-data" style="text-align:center; margin-top: 16px; display:none;">
+      No pipeline data recorded yet &mdash; this populates once the engine has logged outcomes.
+      <a href="/job-engine">See the full dashboard &rarr;</a>
+    </p>
+  </div>
+</div>
+
+<div class="divider ornate"><span class="mark">&#9670;</span></div>
+
 <div class="section card-grid">
 
   <a class="project-card ornate-panel" href="/job-engine">
@@ -47,6 +96,25 @@
 <div id="tower-label" class="tower-label"></div>
 
 <script>
+(function () {
+  fetch('/api/job-engine/summary')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.data_available) {
+        document.getElementById('teaser-metrics').style.display = 'none';
+        document.getElementById('teaser-no-data').style.display = 'block';
+        return;
+      }
+      document.getElementById('teaser-applied').textContent = data.total_applied;
+      document.getElementById('teaser-interviews').textContent = data.total_interviews;
+      document.getElementById('teaser-reply-rate').textContent = data.reply_rate_pct + '%';
+    })
+    .catch(function () {
+      document.getElementById('teaser-metrics').style.display = 'none';
+      document.getElementById('teaser-no-data').style.display = 'block';
+    });
+})();
+
 (function () {
   const label = document.getElementById('tower-label');
   const towers = document.querySelectorAll('.skyline-tower');
