@@ -2,50 +2,48 @@
 {% block title %}Monte Lattice{% endblock %}
 {% block content %}
 
-<div class="section" style="text-align:center; padding: 24px 0 8px;">
-  <h1>Monte Lattice</h1>
-  <p style="max-width: 640px; margin: 0 auto; font-size: 1.05rem;">
-    Systems built to remove friction from the parts of life that shouldn't require
-    manual repetition &mdash; job search, document filing, market monitoring, and
-    personal finance.
-  </p>
+<div class="hero-spacer">
+  <div class="section" style="text-align:center; padding: 24px 0 8px;">
+    <h1>Monte Lattice</h1>
+    <p style="max-width: 640px; margin: 0 auto; font-size: 1.05rem;">
+      Systems built to remove friction from the parts of life that shouldn't require
+      manual repetition &mdash; job search, document filing, market monitoring, and
+      personal finance.
+    </p>
+  </div>
+
+  <div class="tech-row" aria-label="Built with">
+    <span>Python</span><span>Flask</span><span>SQLite</span><span>Telegram</span><span>Claude</span><span>Gemini</span>
+  </div>
 </div>
 
 <div class="divider ornate"><span class="mark">&#9670;</span></div>
 
-<div class="section" style="max-width: 720px; margin: 0 auto;">
+<div class="section compact-panel" style="max-width: 640px; margin: 0 auto;">
   <div class="ornate-panel">
     <h2>Why This Exists</h2>
     <p>Four months into an internship I expected to keep, it ended without warning, and the
     job search that followed made one thing clear: waiting on a broken hiring process to work
-    in your favor isn't a plan. Each of these systems started the same way &mdash; a real,
-    specific friction I was living through, automated because doing it by hand once was enough.
-    The job engine exists because cold outreach shouldn't mean a hundred identical emails. Docfiler
-    exists because I spent real hours renaming backdated client files by hand at a wealth
-    management firm, for a problem software should have already solved. The crypto engine exists
-    because a signal worth trusting should be measured, not felt. None of these were built as
-    portfolio pieces first &mdash; they were built to be used, and the portfolio is what happens
-    when you keep the receipts.</p>
+    in your favor isn't a plan. Each system here started the same way &mdash; a real friction
+    I was living through, automated because doing it by hand once was enough. None were built
+    as portfolio pieces first &mdash; they were built to be used, and the portfolio is what
+    happens when you keep the receipts.</p>
   </div>
 </div>
 
-<div class="section" style="max-width: 720px; margin: 0 auto;">
+<div class="section compact-panel" style="max-width: 640px; margin: 0 auto;">
   <div class="ornate-panel">
     <h2>How These Connect</h2>
-    <p>Underneath four different problems sits one architecture, reused deliberately rather than
-    rebuilt each time: a scheduler that runs continuously instead of waiting to be invoked, a
-    Telegram bot as the control surface for anything that needs a human decision, a local
-    database as the source of truth with everything else &mdash; Sheets, dashboards, alerts
-    &mdash; as a view onto it, and AI used strictly as a classifier or router, never as the
-    author of anything that ends up in front of another person. The job engine and the crypto
-    engine share the exact same alerting and configuration pattern. Docfiler and the job engine
-    share the same discipline around never letting a model invent a fact it wasn't given. Building
-    the second and third system was faster than the first, because the hard architectural
+    <p>Underneath four different problems sits one architecture, reused deliberately: a
+    scheduler that runs continuously, a Telegram bot as the control surface for anything
+    needing a human decision, a database as the source of truth, and AI used strictly as a
+    classifier or router &mdash; never as the author of anything that reaches another person.
+    Building the second and third system was faster than the first, because the hard
     decisions were already made once.</p>
   </div>
 </div>
 
-<div class="section" style="max-width: 900px; margin: 0 auto;">
+<div class="section compact-panel" style="max-width: 780px; margin: 0 auto;">
   <div class="ornate-panel">
     <h3 style="text-align:center; margin-bottom: 20px;">Live From the Job Engine</h3>
     <div class="metric-row" id="teaser-metrics">

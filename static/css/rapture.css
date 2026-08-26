@@ -47,7 +47,7 @@ body {
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, #0a1a24 0%, #071219 40%, var(--abyss) 100%);
+  background: linear-gradient(180deg, #0f2230 0%, #0a1b26 40%, #050c14 100%);
 }
 
 .rapture-backdrop svg {
@@ -57,7 +57,8 @@ body {
   transform: translateX(-50%);
   width: max(140%, 1600px);
   height: auto;
-  opacity: 0.9;
+  opacity: 1;
+  filter: saturate(1.15) brightness(1.08);
   will-change: transform;
 }
 
@@ -73,9 +74,9 @@ body {
   inset: 0;
   transition: background 0.1s linear;
   background:
-    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(45, 107, 111, calc(0.28 + var(--descent) * 0.25)) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(28, 77, 84, calc(0.22 + var(--descent) * 0.2)) 0%, transparent 65%),
-    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, calc(0.55 + var(--descent) * 0.4)) 55%, var(--abyss) 100%);
+    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(63, 150, 155, calc(0.36 + var(--descent) * 0.25)) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 80% 90%, rgba(40, 108, 118, calc(0.3 + var(--descent) * 0.2)) 0%, transparent 65%),
+    linear-gradient(180deg, transparent 0%, rgba(3, 6, 9, calc(0.5 + var(--descent) * 0.4)) 55%, var(--abyss) 100%);
 }
 
 .rapture-backdrop .depth-dim {
@@ -290,6 +291,30 @@ p { color: var(--ivory-dim); }
 /* --- Layout containers --- */
 .page-wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
 .section { margin-bottom: 56px; }
+
+/* Home hero: extra breathing room so the skyline/title dominate the first screen instead of
+   text panels starting immediately below the fold. */
+.hero-spacer { padding-top: 8vh; padding-bottom: 14vh; }
+
+.tech-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 36px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+  opacity: 0.75;
+}
+
+/* Compact variant: smaller padding/type on the mid-page explainer panels so they read as a
+   supporting note beside the skyline, not a document taking over the screen. */
+.compact-panel .ornate-panel { padding: 20px 24px; }
+.compact-panel h2 { font-size: 1.25rem; }
+.compact-panel p { font-size: 0.92rem; line-height: 1.55; margin: 0; }
 
 .divider {
   height: 1px;

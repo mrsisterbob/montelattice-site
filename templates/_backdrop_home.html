@@ -1,13 +1,13 @@
 <div class="rapture-backdrop rapture-backdrop--interactive" aria-hidden="false">
-  <svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 -70 1600 570" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#e8c874" stop-opacity="0.22"/>
-        <stop offset="100%" stop-color="#e8c874" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#f5d685" stop-opacity="0.34"/>
+        <stop offset="100%" stop-color="#f5d685" stop-opacity="0"/>
       </linearGradient>
       <linearGradient id="beam-teal" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#3fa7ad" stop-opacity="0.16"/>
-        <stop offset="100%" stop-color="#3fa7ad" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#4fc2c9" stop-opacity="0.26"/>
+        <stop offset="100%" stop-color="#4fc2c9" stop-opacity="0"/>
       </linearGradient>
       <linearGradient id="bld-fill" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#0a1b26"/>
@@ -24,9 +24,9 @@
         <stop offset="100%" stop-color="#000000" stop-opacity="0.05"/>
       </linearGradient>
       <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#e8c874" stop-opacity="0.35"/>
-        <stop offset="45%" stop-color="#e8c874" stop-opacity="0.12"/>
-        <stop offset="100%" stop-color="#e8c874" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#f5d685" stop-opacity="0.5"/>
+        <stop offset="45%" stop-color="#f5d685" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#f5d685" stop-opacity="0"/>
       </radialGradient>
       <linearGradient id="crane-fill" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#050b12"/>
@@ -37,6 +37,20 @@
         <stop offset="50%" stop-color="#0d2430" stop-opacity="0.4"/>
         <stop offset="100%" stop-color="#0d2430" stop-opacity="0"/>
       </linearGradient>
+      <!-- Texture: a repeating window-grid pattern for building facades, so surfaces read as
+           built structures rather than flat silhouettes. Two brightness variants (some windows
+           lit, most dark) keep it from looking like a uniform checkerboard. -->
+      <pattern id="facade-grid" width="16" height="22" patternUnits="userSpaceOnUse">
+        <rect width="16" height="22" fill="none"/>
+        <rect x="3" y="4" width="8" height="10" fill="#000000" opacity="0.22"/>
+      </pattern>
+      <pattern id="facade-grid-lit" width="32" height="44" patternUnits="userSpaceOnUse">
+        <rect width="32" height="44" fill="none"/>
+        <rect x="3" y="4" width="8" height="10" fill="#000000" opacity="0.22"/>
+        <rect x="19" y="4" width="8" height="10" fill="#000000" opacity="0.22"/>
+        <rect x="3" y="26" width="8" height="10" fill="#000000" opacity="0.22"/>
+        <rect x="19" y="26" width="8" height="10" fill="#e8c874" opacity="0.5"/>
+      </pattern>
     </defs>
 
     <!-- distant soft glow: a diffuse light source behind the haze, like sun/searchlight
@@ -53,24 +67,37 @@
     <polygon points="1180,500 1235,500 1300,80 1255,80" fill="url(#beam)"/>
     <polygon points="1420,500 1460,500 1510,140 1475,140" fill="url(#beam-teal)"/>
 
-    <!-- distant skyline (smaller, more transparent, non-interactive) -->
+    <!-- distant skyline (smaller, more transparent, non-interactive) - varied heights,
+         Detroit-style, including a couple of tall slender towers standing above the rest -->
     <g opacity="0.55" fill="#081420">
       <rect x="20" y="300" width="60" height="200"/>
       <rect x="90" y="260" width="45" height="240"/>
       <rect x="440" y="280" width="70" height="220"/>
-      <rect x="520" y="240" width="40" height="260"/>
+      <rect x="520" y="150" width="34" height="350"/>
       <rect x="900" y="290" width="55" height="210"/>
       <rect x="960" y="250" width="65" height="250"/>
+      <rect x="1080" y="100" width="30" height="400"/>
       <rect x="1340" y="270" width="50" height="230"/>
     </g>
 
-    <!-- non-interactive foreground buildings (fill between towers) -->
+    <!-- non-interactive foreground buildings (fill between towers) - textured facades, more
+         height variety among them -->
     <g fill="url(#bld-fill)" stroke="#0a1b26" stroke-width="1">
       <rect x="260" y="240" width="70" height="260"/>
       <rect x="500" y="270" width="60" height="230"/>
       <rect x="600" y="200" width="95" height="300"/>
       <rect x="618" y="160" width="59" height="45"/>
-      <rect x="720" y="240" width="55" height="260"/>
+      <rect x="720" y="90" width="55" height="410"/>
+      <rect x="945" y="260" width="65" height="240"/>
+      <rect x="1170" y="220" width="70" height="280"/>
+      <rect x="1400" y="260" width="60" height="240"/>
+      <rect x="1480" y="200" width="90" height="300"/>
+    </g>
+    <g fill="url(#facade-grid)" opacity="0.9">
+      <rect x="260" y="240" width="70" height="260"/>
+      <rect x="500" y="270" width="60" height="230"/>
+      <rect x="600" y="200" width="95" height="300"/>
+      <rect x="720" y="90" width="55" height="410"/>
       <rect x="945" y="260" width="65" height="240"/>
       <rect x="1170" y="220" width="70" height="280"/>
       <rect x="1400" y="260" width="60" height="240"/>
@@ -96,6 +123,7 @@
         <polygon points="140,180 185,110 230,180"/>
         <rect x="175" y="60" width="20" height="55"/>
       </g>
+      <rect x="140" y="180" width="90" height="320" fill="url(#facade-grid-lit)" class="tower-facade"/>
       <rect x="212" y="180" width="18" height="320" fill="url(#bld-side)" class="tower-side"/>
       <g fill="#e8c874" opacity="0.85" class="tower-windows">
         <rect x="160" y="220" width="6" height="8"/>
@@ -114,6 +142,7 @@
         <polygon points="360,150 415,70 470,150"/>
         <rect x="405" y="35" width="18" height="42"/>
       </g>
+      <rect x="360" y="150" width="110" height="350" fill="url(#facade-grid-lit)" class="tower-facade"/>
       <rect x="448" y="150" width="22" height="350" fill="url(#bld-side)" class="tower-side"/>
       <g fill="#e8c874" opacity="0.85" class="tower-windows">
         <rect x="380" y="200" width="6" height="8"/>
@@ -132,6 +161,7 @@
         <polygon points="800,130 860,40 920,130"/>
         <rect x="850" y="15" width="20" height="30"/>
       </g>
+      <rect x="800" y="130" width="120" height="370" fill="url(#facade-grid-lit)" class="tower-facade"/>
       <rect x="896" y="130" width="24" height="370" fill="url(#bld-side)" class="tower-side"/>
       <g fill="#e8c874" opacity="0.85" class="tower-windows">
         <rect x="820" y="180" width="6" height="8"/>
@@ -150,6 +180,7 @@
         <rect x="1040" y="190" width="100" height="310"/>
         <rect x="1060" y="150" width="60" height="45"/>
       </g>
+      <rect x="1040" y="190" width="100" height="310" fill="url(#facade-grid-lit)" class="tower-facade"/>
       <rect x="1120" y="190" width="20" height="310" fill="url(#bld-side)" class="tower-side"/>
       <g fill="#e8c874" opacity="0.85" class="tower-windows">
         <rect x="1060" y="230" width="6" height="8"/>
