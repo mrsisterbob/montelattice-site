@@ -92,6 +92,22 @@ body {
   background: radial-gradient(ellipse 90% 90% at 50% 35%, transparent 40%, rgba(0,0,0,0.65) 100%);
 }
 
+/* Drifting haze bands: very slow, independent-period ambient motion so distant cloud/haze
+   layers feel alive rather than a static painted texture. Disabled entirely under
+   prefers-reduced-motion, not just slowed. */
+@media (prefers-reduced-motion: no-preference) {
+  .haze-band-1 { animation: haze-drift-1 70s ease-in-out infinite; }
+  .haze-band-2 { animation: haze-drift-2 95s ease-in-out infinite; }
+}
+@keyframes haze-drift-1 {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(60px); }
+}
+@keyframes haze-drift-2 {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-80px); }
+}
+
 /* --- Interactive skyline towers (home page only): each of the 4 spire buildings is a
    clickable nav target to its project page. --- */
 .rapture-backdrop--interactive svg { pointer-events: none; }

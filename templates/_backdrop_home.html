@@ -23,7 +23,29 @@
         <stop offset="0%" stop-color="#000000" stop-opacity="0.45"/>
         <stop offset="100%" stop-color="#000000" stop-opacity="0.05"/>
       </linearGradient>
+      <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#e8c874" stop-opacity="0.35"/>
+        <stop offset="45%" stop-color="#e8c874" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#e8c874" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="crane-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#050b12"/>
+        <stop offset="100%" stop-color="#020407"/>
+      </linearGradient>
+      <linearGradient id="cloud-band" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#0d2430" stop-opacity="0"/>
+        <stop offset="50%" stop-color="#0d2430" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#0d2430" stop-opacity="0"/>
+      </linearGradient>
     </defs>
+
+    <!-- distant soft glow: a diffuse light source behind the haze, like sun/searchlight
+         filtering through deep water -->
+    <circle cx="1000" cy="80" r="340" fill="url(#sun-glow)"/>
+
+    <!-- drifting cloud/haze bands, slow ambient motion via CSS -->
+    <ellipse cx="300" cy="150" rx="380" ry="60" fill="url(#cloud-band)" class="haze-band haze-band-1"/>
+    <ellipse cx="1200" cy="220" rx="450" ry="70" fill="url(#cloud-band)" class="haze-band haze-band-2"/>
 
     <!-- light shafts, behind buildings -->
     <polygon points="180,500 230,500 340,60 300,60" fill="url(#beam)"/>
@@ -149,6 +171,30 @@
 
     <!-- waterline haze at the base -->
     <rect x="0" y="480" width="1600" height="20" fill="#030609" opacity="0.8"/>
+
+    <!-- Foreground mooring crane: closest layer, largest scale, darkest silhouette - reads as
+         nearest to the viewer, framing the skyline rather than competing with it. Purely
+         decorative (not a nav target, unlike the towers). -->
+    <g fill="url(#crane-fill)" stroke="#000000" stroke-width="1" opacity="0.96">
+      <!-- vertical mast -->
+      <rect x="10" y="40" width="26" height="460"/>
+      <!-- base splay -->
+      <polygon points="0,500 10,440 36,440 46,500"/>
+      <!-- horizontal boom reaching right into frame -->
+      <polygon points="36,90 36,130 480,150 480,110"/>
+      <!-- counterweight boom, short, reaching left off-frame -->
+      <polygon points="0,140 0,175 36,165 36,135"/>
+      <!-- cross-bracing on the mast -->
+      <polygon points="10,150 36,190 30,190 10,158"/>
+      <polygon points="36,150 10,230 16,230 36,158"/>
+      <polygon points="10,240 36,280 30,280 10,248"/>
+      <polygon points="36,240 10,320 16,320 36,248"/>
+      <!-- cab -->
+      <rect x="30" y="95" width="34" height="26"/>
+    </g>
+    <!-- hanging hook cable, thin so it reads as taut wire -->
+    <line x1="440" y1="145" x2="440" y2="260" stroke="#000000" stroke-width="1.5" opacity="0.9"/>
+    <rect x="433" y="258" width="14" height="10" fill="url(#crane-fill)" opacity="0.96"/>
   </svg>
   <div class="fog-layer"></div>
   <div class="depth-dim"></div>
