@@ -93,14 +93,20 @@
   function initInfiniteAscent() {
     const backdrop = document.querySelector(".rapture-backdrop--interactive");
     const svg = backdrop && backdrop.querySelector("svg");
+    const fog = backdrop && backdrop.querySelector(".fog-layer");
     if (!backdrop || !svg || REDUCE_MOTION) return;
 
-    const ASCENT_FACTOR = 0.9; // pixels the skyline pans upward per pixel scrolled
+    const ASCENT_FACTOR = 0.25; // pixels the skyline pans upward per pixel scrolled
     let ticking = false;
 
     function update() {
       const offset = window.scrollY * ASCENT_FACTOR;
       svg.style.transform = `translateX(-50%) translateY(-${offset}px)`;
+      // The fog must pan WITH the buildings (not stay pinned to the viewport) so it reads as
+      // wrapping around the skyline as it rises, rather than sitting still while buildings
+      // slide past underneath it. Only the vertical component matters here - the fog layer
+      // isn't horizontally centered/offset the way the SVG is.
+      if (fog) fog.style.transform = `translateY(-${offset}px)`;
       ticking = false;
     }
 
@@ -112,10 +118,33 @@
     }, { passive: true });
   }
 
+  // --- Establishing shot (home page only): a brief "curtain rises" moment on first load -
+  // the scene starts fully dark/fogged-in and the vignette eases open over ~1.8s as a few
+  // windows light up in sequence, like a city waking. Runs once per page load, never on
+  // scroll. Skipped entirely under prefers-reduced-motion - the scene just renders in its
+  // final state immediately. ---
+  function initEstablishingShot() {
+    const backdrop = document.querySelector(".rapture-backdrop--interactive");
+    if (!backdrop || REDUCE_MOTION) return;
+
+    backdrop.classList.add("establishing-shot");
+    // Force a reflow so the browser registers the starting state before the transition class
+    // is added - otherwise both classes could land in the same frame and the transition
+    // never visibly plays.
+    void backdrop.offsetWidth;
+    requestAnimationFrame(function () {
+      backdrop.classList.add("establishing-shot--revealed");
+    });
+    window.setTimeout(function () {
+      backdrop.classList.remove("establishing-shot", "establishing-shot--revealed");
+    }, 2200);
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initParallax();
     initScrollReveal();
     initFogDescent();
     initInfiniteAscent();
+    initEstablishingShot();
   });
 })();

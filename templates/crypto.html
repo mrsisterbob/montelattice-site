@@ -10,6 +10,10 @@
   Currently paper-trading only; no live capital is at risk.</p>
 </div>
 
+<div class="ticker-sign" aria-label="Latest signal feed">
+  <div class="ticker-track" id="ticker-track">&nbsp;</div>
+</div>
+
 <div class="section">
   <h2>Live Portfolio</h2>
   <div class="metric-row">
@@ -58,6 +62,14 @@ async function loadCryptoDashboard() {
   positionsEl.innerHTML = data.open_positions.length
     ? data.open_positions.map(p => `<div>&bull; <strong style="color: var(--brass-bright);">${p.symbol}</strong> @ ${p.entry_price} (SL ${p.stop_loss} / TP ${p.take_profit})</div>`).join('')
     : 'No open positions.';
+
+  const track = document.getElementById('ticker-track');
+  const items = data.recent_signals.length
+    ? data.recent_signals.map(s => `${s.symbol} • ${s.confidence_score}/100`)
+    : ['NO SIGNALS YET', 'ENGINE NOT YET RUN'];
+  // Repeated twice back-to-back so the CSS marquee (which slides exactly -50%) loops seamlessly.
+  const line = items.join('   ◆   ') + '   ◆   ';
+  track.textContent = line + line;
 }
 loadCryptoDashboard();
 </script>
