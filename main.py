@@ -294,13 +294,14 @@ def console():
     # Public page. Logged-out visitors get the baked demo snapshot with a "DEMO" ribbon
     # (every section alive with sample data); the owner, once logged in, gets the live
     # sibling-DB data. Same layout, same URL - only the data source and the ribbon differ.
-    return render_template("console.html", demo=not session.get("console_authed"))
+    return render_template("console.html", active_page="console",
+                           demo=not session.get("console_authed"))
 
 
 @app.route("/console/demo")
 def console_demo():
     # Kept for any old links - identical to the logged-out /console view.
-    return render_template("console.html", demo=True)
+    return render_template("console.html", active_page="console", demo=True)
 
 
 # Back-compat: old /budget/login and /budget/logout links redirect to the Console equivalents.
