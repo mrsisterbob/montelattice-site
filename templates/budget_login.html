@@ -2,17 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Private &middot; Monte Lattice</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poiret+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/rapture.css') }}">
 </head>
 <body>
-  <div class="page-wrap" style="max-width: 420px; padding-top: 120px;">
-    <div class="ornate-panel">
-      <h2 style="text-align:center;">Private Access</h2>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="topbar__brand" href="/">Monte&nbsp;Lattice</a>
+    </div>
+  </header>
+
+  <div class="wrap" style="max-width: 420px; margin: 80px auto;">
+    <div class="data-card">
+      <h2 class="section-heading">Private Access</h2>
       <form method="POST">
-        <input class="rapture-input" type="password" name="password" placeholder="Password" autofocus required>
-        <button class="rapture-button" type="submit" style="width:100%;">Enter</button>
+        <input class="field" type="password" name="password" placeholder="Password" autofocus required>
+        <button class="btn" type="submit" style="width:100%;">Enter</button>
       </form>
       {% if error %}<div class="status-msg error">{{ error }}</div>{% endif %}
     </div>

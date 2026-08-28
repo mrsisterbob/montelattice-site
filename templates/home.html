@@ -2,96 +2,83 @@
 {% block title %}Monte Lattice{% endblock %}
 {% block content %}
 
-<div class="hero-spacer">
-  <div class="section" style="text-align:center; padding: 24px 0 8px;">
-    <h1>Monte Lattice</h1>
-    <p style="max-width: 640px; margin: 0 auto; font-size: 1.05rem;">
-      Systems built to remove friction from the parts of life that shouldn't require
-      manual repetition &mdash; job search, document filing, market monitoring, and
-      personal finance.
-    </p>
+<section class="hero">
+  <img class="hero__img" src="{{ url_for('static', filename='img/hero-home.webp') }}"
+       alt="Art Deco skyline over teal water with a gold-lit central tower">
+  <div class="hero__scrim"></div>
+  <div class="hero__content">
+    <h1 class="hero__wordmark wordmark">Monte Lattice</h1>
+    <p class="hero__line">Working systems for job search, document filing, market monitoring, and personal finance.</p>
   </div>
+</section>
 
-  <div class="tech-row" aria-label="Built with">
-    <span>Python</span><span>Flask</span><span>SQLite</span><span>Telegram</span><span>Claude</span><span>Gemini</span>
-  </div>
+<div class="hero-belowfold">
+  <span class="wordmark">Monte Lattice</span>
+  <p>Working systems for job search, document filing, market monitoring, and personal finance.</p>
 </div>
 
-<div class="divider ornate"><span class="mark">&#9670;</span></div>
-
-<div class="section compact-panel" style="max-width: 640px; margin: 0 auto;">
-  <div class="ornate-panel">
-    <h2>Why This Exists</h2>
-    <p>Four months into an internship I expected to keep, it ended without warning, and the
-    job search that followed made one thing clear: waiting on a broken hiring process to work
-    in your favor isn't a plan. Each system here started the same way &mdash; a real friction
-    I was living through, automated because doing it by hand once was enough. None were built
-    as portfolio pieces first &mdash; they were built to be used, and the portfolio is what
-    happens when you keep the receipts.</p>
-  </div>
+<div class="wrap">
+  <p class="origin-line">After an internship ended abruptly, I automated the frictions I was living through. Each system here is used daily, not just shown.</p>
 </div>
 
-<div class="section compact-panel" style="max-width: 640px; margin: 0 auto;">
-  <div class="ornate-panel">
-    <h2>How These Connect</h2>
-    <p>Underneath four different problems sits one architecture, reused deliberately: a
-    scheduler that runs continuously, a Telegram bot as the control surface for anything
-    needing a human decision, a database as the source of truth, and AI used strictly as a
-    classifier or router &mdash; never as the author of anything that reaches another person.
-    Building the second and third system was faster than the first, because the hard
-    decisions were already made once.</p>
-  </div>
+<div class="deco-divider" aria-hidden="true">
+  <svg viewBox="0 0 40 20" fill="none" stroke="#C9A24B" stroke-width="1.5">
+    <path d="M2 18 L20 3 L38 18"/>
+    <path d="M9 18 L20 9 L31 18"/>
+  </svg>
 </div>
 
-<div class="section compact-panel" style="max-width: 780px; margin: 0 auto;">
-  <div class="ornate-panel">
-    <h3 style="text-align:center; margin-bottom: 20px;">Live From the Job Engine</h3>
+<div class="wrap section">
+  <div class="live-strip">
+    <p class="live-strip__label">Live from the Job Engine</p>
     <div class="metric-row" id="teaser-metrics">
-      <div class="metric-tile"><span class="value" id="teaser-applied">&mdash;</span><span class="label">Applications Sent</span></div>
-      <div class="metric-tile"><span class="value" id="teaser-interviews">&mdash;</span><span class="label">Interviews</span></div>
-      <div class="metric-tile"><span class="value" id="teaser-reply-rate">&mdash;</span><span class="label">Reply Rate</span></div>
+      <div class="metric"><span class="value" id="teaser-applied" data-count>&mdash;</span><span class="label">Applications Sent</span></div>
+      <div class="metric"><span class="value" id="teaser-interviews" data-count>&mdash;</span><span class="label">Interviews</span></div>
+      <div class="metric"><span class="value is-highlight" id="teaser-reply-rate" data-count data-suffix="%">&mdash;</span><span class="label">Reply Rate</span></div>
     </div>
-    <p id="teaser-no-data" style="text-align:center; margin-top: 16px; display:none;">
-      No pipeline data recorded yet &mdash; this populates once the engine has logged outcomes.
-      <a href="/job-engine">See the full dashboard &rarr;</a>
+    <p id="teaser-no-data" class="live-strip__more" style="display:none;">
+      Populates once the engine logs outcomes.
     </p>
+    <p class="live-strip__more"><a href="/job-engine">See the full dashboard &rarr;</a></p>
   </div>
 </div>
 
-<div class="divider ornate"><span class="mark">&#9670;</span></div>
-
-<div class="section card-grid">
-
-  <a class="project-card ornate-panel" href="/job-engine">
-    <span class="tag">Utility &middot; Public</span>
-    <h3>Job Outreach Engine</h3>
-    <p>An AI-screened, deterministic job-search pipeline with a live CRM, resume compiler,
-    and outcome tracking. Built and used daily.</p>
-  </a>
-
-  <a class="project-card ornate-panel" href="/docfiler">
-    <span class="tag">Marketing &middot; Public</span>
-    <h3>Docfiler</h3>
-    <p>Automated document intake and filing for small law firms and RIAs &mdash; classify,
-    rename, and route client files without opening every one by hand.</p>
-  </a>
-
-  <a class="project-card ornate-panel" href="/crypto">
-    <span class="tag">Utility &middot; Public</span>
-    <h3>Crypto Trading Engine</h3>
-    <p>A market-regime dashboard tracking gamma exposure, funding rates, and open interest
-    across BTC/ETH and tracked altcoins, feeding a validated breakout strategy.</p>
-  </a>
-
-  <a class="project-card ornate-panel" href="/budget">
-    <span class="tag private">Private</span>
-    <h3>Budget Tracker</h3>
-    <p>Personal income and spending tracker. Access restricted.</p>
-  </a>
-
+<div class="deco-divider" aria-hidden="true">
+  <svg viewBox="0 0 40 20" fill="none" stroke="#C9A24B" stroke-width="1.5">
+    <path d="M2 18 L20 3 L38 18"/>
+    <path d="M9 18 L20 9 L31 18"/>
+  </svg>
 </div>
 
-<div id="tower-label" class="tower-label"></div>
+<div class="wrap section">
+  <div class="card-grid">
+
+    <a class="card" href="/job-engine">
+      <span class="card__tag">Utility &middot; Public</span>
+      <h3>Job Outreach Engine</h3>
+      <p>AI-screened job-search pipeline with a live CRM, r&eacute;sum&eacute; compiler, and outcome tracking.</p>
+    </a>
+
+    <a class="card" href="/docfiler">
+      <span class="card__tag">Marketing &middot; Public</span>
+      <h3>DocFiler</h3>
+      <p>Automated document intake and filing for small law firms and RIAs.</p>
+    </a>
+
+    <a class="card" href="/crypto">
+      <span class="card__tag">Utility &middot; Public</span>
+      <h3>Crypto Trading Engine</h3>
+      <p>Market-regime dashboard tracking gamma exposure, funding, and open interest across BTC/ETH.</p>
+    </a>
+
+    <a class="card" href="/budget">
+      <span class="card__tag is-private">Private</span>
+      <h3>Budget Tracker</h3>
+      <p>Personal income and spending tracker. Access restricted.</p>
+    </a>
+
+  </div>
+</div>
 
 <script>
 (function () {
@@ -103,32 +90,16 @@
         document.getElementById('teaser-no-data').style.display = 'block';
         return;
       }
-      document.getElementById('teaser-applied').textContent = data.total_applied;
-      document.getElementById('teaser-interviews').textContent = data.total_interviews;
-      document.getElementById('teaser-reply-rate').textContent = data.reply_rate_pct + '%';
+      // Stash targets as data-target; the IntersectionObserver in site.js counts them up.
+      document.getElementById('teaser-applied').dataset.target = data.total_applied;
+      document.getElementById('teaser-interviews').dataset.target = data.total_interviews;
+      document.getElementById('teaser-reply-rate').dataset.target = data.reply_rate_pct;
+      if (window.MonteLattice && window.MonteLattice.armCountUp) window.MonteLattice.armCountUp();
     })
     .catch(function () {
       document.getElementById('teaser-metrics').style.display = 'none';
       document.getElementById('teaser-no-data').style.display = 'block';
     });
-})();
-
-(function () {
-  const label = document.getElementById('tower-label');
-  const towers = document.querySelectorAll('.skyline-tower');
-  towers.forEach(function (tower) {
-    tower.addEventListener('mouseenter', function () {
-      label.textContent = tower.getAttribute('data-label');
-      label.classList.add('visible');
-    });
-    tower.addEventListener('mousemove', function (e) {
-      label.style.left = (e.clientX + 16) + 'px';
-      label.style.top = (e.clientY - 8) + 'px';
-    });
-    tower.addEventListener('mouseleave', function () {
-      label.classList.remove('visible');
-    });
-  });
 })();
 </script>
 

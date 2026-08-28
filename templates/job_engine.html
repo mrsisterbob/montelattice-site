@@ -1,40 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Job Outreach Engine &middot; Monte Lattice{% endblock %}
+{% block title %}Job Engine &middot; Monte Lattice{% endblock %}
 {% block content %}
 
-<div class="section">
-  <span class="project-card__tag"></span>
-  <h1>Job Outreach Engine</h1>
-  <p>An AI-screened job-search pipeline: sources listings from multiple boards, screens and
-  tailors outreach against a strict evidence bank (no hallucinated experience), logs everything
-  to a CRM, and runs through a swipe-reply Telegram bot. This page reflects live metrics from the
-  system I actually use daily.</p>
-</div>
+{% set page_name = "Job Engine" %}
+{% set solves = "An AI-screened job-search pipeline with a live CRM, résumé compiler, and outcome tracking. Run daily." %}
+{% include "_product_head.html" %}
 
-<div class="section">
-  <h2>Pipeline Metrics</h2>
-  <div class="metric-row" id="metric-tiles">
-    <div class="metric-tile"><span class="value" id="m-applied">&mdash;</span><span class="label">Applications Sent</span></div>
-    <div class="metric-tile"><span class="value" id="m-interviews">&mdash;</span><span class="label">Interviews</span></div>
-    <div class="metric-tile"><span class="value" id="m-reply-rate">&mdash;</span><span class="label">Reply Rate</span></div>
+<div id="dashboard" style="display:none;">
+  <div class="wrap section">
+    <h2 class="section-heading">Pipeline Metrics</h2>
+    <div class="data-grid" id="metric-tiles">
+      <div class="data-card"><h3>Applications Sent</h3><span class="value" id="m-applied" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Interviews</h3><span class="value" id="m-interviews" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Reply Rate</h3><span class="value is-highlight" id="m-reply-rate" style="font-size:1.9rem;">&mdash;</span></div>
+    </div>
+  </div>
+
+  <div class="wrap section">
+    <h2 class="section-heading">Applications &amp; Interviews by Source</h2>
+    <div class="data-card"><canvas id="source-chart" height="90"></canvas></div>
+  </div>
+
+  <div class="wrap section">
+    <h2 class="section-heading">Daily Activity (Last 90 Days)</h2>
+    <div class="data-card"><canvas id="activity-chart" height="90"></canvas></div>
   </div>
 </div>
 
-<div class="section ornate-panel">
-  <h3>Applications &amp; Interviews by Source</h3>
-  <canvas id="source-chart" height="90"></canvas>
+<div class="wrap section">
+  <p id="no-data-msg" class="empty-state" style="display:none;">Populates once the engine logs outcomes.</p>
 </div>
-
-<div class="section ornate-panel">
-  <h3>Daily Activity (Last 90 Days)</h3>
-  <canvas id="activity-chart" height="90"></canvas>
-</div>
-
-<p id="no-data-msg" class="status-msg" style="display:none;">
-  No pipeline data recorded yet &mdash; metrics will populate once the engine has run and logged outcomes.
-</p>
 
 <script>
+var ML_TEAL = '#0E3A3A', ML_GOLD = '#C9A24B', ML_ORANGE = '#E8823A', ML_GRID = 'rgba(14,58,58,0.12)', ML_TICK = '#3a5f5f';
+
 async function loadJobEngineDashboard() {
   const res = await fetch('/api/job-engine/summary');
   const data = await res.json();
@@ -44,6 +43,7 @@ async function loadJobEngineDashboard() {
     return;
   }
 
+  document.getElementById('dashboard').style.display = 'block';
   document.getElementById('m-applied').textContent = data.total_applied;
   document.getElementById('m-interviews').textContent = data.total_interviews;
   document.getElementById('m-reply-rate').textContent = data.reply_rate_pct + '%';
@@ -54,11 +54,11 @@ async function loadJobEngineDashboard() {
     data: {
       labels: sources,
       datasets: [
-        { label: 'Applied', data: sources.map(s => data.by_source[s].applied), backgroundColor: '#8a712f' },
-        { label: 'Interview', data: sources.map(s => data.by_source[s].interview), backgroundColor: '#e8c874' },
+        { label: 'Applied', data: sources.map(s => data.by_source[s].applied), backgroundColor: ML_TEAL },
+        { label: 'Interview', data: sources.map(s => data.by_source[s].interview), backgroundColor: ML_GOLD },
       ]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#a8a190' } }, x: { ticks: { color: '#a8a190' } } }, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: ML_TICK }, grid: { color: ML_GRID } }, x: { ticks: { color: ML_TICK }, grid: { color: ML_GRID } } }, plugins: { legend: { labels: { color: ML_TEAL } } } }
   });
 
   new Chart(document.getElementById('activity-chart'), {
@@ -66,11 +66,11 @@ async function loadJobEngineDashboard() {
     data: {
       labels: data.daily_activity.map(d => d.date),
       datasets: [
-        { label: 'Drafts Staged', data: data.daily_activity.map(d => d.drafts_staged), borderColor: '#c9a24b', tension: 0.2 },
-        { label: 'Applied', data: data.daily_activity.map(d => d.applied_count), borderColor: '#4a8a5c', tension: 0.2 },
+        { label: 'Drafts Staged', data: data.daily_activity.map(d => d.drafts_staged), borderColor: ML_GOLD, tension: 0.2 },
+        { label: 'Applied', data: data.daily_activity.map(d => d.applied_count), borderColor: ML_ORANGE, tension: 0.2 },
       ]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#a8a190' } }, x: { ticks: { color: '#a8a190' } } }, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: ML_TICK }, grid: { color: ML_GRID } }, x: { ticks: { color: ML_TICK }, grid: { color: ML_GRID } } }, plugins: { legend: { labels: { color: ML_TEAL } } } }
   });
 }
 loadJobEngineDashboard();

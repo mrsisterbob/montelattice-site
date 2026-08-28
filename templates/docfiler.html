@@ -1,50 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Docfiler &middot; Monte Lattice{% endblock %}
+{% block title %}DocFiler &middot; Monte Lattice{% endblock %}
 {% block content %}
 
-<div class="section">
-  <h1>Docfiler</h1>
-  <p style="font-size: 1.1rem;">Automated document intake and filing for small law firms and
-  registered investment advisors.</p>
+{% set page_name = "DocFiler" %}
+{% set solves = "Automated document intake and filing for small law firms and RIAs — classify, rename, and route client files without opening each one." %}
+{% include "_product_head.html" %}
+
+<div class="wrap section">
+  <h2 class="section-heading">What It Does</h2>
+  <div class="data-grid">
+    <div class="data-card"><h3>Classify</h3><p>Matches each file to your firm's own client list and document types — never invents a client.</p></div>
+    <div class="data-card"><h3>File</h3><p>Renames to a standardized, searchable name and routes it automatically. Every move is logged.</p></div>
+    <div class="data-card"><h3>Review</h3><p>Anything low-confidence is set aside for a human. Duplicates are caught by content, not filename.</p></div>
+  </div>
 </div>
 
-<div class="section ornate-panel">
-  <h3>The Problem</h3>
-  <p>Small law firms and RIAs generate a constant stream of scanned deeds, trust amendments,
-  compliance forms, and client correspondence &mdash; and most still sort it by hand. Enterprise
-  document-management platforms (iManage, NetDocuments, DocuWare) are built and priced for large
-  firms, leaving small practices to either pay for more than they need or keep doing it manually.
-  I've personally spent hours renaming and refiling thousands of backdated client documents by
-  hand at a wealth-management firm &mdash; the technology to automate this exists, it just isn't
-  built for firms this size.</p>
-</div>
-
-<div class="section ornate-panel">
-  <h3>How It Works</h3>
-  <p>Docfiler watches an intake folder (including a Google Drive-synced one), extracts text from
-  each document (digital text first, OCR fallback for scans), classifies it against your firm's
-  own client list and document types, and files it under a standardized, searchable name &mdash;
-  automatically. Anything the system isn't confident about is set aside for a human to review,
-  never silently misfiled.</p>
-  <ul style="color: var(--ivory-dim);">
-    <li>Client and document-type matching is constrained to your firm's own manifest &mdash; it never invents a client or category.</li>
-    <li>Every file move is logged, so nothing that happens is invisible or irreversible.</li>
-    <li>Duplicate documents are detected by content, not filename, and never filed twice.</li>
-  </ul>
-</div>
-
-<div class="section ornate-panel">
-  <h3>Request a Free File Audit</h3>
-  <p>I'll run a no-obligation dry-run against a sample of your firm's existing files and show you
-  exactly what it would rename and where it would file everything &mdash; before anything is
-  touched.</p>
-  <form id="contact-form">
-    <input class="rapture-input" type="text" name="name" placeholder="Name" required>
-    <input class="rapture-input" type="email" name="email" placeholder="Email" required>
-    <textarea class="rapture-input" name="message" placeholder="Tell me a bit about your firm and document volume" rows="4"></textarea>
-    <button class="rapture-button" type="submit">Request Audit</button>
-  </form>
-  <div id="contact-status" class="status-msg"></div>
+<div class="wrap section">
+  <h2 class="section-heading">Request a Free File Audit</h2>
+  <div class="data-card">
+    <p style="color:var(--teal-70); margin-bottom:16px;">A no-obligation dry run against a sample of your files, showing exactly what it would rename and where — before anything is touched.</p>
+    <form id="contact-form">
+      <input class="field" type="text" name="name" placeholder="Name" required>
+      <input class="field" type="email" name="email" placeholder="Email" required>
+      <textarea class="field" name="message" placeholder="Your firm and document volume" rows="4"></textarea>
+      <button class="btn" type="submit">Request Audit</button>
+    </form>
+    <div id="contact-status" class="status-msg"></div>
+  </div>
 </div>
 
 <script>
@@ -52,11 +34,7 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
   e.preventDefault();
   const form = e.target;
   const statusEl = document.getElementById('contact-status');
-  const payload = {
-    name: form.name.value,
-    email: form.email.value,
-    message: form.message.value,
-  };
+  const payload = { name: form.name.value, email: form.email.value, message: form.message.value };
   statusEl.textContent = 'Sending...';
   statusEl.className = 'status-msg';
   try {

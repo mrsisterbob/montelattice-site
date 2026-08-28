@@ -2,48 +2,69 @@
 {% block title %}Budget &middot; Monte Lattice{% endblock %}
 {% block content %}
 
-<div class="section" style="display:flex; justify-content: space-between; align-items:center;">
-  <h1 style="margin:0;">Budget Tracker</h1>
-  <a class="rapture-button secondary" href="/budget/logout">Log Out</a>
+{% set page_name = "Budget" %}
+{% set solves = "Personal income and spending tracker. Access restricted." %}
+{% include "_product_head.html" %}
+
+<div class="wrap section">
+  <div style="display:flex; justify-content:flex-end;">
+    <a class="btn btn--ghost" href="/budget/logout">Log Out</a>
+  </div>
 </div>
 
-<div class="section ornate-panel">
-  <h3>Income vs Expenses</h3>
-  <canvas id="income-chart" height="90"></canvas>
+<div id="dashboard" style="display:none;">
+  <div class="wrap section">
+    <h2 class="section-heading">Income vs Expenses</h2>
+    <div class="data-card"><canvas id="income-chart" height="90"></canvas></div>
+  </div>
+
+  <div class="wrap section">
+    <h2 class="section-heading">Spending Breakdown</h2>
+    <div class="data-card"><canvas id="wheel-chart" height="90"></canvas></div>
+  </div>
 </div>
 
-<div class="section ornate-panel">
-  <h3>Spending Breakdown</h3>
-  <canvas id="wheel-chart" height="90"></canvas>
+<div class="wrap section">
+  <p id="no-data-msg" class="empty-state" style="display:none;">Populates once the tracker logs transactions.</p>
+  <p class="status-msg" style="text-align:center;">Read-only. Import new statements in the budget-tracker app directly.</p>
 </div>
-
-<p class="status-msg">To import a new statement, use the budget-tracker app directly (this page is read-only).</p>
 
 <script>
+var ML_TEAL = '#0E3A3A', ML_GOLD = '#C9A24B', ML_ORANGE = '#E8823A', ML_GRID = 'rgba(14,58,58,0.12)', ML_TICK = '#3a5f5f';
+
 async function loadBudgetCharts() {
   const incomeRes = await fetch('/api/budget/income-over-time');
   const incomeData = await incomeRes.json();
+  const wheelRes = await fetch('/api/budget/spending-wheel');
+  const wheelData = await wheelRes.json();
+
+  const hasData = (incomeData.months && incomeData.months.length) ||
+                  (wheelData.bucket_totals && Object.keys(wheelData.bucket_totals).length);
+  if (!hasData) {
+    document.getElementById('no-data-msg').style.display = 'block';
+    return;
+  }
+  document.getElementById('dashboard').style.display = 'block';
+
   new Chart(document.getElementById('income-chart'), {
     type: 'bar',
     data: {
       labels: incomeData.months,
       datasets: [
-        { label: 'Income', data: incomeData.income, backgroundColor: '#4a8a5c' },
-        { label: 'Expenses', data: incomeData.expenses, backgroundColor: '#a8412f' },
+        { label: 'Income', data: incomeData.income, backgroundColor: ML_TEAL },
+        { label: 'Expenses', data: incomeData.expenses, backgroundColor: ML_ORANGE },
       ]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#a8a190' } }, x: { ticks: { color: '#a8a190' } } }, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: ML_TICK }, grid: { color: ML_GRID } }, x: { ticks: { color: ML_TICK }, grid: { color: ML_GRID } } }, plugins: { legend: { labels: { color: ML_TEAL } } } }
   });
 
-  const wheelRes = await fetch('/api/budget/spending-wheel');
-  const wheelData = await wheelRes.json();
   new Chart(document.getElementById('wheel-chart'), {
     type: 'doughnut',
     data: {
       labels: Object.keys(wheelData.bucket_totals),
-      datasets: [{ data: Object.values(wheelData.bucket_totals), backgroundColor: ['#a8412f', '#c9a24b', '#8a712f'] }]
+      datasets: [{ data: Object.values(wheelData.bucket_totals), backgroundColor: [ML_TEAL, ML_GOLD, ML_ORANGE, '#3a5f5f', '#8a6d2f', '#b5652a'] }]
     },
-    options: { responsive: true, plugins: { legend: { labels: { color: '#e8e2d0' } } } }
+    options: { responsive: true, plugins: { legend: { labels: { color: ML_TEAL } } } }
   });
 }
 loadBudgetCharts();

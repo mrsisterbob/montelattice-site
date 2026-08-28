@@ -1,42 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Crypto Trading Engine &middot; Monte Lattice{% endblock %}
+{% block title %}Crypto &middot; Monte Lattice{% endblock %}
 {% block content %}
 
-<div class="section">
-  <h1>Crypto Trading Engine</h1>
-  <p>A market-regime monitor tracking Deribit dealer gamma exposure, Binance funding rates and
-  open interest, and BTC dominance volatility &mdash; feeding a Donchian/ATR/RVOL breakout
-  strategy with a validated backtest, live drawdown circuit breaker, and 2-stage risk management.
-  Currently paper-trading only; no live capital is at risk.</p>
-</div>
+{% set page_name = "Crypto" %}
+{% set solves = "A market-regime dashboard tracking gamma exposure, funding, and open interest across BTC/ETH and tracked alts." %}
+{% include "_product_head.html" %}
 
-<div class="ticker-sign" aria-label="Latest signal feed">
-  <div class="ticker-track" id="ticker-track">&nbsp;</div>
-</div>
+<div id="dashboard" style="display:none;">
+  <div class="wrap section">
+    <h2 class="section-heading">Live Portfolio</h2>
+    <div class="data-grid">
+      <div class="data-card"><h3>Open Positions</h3><span class="value" id="c-open" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Closed Trades</h3><span class="value" id="c-closed" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Win Rate</h3><span class="value" id="c-winrate" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Realized PnL</h3><span class="value is-highlight" id="c-pnl" style="font-size:1.9rem;">&mdash;</span></div>
+    </div>
+  </div>
 
-<div class="section">
-  <h2>Live Portfolio</h2>
-  <div class="metric-row">
-    <div class="metric-tile"><span class="value" id="c-open">&mdash;</span><span class="label">Open Positions</span></div>
-    <div class="metric-tile"><span class="value" id="c-closed">&mdash;</span><span class="label">Closed Trades</span></div>
-    <div class="metric-tile"><span class="value" id="c-winrate">&mdash;</span><span class="label">Win Rate</span></div>
-    <div class="metric-tile"><span class="value" id="c-pnl">&mdash;</span><span class="label">Realized PnL</span></div>
+  <div class="wrap section">
+    <h2 class="section-heading">Recent Signals</h2>
+    <div class="data-card"><div class="data-list" id="signals-list">Loading&hellip;</div></div>
+  </div>
+
+  <div class="wrap section">
+    <h2 class="section-heading">Open Positions</h2>
+    <div class="data-card"><div class="data-list" id="positions-list">Loading&hellip;</div></div>
   </div>
 </div>
 
-<div class="section ornate-panel">
-  <h3>Recent Signals</h3>
-  <div id="signals-list" style="color: var(--ivory-dim);">Loading&hellip;</div>
+<div class="wrap section">
+  <p id="no-data-msg" class="empty-state" style="display:none;">Populates once the engine is running.</p>
 </div>
-
-<div class="section ornate-panel">
-  <h3>Open Positions</h3>
-  <div id="positions-list" style="color: var(--ivory-dim);">Loading&hellip;</div>
-</div>
-
-<p id="no-data-msg" class="status-msg" style="display:none;">
-  No trading data recorded yet &mdash; this dashboard populates once the engine is running.
-</p>
 
 <script>
 async function loadCryptoDashboard() {
@@ -48,6 +42,7 @@ async function loadCryptoDashboard() {
     return;
   }
 
+  document.getElementById('dashboard').style.display = 'block';
   document.getElementById('c-open').textContent = data.open_positions.length;
   document.getElementById('c-closed').textContent = data.closed_trade_count;
   document.getElementById('c-winrate').textContent = data.win_rate_pct + '%';
@@ -55,21 +50,13 @@ async function loadCryptoDashboard() {
 
   const signalsEl = document.getElementById('signals-list');
   signalsEl.innerHTML = data.recent_signals.length
-    ? data.recent_signals.map(s => `<div>&bull; <strong style="color: var(--brass-bright);">${s.symbol}</strong> &mdash; confidence ${s.confidence_score}/100 &mdash; ${s.context_summary || ''}</div>`).join('')
+    ? data.recent_signals.map(s => `<div><strong>${s.symbol}</strong> &mdash; confidence ${s.confidence_score}/100 &mdash; ${s.context_summary || ''}</div>`).join('')
     : 'No signals yet.';
 
   const positionsEl = document.getElementById('positions-list');
   positionsEl.innerHTML = data.open_positions.length
-    ? data.open_positions.map(p => `<div>&bull; <strong style="color: var(--brass-bright);">${p.symbol}</strong> @ ${p.entry_price} (SL ${p.stop_loss} / TP ${p.take_profit})</div>`).join('')
+    ? data.open_positions.map(p => `<div><strong>${p.symbol}</strong> @ ${p.entry_price} (SL ${p.stop_loss} / TP ${p.take_profit})</div>`).join('')
     : 'No open positions.';
-
-  const track = document.getElementById('ticker-track');
-  const items = data.recent_signals.length
-    ? data.recent_signals.map(s => `${s.symbol} • ${s.confidence_score}/100`)
-    : ['NO SIGNALS YET', 'ENGINE NOT YET RUN'];
-  // Repeated twice back-to-back so the CSS marquee (which slides exactly -50%) loops seamlessly.
-  const line = items.join('   ◆   ') + '   ◆   ';
-  track.textContent = line + line;
 }
 loadCryptoDashboard();
 </script>

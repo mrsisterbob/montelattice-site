@@ -1,0 +1,16 @@
+{# Shared product-page header: teal title band (wordmark page name + gold hairline)
+   followed by the one "what this solves" line. Include with:
+     {% set page_name = "Job Engine" %}
+     {% set solves = "..." %}
+     {% include "_product_head.html" %}
+#}
+<div class="title-band">
+  <div class="title-band__inner">
+    <h1>{{ page_name }}</h1>
+    <div class="title-band__rule"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="solves-line">{{ solves }}</p>
+</div>
