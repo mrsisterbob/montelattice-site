@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 docfiler_leads.txt
+
+# local secrets
+.env
+console_heartbeats.db

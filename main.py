@@ -20,6 +20,28 @@ from functools import wraps
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
+
+def _load_dotenv():
+    """Minimal .env loader (no dependency): KEY=VALUE lines, '#' comments, optional quotes.
+    Real environment variables always win over the file, so a host's config is never overridden.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key = key.strip()
+                val = val.strip().strip('"').strip("'")
+                os.environ.setdefault(key, val)
+    except FileNotFoundError:
+        pass
+
+
+_load_dotenv()
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SITE_SECRET_KEY", "dev-only-change-me")
 
