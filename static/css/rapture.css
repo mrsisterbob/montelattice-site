@@ -840,7 +840,7 @@ canvas { max-width: 100%; }
 .console:not(.console--demo) .sec-head--img {
   position: relative;
   display: block;               /* override the flex row; children are absolutely placed */
-  height: 260px;
+  height: 310px;
   padding: 0;
   margin-bottom: 18px;
   overflow: hidden;
@@ -896,7 +896,7 @@ canvas { max-width: 100%; }
   /* keep the sliver a single row - the base .sec-head 720px rule stacks it,
      but sec-head--img children are absolutely positioned, so just hold height */
   .console:not(.console--demo) .sec-head--img {
-    height: 180px;
+    height: 210px;
     display: block;
   }
   .console:not(.console--demo) .sec-head--img h2 { bottom: 12px; }
