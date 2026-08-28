@@ -556,3 +556,149 @@ canvas { max-width: 100%; }
   .card-grid { max-width: none; }
   .section { margin: 32px auto; }
 }
+
+/* =========================================================================
+   Console cockpit  (scoped to .console - the public site is untouched)
+   ========================================================================= */
+
+.site-footer__console {
+  display: inline-block;
+  margin-left: 14px;
+  color: rgba(250, 248, 243, 0.55);
+  border-bottom: 1px solid transparent;
+}
+.site-footer__console:hover { color: var(--bg); border-bottom-color: var(--gold); }
+
+/* Public /budget sample doughnut */
+.sample-wheel { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+.sample-wheel svg { width: 150px; height: 150px; transform: rotate(-90deg); }
+.sample-wheel__key { list-style: none; margin: 0; padding: 0; font-size: 0.85rem; color: var(--teal-70); }
+.sample-wheel__key li { display: flex; align-items: center; gap: 9px; margin: 6px 0; }
+.sample-wheel__key span { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+/* --- Console theme: warmer ground, faint green cast, still restrained --- */
+.console {
+  --bg: #F7F6EF;
+  --teal-70: #375b53;
+  --line: rgba(14, 58, 58, 0.12);
+  --ok: #3d8168;
+  --warn: #C9862B;
+  --down: #B4472F;
+  background: var(--bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .console {
+    --bg: #10201c;
+    --teal: #e7efe9;
+    --teal-70: #9fb8ad;
+    --gold: #d8b869;
+    --card-border: rgba(231, 239, 233, 0.16);
+    --line: rgba(231, 239, 233, 0.14);
+    --ok: #5cc79f;
+    --warn: #e0a548;
+    --down: #e8795f;
+  }
+}
+:root[data-theme="dark"] .console {
+  --bg: #10201c;
+  --teal: #e7efe9;
+  --teal-70: #9fb8ad;
+  --gold: #d8b869;
+  --card-border: rgba(231, 239, 233, 0.16);
+  --line: rgba(231, 239, 233, 0.14);
+  --ok: #5cc79f;
+  --warn: #e0a548;
+  --down: #e8795f;
+}
+.console { color: var(--teal); }
+.console .section-heading { color: var(--teal); }
+
+/* Section header with a freshness stamp on the right */
+.console .sec-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; border-bottom: 1px solid var(--gold);
+  padding-bottom: 8px; margin-bottom: 18px;
+}
+.console .sec-head h2 {
+  font-size: 1rem; letter-spacing: 0.14em; text-transform: uppercase;
+  font-weight: 700; margin: 0; color: var(--teal);
+}
+.console .freshness { font-size: 0.75rem; color: var(--teal-70); white-space: nowrap; }
+.console .freshness::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ok); margin-right: 6px; vertical-align: middle;
+}
+.console .freshness.is-stale::before { background: var(--warn); }
+.console .freshness.is-down::before { background: var(--down); }
+
+/* Today strip */
+.today-strip { display: grid; gap: 10px; }
+.today-item {
+  background: #fff; border: 1px solid var(--card-border);
+  border-left: 3px solid var(--gold);
+  padding: 12px 16px; font-size: 0.92rem; color: var(--teal);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .console .today-item,
+  :root:not([data-theme="light"]) .console .kpi-tile,
+  :root:not([data-theme="light"]) .console .status-item,
+  :root:not([data-theme="light"]) .console .data-card { background: #16302a; }
+}
+:root[data-theme="dark"] .console .today-item,
+:root[data-theme="dark"] .console .kpi-tile,
+:root[data-theme="dark"] .console .status-item,
+:root[data-theme="dark"] .console .data-card { background: #16302a; }
+.today-item.is-warn { border-left-color: var(--warn); }
+.today-item.is-clear { border-left-color: var(--ok); color: var(--teal-70); }
+
+/* Status board */
+.status-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.status-item {
+  background: #fff; border: 1px solid var(--card-border); border-top: 3px solid var(--gold);
+  padding: 14px 16px;
+}
+.status-item h3 {
+  margin: 0 0 6px; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--teal-70); font-weight: 700;
+}
+.status-item .dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  margin-right: 7px; vertical-align: middle;
+}
+.status-item .dot.ok { background: var(--ok); }
+.status-item .dot.warn { background: var(--warn); }
+.status-item .dot.down { background: var(--down); }
+.status-item .detail { font-size: 0.85rem; color: var(--teal-70); }
+
+/* KPI row */
+.kpi-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px;
+}
+.kpi-tile {
+  background: #fff; border: 1px solid var(--card-border); border-top: 3px solid var(--gold);
+  padding: 16px; text-align: left;
+}
+.kpi-tile .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--teal); line-height: 1.1; }
+.kpi-tile .kpi-value.is-highlight { color: var(--orange); }
+.kpi-tile .kpi-value.is-neg { color: var(--down); }
+.kpi-tile .kpi-label {
+  display: block; margin-top: 5px; font-size: 0.75rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--teal-70);
+}
+
+.console .data-list > div { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.console .data-list > div:last-child { border-bottom: 0; }
+.console--demo .kpi-value, .console--demo .data-list { filter: blur(0); }
+.console--demo::before {
+  content: "Demo — numbers rounded / masked"; display: block; text-align: center;
+  background: var(--gold); color: var(--teal); font-size: 0.78rem; letter-spacing: 0.08em;
+  padding: 6px; text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .console .sec-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .status-board { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .console * { transition: none !important; animation: none !important; }
+}

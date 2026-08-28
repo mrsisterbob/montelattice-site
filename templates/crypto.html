@@ -6,28 +6,6 @@
 {% set solves = "A market-regime dashboard tracking gamma exposure, funding, and open interest across BTC/ETH and tracked alts." %}
 {% include "_product_head.html" %}
 
-<div id="dashboard" style="display:none;">
-  <div class="wrap section">
-    <h2 class="section-heading">Live Portfolio</h2>
-    <div class="data-grid">
-      <div class="data-card"><h3>Open Positions</h3><span class="value" id="c-open" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Closed Trades</h3><span class="value" id="c-closed" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Win Rate</h3><span class="value" id="c-winrate" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Realized PnL</h3><span class="value is-highlight" id="c-pnl" style="font-size:1.9rem;">&mdash;</span></div>
-    </div>
-  </div>
-
-  <div class="wrap section">
-    <h2 class="section-heading">Recent Signals</h2>
-    <div class="data-card"><div class="data-list" id="signals-list">Loading&hellip;</div></div>
-  </div>
-
-  <div class="wrap section">
-    <h2 class="section-heading">Open Positions</h2>
-    <div class="data-card"><div class="data-list" id="positions-list">Loading&hellip;</div></div>
-  </div>
-</div>
-
 <div class="wrap section">
   <h2 class="section-heading">What It Tracks</h2>
   <div class="explain-grid">
@@ -63,36 +41,8 @@
         </tbody>
       </table>
     </div>
-    <p class="sample-note" id="no-data-msg">Illustrative rows. Paper-trading only &mdash; no live capital. Live portfolio and signals replace this once the engine is running.</p>
+    <p class="sample-note">Illustrative rows. Paper-trading only &mdash; no live capital. The live portfolio and signal feed run in the <a href="/console">Console</a>.</p>
   </div>
 </div>
-
-<script>
-async function loadCryptoDashboard() {
-  const res = await fetch('/api/crypto/summary');
-  const data = await res.json();
-
-  if (!data.data_available) return;  // sample table + note already shown
-
-  document.getElementById('dashboard').style.display = 'block';
-  var note = document.getElementById('no-data-msg');
-  if (note) note.style.display = 'none';
-  document.getElementById('c-open').textContent = data.open_positions.length;
-  document.getElementById('c-closed').textContent = data.closed_trade_count;
-  document.getElementById('c-winrate').textContent = data.win_rate_pct + '%';
-  document.getElementById('c-pnl').textContent = '$' + data.realized_pnl_usd.toFixed(2);
-
-  const signalsEl = document.getElementById('signals-list');
-  signalsEl.innerHTML = data.recent_signals.length
-    ? data.recent_signals.map(s => `<div><strong>${s.symbol}</strong> &mdash; confidence ${s.confidence_score}/100 &mdash; ${s.context_summary || ''}</div>`).join('')
-    : 'No signals yet.';
-
-  const positionsEl = document.getElementById('positions-list');
-  positionsEl.innerHTML = data.open_positions.length
-    ? data.open_positions.map(p => `<div><strong>${p.symbol}</strong> @ ${p.entry_price} (SL ${p.stop_loss} / TP ${p.take_profit})</div>`).join('')
-    : 'No open positions.';
-}
-loadCryptoDashboard();
-</script>
 
 {% endblock %}

@@ -3,26 +3,8 @@
 {% block content %}
 
 {% set page_name = "Budget" %}
-{% set solves = "Personal income and spending tracker. Access restricted." %}
+{% set solves = "A personal income and spending tracker. Statements in, monthly rollups and a category breakdown out." %}
 {% include "_product_head.html" %}
-
-<div class="wrap section">
-  <div style="display:flex; justify-content:flex-end;">
-    <a class="btn btn--ghost" href="/budget/logout">Log Out</a>
-  </div>
-</div>
-
-<div id="dashboard" style="display:none;">
-  <div class="wrap section">
-    <h2 class="section-heading">Income vs Expenses</h2>
-    <div class="data-card"><canvas id="income-chart" height="90"></canvas></div>
-  </div>
-
-  <div class="wrap section">
-    <h2 class="section-heading">Spending Breakdown</h2>
-    <div class="data-card"><canvas id="wheel-chart" height="90"></canvas></div>
-  </div>
-</div>
 
 <div class="wrap section">
   <h2 class="section-heading">What's Inside</h2>
@@ -30,60 +12,45 @@
     <div class="explain-card">
       <span class="step">Ingest</span>
       <h3>Statement import</h3>
-      <p>Bank and card statements are parsed and categorized into income and spending buckets.</p>
+      <p>Bank and card statements are parsed and sorted into income and spending buckets &mdash; no manual entry.</p>
     </div>
     <div class="explain-card">
       <span class="step">View</span>
       <h3>Monthly rollup</h3>
-      <p>Income vs. expenses by month, plus a spending breakdown by category. This page is read-only.</p>
+      <p>Income against expenses, month over month, so the trend is obvious at a glance rather than buried in a ledger.</p>
+    </div>
+    <div class="explain-card">
+      <span class="step">Break down</span>
+      <h3>Where it goes</h3>
+      <p>A category breakdown of the current month's spending. Read-only &mdash; the data is edited in the tracker app itself.</p>
     </div>
   </div>
 </div>
 
 <div class="wrap section">
-  <p id="no-data-msg" class="empty-state" style="display:none;">Charts populate once the tracker logs transactions.</p>
-  <p class="status-msg" style="text-align:center;">Read-only. Import new statements in the budget-tracker app directly.</p>
+  <h2 class="section-heading">Sample Breakdown</h2>
+  <div class="data-card">
+    <div class="sample-wheel" aria-hidden="true">
+      <svg viewBox="0 0 42 42" role="img">
+        <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--bg)" stroke-width="6"></circle>
+        <circle cx="21" cy="21" r="15.915" fill="none" stroke="#0E3A3A" stroke-width="6"
+                stroke-dasharray="38 62" stroke-dashoffset="25"></circle>
+        <circle cx="21" cy="21" r="15.915" fill="none" stroke="#C9A24B" stroke-width="6"
+                stroke-dasharray="26 74" stroke-dashoffset="87"></circle>
+        <circle cx="21" cy="21" r="15.915" fill="none" stroke="#E8823A" stroke-width="6"
+                stroke-dasharray="18 82" stroke-dashoffset="61"></circle>
+        <circle cx="21" cy="21" r="15.915" fill="none" stroke="#3a5f5f" stroke-width="6"
+                stroke-dasharray="18 82" stroke-dashoffset="43"></circle>
+      </svg>
+      <ul class="sample-wheel__key">
+        <li><span style="background:#0E3A3A"></span>Housing</li>
+        <li><span style="background:#C9A24B"></span>Food</li>
+        <li><span style="background:#E8823A"></span>Transport</li>
+        <li><span style="background:#3a5f5f"></span>Everything else</li>
+      </ul>
+    </div>
+    <p class="sample-note">Sample proportions. Your real breakdown &mdash; and the full income-vs-expenses history &mdash; lives behind the <a href="/console">Console</a>.</p>
+  </div>
 </div>
-
-<script>
-var ML_TEAL = '#0E3A3A', ML_GOLD = '#C9A24B', ML_ORANGE = '#E8823A', ML_GRID = 'rgba(14,58,58,0.12)', ML_TICK = '#3a5f5f';
-
-async function loadBudgetCharts() {
-  const incomeRes = await fetch('/api/budget/income-over-time');
-  const incomeData = await incomeRes.json();
-  const wheelRes = await fetch('/api/budget/spending-wheel');
-  const wheelData = await wheelRes.json();
-
-  const hasData = (incomeData.months && incomeData.months.length) ||
-                  (wheelData.bucket_totals && Object.keys(wheelData.bucket_totals).length);
-  if (!hasData) {
-    document.getElementById('no-data-msg').style.display = 'block';
-    return;
-  }
-  document.getElementById('dashboard').style.display = 'block';
-
-  new Chart(document.getElementById('income-chart'), {
-    type: 'bar',
-    data: {
-      labels: incomeData.months,
-      datasets: [
-        { label: 'Income', data: incomeData.income, backgroundColor: ML_TEAL },
-        { label: 'Expenses', data: incomeData.expenses, backgroundColor: ML_ORANGE },
-      ]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: ML_TICK }, grid: { color: ML_GRID } }, x: { ticks: { color: ML_TICK }, grid: { color: ML_GRID } } }, plugins: { legend: { labels: { color: ML_TEAL } } } }
-  });
-
-  new Chart(document.getElementById('wheel-chart'), {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(wheelData.bucket_totals),
-      datasets: [{ data: Object.values(wheelData.bucket_totals), backgroundColor: [ML_TEAL, ML_GOLD, ML_ORANGE, '#3a5f5f', '#8a6d2f', '#b5652a'] }]
-    },
-    options: { responsive: true, plugins: { legend: { labels: { color: ML_TEAL } } } }
-  });
-}
-loadBudgetCharts();
-</script>
 
 {% endblock %}

@@ -6,27 +6,6 @@
 {% set solves = "An AI-screened job-search pipeline with a live CRM, résumé compiler, and outcome tracking. Run daily." %}
 {% include "_product_head.html" %}
 
-<div id="dashboard" style="display:none;">
-  <div class="wrap section">
-    <h2 class="section-heading">Pipeline Metrics</h2>
-    <div class="data-grid" id="metric-tiles">
-      <div class="data-card"><h3>Applications Sent</h3><span class="value" id="m-applied" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Interviews</h3><span class="value" id="m-interviews" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Reply Rate</h3><span class="value is-highlight" id="m-reply-rate" style="font-size:1.9rem;">&mdash;</span></div>
-    </div>
-  </div>
-
-  <div class="wrap section">
-    <h2 class="section-heading">Applications &amp; Interviews by Source</h2>
-    <div class="data-card"><canvas id="source-chart" height="90"></canvas></div>
-  </div>
-
-  <div class="wrap section">
-    <h2 class="section-heading">Daily Activity (Last 90 Days)</h2>
-    <div class="data-card"><canvas id="activity-chart" height="90"></canvas></div>
-  </div>
-</div>
-
 <div class="wrap section">
   <h2 class="section-heading">How It Works</h2>
   <div class="explain-grid">
@@ -62,52 +41,8 @@
         </tbody>
       </table>
     </div>
-    <p class="sample-note" id="no-data-msg">Illustrative rows. The live table and metrics replace this once the engine logs real outcomes.</p>
+    <p class="sample-note">Illustrative rows. The live pipeline metrics run in the <a href="/console">Console</a>.</p>
   </div>
 </div>
-
-<script>
-var ML_TEAL = '#0E3A3A', ML_GOLD = '#C9A24B', ML_ORANGE = '#E8823A', ML_GRID = 'rgba(14,58,58,0.12)', ML_TICK = '#3a5f5f';
-
-async function loadJobEngineDashboard() {
-  const res = await fetch('/api/job-engine/summary');
-  const data = await res.json();
-
-  if (!data.data_available) return;  // sample table + note already shown
-
-  document.getElementById('dashboard').style.display = 'block';
-  var note = document.getElementById('no-data-msg');
-  if (note) note.style.display = 'none';
-  document.getElementById('m-applied').textContent = data.total_applied;
-  document.getElementById('m-interviews').textContent = data.total_interviews;
-  document.getElementById('m-reply-rate').textContent = data.reply_rate_pct + '%';
-
-  const sources = Object.keys(data.by_source);
-  new Chart(document.getElementById('source-chart'), {
-    type: 'bar',
-    data: {
-      labels: sources,
-      datasets: [
-        { label: 'Applied', data: sources.map(s => data.by_source[s].applied), backgroundColor: ML_TEAL },
-        { label: 'Interview', data: sources.map(s => data.by_source[s].interview), backgroundColor: ML_GOLD },
-      ]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: ML_TICK }, grid: { color: ML_GRID } }, x: { ticks: { color: ML_TICK }, grid: { color: ML_GRID } } }, plugins: { legend: { labels: { color: ML_TEAL } } } }
-  });
-
-  new Chart(document.getElementById('activity-chart'), {
-    type: 'line',
-    data: {
-      labels: data.daily_activity.map(d => d.date),
-      datasets: [
-        { label: 'Drafts Staged', data: data.daily_activity.map(d => d.drafts_staged), borderColor: ML_GOLD, tension: 0.2 },
-        { label: 'Applied', data: data.daily_activity.map(d => d.applied_count), borderColor: ML_ORANGE, tension: 0.2 },
-      ]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: ML_TICK }, grid: { color: ML_GRID } }, x: { ticks: { color: ML_TICK }, grid: { color: ML_GRID } } }, plugins: { legend: { labels: { color: ML_TEAL } } } }
-  });
-}
-loadJobEngineDashboard();
-</script>
 
 {% endblock %}
