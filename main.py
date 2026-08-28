@@ -290,14 +290,16 @@ def console_logout():
 
 
 @app.route("/console")
-@login_required
 def console():
-    return render_template("console.html", demo=False)
+    # Public page. Logged-out visitors get the baked demo snapshot with a "DEMO" ribbon
+    # (every section alive with sample data); the owner, once logged in, gets the live
+    # sibling-DB data. Same layout, same URL - only the data source and the ribbon differ.
+    return render_template("console.html", demo=not session.get("console_authed"))
 
 
 @app.route("/console/demo")
 def console_demo():
-    # Public, number-scrubbed snapshot - same layout, values rounded/masked client-side.
+    # Kept for any old links - identical to the logged-out /console view.
     return render_template("console.html", demo=True)
 
 
@@ -589,15 +591,27 @@ def _trends(j, c):
     }
 
 
+def _cumulative(counts):
+    out, run = [], 0
+    for n in counts:
+        run += int(n or 0)
+        out.append(run)
+    return out
+
+
 def _demo_snapshot() -> dict:
-    """A baked, plausible-but-fake snapshot for the public /console/demo. Numbers are
+    """A baked, plausible-but-fake snapshot for the public (logged-out) Console. Numbers are
     illustrative only - nothing here touches a real database."""
-    weeks = [f"2026-W{n:02d}" for n in range(28, 35)]
+    weeks = [f"2026-W{n:02d}" for n in range(24, 35)]
+    week_counts = [3, 5, 4, 6, 5, 8, 11, 5, 9, 8, 12]
+    total = sum(week_counts)
     return {
         "demo": True,
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
+        "hero": {"label": "Applications sent", "value": total,
+                 "sub": f"{week_counts[-1]} this week · {len(weeks)} weeks running"},
         "kpis": {
-            "applications_sent": 63, "reply_rate_pct": 14.3, "applies_this_week": 9,
+            "applications_sent": total, "reply_rate_pct": 14.3, "applies_this_week": week_counts[-1],
             "active_day_streak": 6, "open_positions": 2, "realized_pnl_usd": 418.20,
             "net_this_month": 1240.0,
         },
@@ -614,7 +628,7 @@ def _demo_snapshot() -> dict:
             {"kind": "job", "level": "warn", "text": "3 follow-ups overdue."},
         ], "generated_at": _dt.datetime.now().isoformat(timespec="seconds")},
         "job": {
-            "total_applied": 63, "total_interviews": 9, "reply_rate_pct": 14.3,
+            "total_applied": total, "total_interviews": 9, "reply_rate_pct": 14.3,
             "daily_activity": [{"date": w, "applied_count": 0} for w in weeks],
         },
         "crypto": {
@@ -635,7 +649,7 @@ def _demo_snapshot() -> dict:
             "bucket_totals": {"Housing": 1450, "Food": 620, "Transport": 340, "Everything else": 450},
         },
         "trends": {
-            "applies_by_week": {"weeks": weeks, "counts": [7, 11, 5, 9, 8, 6, 9]},
+            "applies_by_week": {"weeks": weeks, "counts": week_counts, "cumulative": _cumulative(week_counts)},
             "reply_rate_by_source": {"sources": ["jsearch", "greenhouse", "lever", "referral"],
                                      "applied": [28, 14, 9, 12], "interview": [3, 2, 1, 3]},
             "crypto_equity": [{"t": f"2026-08-{d:02d}", "equity": v}
@@ -646,9 +660,13 @@ def _demo_snapshot() -> dict:
 
 def _live_snapshot() -> dict:
     j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
+    tr = _trends(j, c)
+    tr["applies_by_week"]["cumulative"] = _cumulative(tr["applies_by_week"]["counts"])
     return {
         "demo": False,
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
+        "hero": {"label": "Applications sent", "value": j["applied"],
+                 "sub": f"{j['applies_this_week']} this week · {j['active_day_streak']}-day streak"},
         "kpis": {
             "applications_sent": j["applied"],
             "reply_rate_pct": j["reply_rate_pct"],
@@ -680,7 +698,7 @@ def _live_snapshot() -> dict:
             "months": b["months"], "income": b["income"], "expenses": b["expenses"],
             "bucket_totals": _budget_bucket_totals(),
         },
-        "trends": _trends(j, c),
+        "trends": tr,
     }
 
 
@@ -697,11 +715,10 @@ def _budget_bucket_totals() -> dict:
 
 @app.route("/api/console/snapshot")
 def api_console_snapshot():
-    # One payload for the whole cockpit. Public + baked when ?demo=1; gated + live otherwise.
-    if request.args.get("demo") == "1":
+    # One payload for the whole cockpit. Logged-out visitors (or ?demo=1) get baked sample
+    # data; the owner, once logged in, gets the live sibling-DB rollup.
+    if request.args.get("demo") == "1" or not session.get("console_authed"):
         return jsonify(_demo_snapshot())
-    if not session.get("console_authed"):
-        return jsonify({"error": "auth required"}), 401
     return jsonify(_live_snapshot())
 
 

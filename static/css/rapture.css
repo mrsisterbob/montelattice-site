@@ -143,7 +143,7 @@ p:last-child { margin-bottom: 0; }
 .hero {
   position: relative;
   width: 100%;
-  height: 480px;
+  height: 528px;
   overflow: hidden;
   background: var(--teal);
 }
@@ -599,6 +599,11 @@ canvas { max-width: 100%; }
 }
 .repo-inline:hover { color: var(--orange); text-decoration: underline; }
 
+.code-console-note {
+  margin-top: 26px; font-size: 0.9rem; color: var(--teal-70);
+}
+.code-console-note a { color: var(--orange); font-weight: 600; }
+
 /* Public /budget sample doughnut */
 .sample-wheel { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
 .sample-wheel svg { width: 150px; height: 150px; transform: rotate(-90deg); }
@@ -672,12 +677,18 @@ canvas { max-width: 100%; }
   :root:not([data-theme="light"]) .console .today-item,
   :root:not([data-theme="light"]) .console .kpi-tile,
   :root:not([data-theme="light"]) .console .status-item,
+  :root:not([data-theme="light"]) .console .console-hero,
   :root:not([data-theme="light"]) .console .data-card { background: #16302a; }
+  :root:not([data-theme="light"]) .console .console-hero__value,
+  :root:not([data-theme="light"]) .console .kpi-tile .kpi-value { color: var(--teal); }
 }
 :root[data-theme="dark"] .console .today-item,
 :root[data-theme="dark"] .console .kpi-tile,
 :root[data-theme="dark"] .console .status-item,
+:root[data-theme="dark"] .console .console-hero,
 :root[data-theme="dark"] .console .data-card { background: #16302a; }
+:root[data-theme="dark"] .console .console-hero__value,
+:root[data-theme="dark"] .console .kpi-tile .kpi-value { color: var(--teal); }
 .today-item.is-warn { border-left-color: var(--warn); }
 .today-item.is-clear { border-left-color: var(--ok); color: var(--teal-70); }
 
@@ -700,21 +711,51 @@ canvas { max-width: 100%; }
 .status-item .dot.down { background: var(--down); }
 .status-item .detail { font-size: 0.85rem; color: var(--teal-70); }
 
+/* Sample-data ribbon (logged-out Console) */
+.console-ribbon {
+  background: var(--gold); color: var(--teal);
+  text-align: center; font-size: 0.82rem; letter-spacing: 0.04em;
+  padding: 9px 16px;
+}
+.console-ribbon a { color: var(--teal); font-weight: 700; border-bottom: 1px solid currentColor; }
+
+/* Hero: one big number + a full-width progress-over-time chart */
+.console-hero {
+  display: grid; grid-template-columns: minmax(200px, 260px) 1fr; gap: 28px; align-items: center;
+  background: #fff; border: 1px solid var(--card-border); border-top: 3px solid var(--gold);
+  padding: 26px 28px;
+}
+.console-hero__stat { display: flex; flex-direction: column; }
+.console-hero__value { font-size: clamp(2.6rem, 6vw, 3.6rem); font-weight: 700; color: var(--teal); line-height: 1; }
+.console-hero__label {
+  margin-top: 8px; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal-70);
+}
+.console-hero__sub { margin-top: 4px; font-size: 0.85rem; color: var(--teal-70); }
+.console-hero__chart { min-width: 0; }
+.console-hero__chart canvas { max-height: 200px; }
+
+/* Two-up supporting grid (was three-up) - more breathing room */
+.console-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.console-2col > .data-card { margin: 0; }
+
 /* KPI row */
 .kpi-row {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px;
 }
+.kpi-row--3 { grid-template-columns: repeat(3, 1fr); }
+.kpi-row--4 { grid-template-columns: repeat(4, 1fr); }
 .kpi-tile {
   background: #fff; border: 1px solid var(--card-border); border-top: 3px solid var(--gold);
   padding: 16px; text-align: left;
 }
-.kpi-tile .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--teal); line-height: 1.1; }
+.kpi-tile .kpi-value { font-size: 1.7rem; font-weight: 700; color: var(--teal); line-height: 1.1; }
 .kpi-tile .kpi-value.is-highlight { color: var(--orange); }
 .kpi-tile .kpi-value.is-neg { color: var(--down); }
 .kpi-tile .kpi-label {
-  display: block; margin-top: 5px; font-size: 0.75rem; letter-spacing: 0.06em;
+  display: block; margin-top: 5px; font-size: 0.72rem; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--teal-70);
 }
+.console section > .kpi-row { margin-bottom: 16px; }
 
 /* Cockpit cards are stacked full-width many-deep - drop the Deco corner brackets
    (they read as clutter here, unlike the 3-up storefront grids) and flatten the
@@ -726,13 +767,15 @@ canvas { max-width: 100%; }
 .console .data-list > div { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
 .console .data-list > div:last-child { border-bottom: 0; }
 .console canvas { max-height: 260px; }
-.console--demo .kpi-value, .console--demo .data-list { filter: blur(0); }
-.console--demo::before {
-  content: "Demo — numbers rounded / masked"; display: block; text-align: center;
-  background: var(--gold); color: var(--teal); font-size: 0.78rem; letter-spacing: 0.08em;
-  padding: 6px; text-transform: uppercase;
-}
 
+@media (max-width: 820px) {
+  .console-hero { grid-template-columns: 1fr; gap: 16px; text-align: left; }
+  .console-2col { grid-template-columns: 1fr; }
+  .kpi-row, .kpi-row--3, .kpi-row--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 400px) {
+  .kpi-row, .kpi-row--3, .kpi-row--4 { grid-template-columns: 1fr; }
+}
 @media (max-width: 720px) {
   .console .sec-head { flex-direction: column; align-items: flex-start; gap: 4px; }
   .status-board { grid-template-columns: 1fr; }

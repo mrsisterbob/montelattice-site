@@ -4,6 +4,12 @@
 
 <div class="console{{ ' console--demo' if demo else '' }}" id="console" data-demo="{{ '1' if demo else '0' }}">
 
+  {% if demo %}
+  <div class="console-ribbon">Sample data &mdash; the live view is private.
+    <a href="/console/login">Sign in &rarr;</a>
+  </div>
+  {% endif %}
+
   <div class="title-band">
     <div class="title-band__inner">
       <h1>Console</h1>
@@ -13,9 +19,23 @@
 
   <div class="wrap">
     <p class="solves-line">
-      Every system, one screen. Refreshes every 60&nbsp;seconds.
+      Every system I run, on one screen. Refreshes every 60&nbsp;seconds.
       {% if not demo %}<a href="/console/logout">Sign out</a>{% endif %}
     </p>
+  </div>
+
+  <!-- HERO + PROGRESS OVER TIME -->
+  <div class="wrap section">
+    <div class="console-hero">
+      <div class="console-hero__stat">
+        <span class="console-hero__value" id="hero-value">&mdash;</span>
+        <span class="console-hero__label" id="hero-label">Applications sent</span>
+        <span class="console-hero__sub" id="hero-sub">&mdash;</span>
+      </div>
+      <div class="console-hero__chart">
+        <canvas id="chart-progress" height="120"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- TODAY -->
@@ -32,7 +52,7 @@
     <div class="status-board" id="status-board"></div>
   </div>
 
-  <!-- KPIs -->
+  <!-- KPI STRIP -->
   <div class="wrap section">
     <div class="sec-head"><h2>Key Numbers</h2><span class="freshness" id="fresh-kpi">&mdash;</span></div>
     <div class="kpi-row" id="kpi-row">
@@ -49,40 +69,40 @@
   <!-- JOB ENGINE -->
   <div class="wrap section">
     <div class="sec-head"><h2>Job Engine</h2><span class="freshness" id="fresh-job">&mdash;</span></div>
-    <div class="data-grid">
-      <div class="data-card"><h3>Applications</h3><span class="value" id="j-applied" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Interviews</h3><span class="value" id="j-interviews" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Reply Rate</h3><span class="value is-highlight" id="j-reply" style="font-size:1.9rem;">&mdash;</span></div>
+    <div class="kpi-row kpi-row--3">
+      <div class="kpi-tile"><span class="kpi-value" id="j-applied">&mdash;</span><span class="kpi-label">Applications</span></div>
+      <div class="kpi-tile"><span class="kpi-value" id="j-interviews">&mdash;</span><span class="kpi-label">Interviews</span></div>
+      <div class="kpi-tile"><span class="kpi-value is-highlight" id="j-reply">&mdash;</span><span class="kpi-label">Reply Rate</span></div>
     </div>
-    <div class="section--tight"></div>
-    <div class="data-card"><canvas id="chart-applies-week" height="90"></canvas></div>
-    <div class="section--tight"></div>
-    <div class="data-card"><canvas id="chart-by-source" height="90"></canvas></div>
+    <div class="console-2col">
+      <div class="data-card"><canvas id="chart-applies-week" height="110"></canvas></div>
+      <div class="data-card"><canvas id="chart-by-source" height="110"></canvas></div>
+    </div>
   </div>
 
   <!-- CRYPTO -->
   <div class="wrap section">
     <div class="sec-head"><h2>Crypto</h2><span class="freshness" id="fresh-crypto">&mdash;</span></div>
-    <div class="data-grid">
-      <div class="data-card"><h3>Open Positions</h3><span class="value" id="c-open" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Closed Trades</h3><span class="value" id="c-closed" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Win Rate</h3><span class="value" id="c-winrate" style="font-size:1.9rem;">&mdash;</span></div>
-      <div class="data-card"><h3>Realized PnL</h3><span class="value is-highlight" id="c-pnl" style="font-size:1.9rem;">&mdash;</span></div>
+    <div class="kpi-row kpi-row--4">
+      <div class="kpi-tile"><span class="kpi-value" id="c-open">&mdash;</span><span class="kpi-label">Open Positions</span></div>
+      <div class="kpi-tile"><span class="kpi-value" id="c-closed">&mdash;</span><span class="kpi-label">Closed Trades</span></div>
+      <div class="kpi-tile"><span class="kpi-value" id="c-winrate">&mdash;</span><span class="kpi-label">Win Rate</span></div>
+      <div class="kpi-tile"><span class="kpi-value is-highlight" id="c-pnl">&mdash;</span><span class="kpi-label">Realized PnL</span></div>
     </div>
-    <div class="section--tight"></div>
-    <div class="data-card"><canvas id="chart-equity" height="90"></canvas></div>
-    <div class="section--tight"></div>
-    <div class="data-card"><h3 class="section-heading" style="font-size:0.9rem;">Recent Signals</h3><div class="data-list" id="c-signals">&mdash;</div></div>
-    <div class="section--tight"></div>
-    <div class="data-card"><h3 class="section-heading" style="font-size:0.9rem;">Open Positions</h3><div class="data-list" id="c-positions">&mdash;</div></div>
+    <div class="data-card"><canvas id="chart-equity" height="110"></canvas></div>
+    <div class="console-2col">
+      <div class="data-card"><h3>Recent Signals</h3><div class="data-list" id="c-signals">&mdash;</div></div>
+      <div class="data-card"><h3>Open Positions</h3><div class="data-list" id="c-positions">&mdash;</div></div>
+    </div>
   </div>
 
   <!-- BUDGET -->
   <div class="wrap section">
     <div class="sec-head"><h2>Budget</h2><span class="freshness" id="fresh-budget">&mdash;</span></div>
-    <div class="data-card"><canvas id="chart-income" height="90"></canvas></div>
-    <div class="section--tight"></div>
-    <div class="data-card"><canvas id="chart-wheel" height="90"></canvas></div>
+    <div class="console-2col">
+      <div class="data-card"><canvas id="chart-income" height="120"></canvas></div>
+      <div class="data-card"><canvas id="chart-wheel" height="120"></canvas></div>
+    </div>
   </div>
 
 </div>
@@ -148,9 +168,39 @@
     }, extra || {});
   }
   function upsertChart(id, cfg) {
-    if (charts[id]) { charts[id].data = cfg.data; charts[id].update(); return; }
+    if (charts[id]) { charts[id].data = cfg.data; charts[id].options = cfg.options; charts[id].update(); return; }
     var el = document.getElementById(id);
     if (el) charts[id] = new Chart(el, cfg);
+  }
+
+  function renderHero(h, trends) {
+    h = h || {};
+    var v = document.getElementById('hero-value');
+    v.textContent = (h.value == null) ? '—' : Math.round(scrub(h.value)).toLocaleString();
+    setText('hero-label', h.label || 'Applications sent');
+    setText('hero-sub', h.sub || '');
+
+    var w = (trends || {}).applies_by_week || { weeks: [], cumulative: [], counts: [] };
+    var hasCum = w.weeks && w.weeks.length && w.cumulative && w.cumulative.length;
+    showCard('chart-progress', hasCum);
+    if (hasCum) upsertChart('chart-progress', {
+      type: 'line',
+      data: {
+        labels: w.weeks,
+        datasets: [
+          { label: 'Cumulative applications', data: w.cumulative, borderColor: ML.orange,
+            backgroundColor: 'rgba(232,130,58,0.10)', fill: true, tension: 0.25, pointRadius: 0, yAxisID: 'y' },
+          { label: 'Per week', data: w.counts, type: 'bar', backgroundColor: ML.bar1, yAxisID: 'y1' }
+        ]
+      },
+      options: chartOpts({
+        scales: {
+          y:  { beginAtZero: true, position: 'left',  ticks: { color: ML.tick }, grid: { color: ML.grid } },
+          y1: { beginAtZero: true, position: 'right', ticks: { color: ML.tick }, grid: { display: false } },
+          x:  { ticks: { color: ML.tick, maxRotation: 0, autoSkip: true }, grid: { color: ML.grid } }
+        }
+      })
+    });
   }
 
   function renderToday(d) {
@@ -193,9 +243,9 @@
 
   function renderJob(job, trends) {
     job = job || {}; trends = trends || {};
-    setText('j-applied', (scrub(job.total_applied) == null ? "—" : scrub(job.total_applied)));
-    setText('j-interviews', (scrub(job.total_interviews) == null ? "—" : scrub(job.total_interviews)));
-    setText('j-reply', (scrub(job.reply_rate_pct, "pct") || 0) + '%');
+    setText('j-applied', (scrub(job.total_applied) == null ? '—' : scrub(job.total_applied)));
+    setText('j-interviews', (scrub(job.total_interviews) == null ? '—' : scrub(job.total_interviews)));
+    setText('j-reply', (scrub(job.reply_rate_pct, 'pct') || 0) + '%');
     var newest = (job.daily_activity && job.daily_activity.length)
       ? job.daily_activity[job.daily_activity.length - 1].date : null;
     stamp('fresh-job', newest, sysState['Job Engine'] || 'ok');
@@ -223,7 +273,7 @@
     cr = cr || { open_positions: [], recent_signals: [] }; trends = trends || {};
     setText('c-open', scrub((cr.open_positions || []).length));
     setText('c-closed', scrub(cr.closed_trade_count));
-    setText('c-winrate', (scrub(cr.win_rate_pct, "pct") || 0) + '%');
+    setText('c-winrate', (scrub(cr.win_rate_pct, 'pct') || 0) + '%');
     setText('c-pnl', money(cr.realized_pnl_usd));
     var newest = (cr.recent_signals && cr.recent_signals.length) ? cr.recent_signals[0].triggered_at : null;
     stamp('fresh-crypto', newest, sysState['Crypto'] || 'ok');
@@ -242,8 +292,9 @@
     if (eq.length) upsertChart('chart-equity', {
       type: 'line',
       data: { labels: eq.map(function (p) { return p.t; }),
-              datasets: [{ label: 'Equity ($ cum. PnL)', data: eq.map(function (p) { return p.equity; }),
-                           borderColor: ML.orange, tension: 0.2, pointRadius: 0 }] },
+              datasets: [{ label: 'Equity ($ cumulative PnL)', data: eq.map(function (p) { return p.equity; }),
+                           borderColor: ML.orange, backgroundColor: 'rgba(232,130,58,0.10)', fill: true,
+                           tension: 0.2, pointRadius: 0 }] },
       options: chartOpts()
     });
   }
@@ -268,7 +319,7 @@
     if (wk) upsertChart('chart-wheel', {
       type: 'doughnut',
       data: { labels: Object.keys(b), datasets: [{ data: Object.values(b),
-              backgroundColor: [ML.teal, ML.gold, ML.orange, '#3a5f5f', '#8a6d2f', '#b5652a'] }] },
+              backgroundColor: [ML.bar1, ML.gold, ML.orange, '#3a5f5f', '#8a6d2f', '#b5652a'] }] },
       options: { responsive: true, animation: REDUCE ? false : { duration: 450 },
                  plugins: { legend: { labels: { color: ML.legend, boxWidth: 12 } } } }
     });
@@ -279,6 +330,7 @@
     fetch(url, { credentials: 'same-origin' })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (s) {
+        renderHero(s.hero, s.trends);
         renderStatus(s.status);
         renderToday(s.today);
         renderKPIs(s.kpis);
