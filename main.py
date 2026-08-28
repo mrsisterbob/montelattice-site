@@ -498,8 +498,9 @@ def _today_items(j, c):
     elif j["applies_this_week"] == 0 and j["has_data"]:
         items.append({"kind": "job", "level": "warn", "text": "Zero applications sent this week."})
 
-    if not items or all(i["level"] == "ok" for i in items):
-        items.insert(0, {"kind": "all", "level": "clear", "text": "All clear."})
+    # Only show "All clear." when nothing actually needs attention (no warn/info items).
+    if not any(i["level"] in ("warn", "info") for i in items):
+        items = [{"kind": "all", "level": "clear", "text": "All clear."}] + items
 
     return {"items": items, "generated_at": _dt.datetime.now().isoformat(timespec="seconds")}
 
