@@ -108,6 +108,36 @@ def _newest_ts(db_path: str, query: str):
 
 
 # ---------------------------------------------------------------------------
+# Public source repos - the single source of truth for the /code page and the
+# "View source" links on the product pages. Static by design: repo URLs don't
+# change, and no recruiter is checking whether "updated" is live. `slug` ties a
+# repo to the product page that should show its inline link.
+# ---------------------------------------------------------------------------
+REPOS = [
+    {
+        "name": "job-outreach-engine",
+        "slug": "job-engine",
+        "url": "https://github.com/mrsisterbob/job-outreach-engine",
+        "blurb": "The AI-screened job-search pipeline behind the Job Engine page: multi-board "
+                 "sourcing, Gemini as a strict classifier/router, a deterministic Typst résumé "
+                 "compiler, a Google Sheets CRM, and a swipe-reply Telegram bot.",
+        "stack": "Python · Flask · SQLite · APScheduler · Gemini",
+        "highlight": "177 commits · 54 unit tests · ~6k lines",
+    },
+    {
+        "name": "montelattice-site",
+        "slug": None,
+        "url": "https://github.com/mrsisterbob/montelattice-site",
+        "blurb": "This site. A Flask app that serves the public project pages and a private "
+                 "read-only Console cockpit rolling up live metrics from each project's own database.",
+        "stack": "Python · Flask · Jinja · Chart.js",
+        "highlight": "Zero-build, one animation, Lighthouse-clean",
+    },
+]
+REPOS_BY_SLUG = {r["slug"]: r for r in REPOS if r["slug"]}
+
+
+# ---------------------------------------------------------------------------
 # Public pages
 # ---------------------------------------------------------------------------
 @app.route("/")
@@ -115,9 +145,15 @@ def home():
     return render_template("home.html", active_page="home")
 
 
+@app.route("/code")
+def code():
+    return render_template("code.html", active_page="code", repos=REPOS)
+
+
 @app.route("/job-engine")
 def job_engine():
-    return render_template("job_engine.html", active_page="job-engine")
+    return render_template("job_engine.html", active_page="job-engine",
+                           repo=REPOS_BY_SLUG.get("job-engine"))
 
 
 @app.route("/docfiler")

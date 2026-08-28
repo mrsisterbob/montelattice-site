@@ -561,13 +561,43 @@ canvas { max-width: 100%; }
    Console cockpit  (scoped to .console - the public site is untouched)
    ========================================================================= */
 
-.site-footer__console {
+.site-footer__link {
   display: inline-block;
   margin-left: 14px;
   color: rgba(250, 248, 243, 0.55);
   border-bottom: 1px solid transparent;
 }
-.site-footer__console:hover { color: var(--bg); border-bottom-color: var(--gold); }
+.site-footer__link:hover { color: var(--bg); border-bottom-color: var(--gold); }
+
+/* --- /code page: repo cards --- */
+.repo-list { display: grid; gap: 20px; }
+.repo-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-top: 3px solid var(--gold);
+  padding: 22px 24px;
+  color: var(--teal);
+  transition: border-color 0.12s ease;
+}
+.repo-card:hover { border-color: var(--gold); color: var(--teal); }
+.repo-card__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.repo-card__head h3 { margin: 0; font-size: 1.15rem; }
+.repo-card__blurb { color: var(--teal-70); font-size: 0.92rem; margin: 0 0 14px; max-width: 68ch; }
+.repo-card__meta {
+  display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline;
+  font-size: 0.8rem; color: var(--teal-70); margin-bottom: 12px;
+}
+.repo-card__stack { letter-spacing: 0.02em; }
+.repo-card__highlight { color: var(--gold); }
+.repo-card__cta { font-size: 0.85rem; color: var(--orange); font-weight: 600; }
+
+/* --- inline "View source" link on a product page --- */
+.repo-inline {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 0.85rem; font-weight: 600; color: var(--orange);
+}
+.repo-inline:hover { color: var(--orange); text-decoration: underline; }
 
 /* Public /budget sample doughnut */
 .sample-wheel { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
