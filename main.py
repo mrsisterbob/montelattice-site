@@ -139,6 +139,39 @@ REPOS = [
         "stack": "Python · Flask · Jinja · Chart.js",
         "highlight": "Zero-build, one animation, Lighthouse-clean",
     },
+    {
+        "name": "docfiler",
+        "slug": "docfiler",
+        "url": "https://github.com/mrsisterbob/docfiler",
+        "blurb": "Automated document intake: a debounced folder watcher, digital-first text "
+                 "extraction with OCR fallback, Claude tool-call classification against a "
+                 "client/doc-type manifest, and deterministic renaming/routing. Low-confidence "
+                 "documents divert to a review folder rather than risk a misfile.",
+        "stack": "Python · watchdog · PyMuPDF · Tesseract · Claude",
+        "highlight": "42 tests · full pipeline integration test · synthetic sample docs",
+    },
+    {
+        "name": "budget-tracker",
+        "slug": "budget",
+        "url": "https://github.com/mrsisterbob/budget-tracker",
+        "blurb": "Import a bank-statement CSV, auto-categorize each transaction into "
+                 "necessary/discretionary/income buckets via editable keyword rules, and view "
+                 "income-over-time and spending-breakdown charts. Content-hash dedup means a "
+                 "re-imported overlapping statement never double-counts.",
+        "stack": "Python · Flask · SQLite · Chart.js",
+        "highlight": "11 tests · flexible multi-bank CSV parser · runs on the bundled sample",
+    },
+    {
+        "name": "crypto-trading-engine",
+        "slug": "crypto",
+        "url": "https://github.com/mrsisterbob/crypto-trading-engine",
+        "blurb": "Paper-trading engine: a 15-minute Donchian/ATR/RVOL breakout scan "
+                 "contextualized with Deribit gamma and Binance funding/OI, a 2-stage scale-out, "
+                 "a drawdown circuit breaker, and a walk-forward + Monte Carlo backtest validator "
+                 "that exists to catch curve-fitting. Telegram-controlled.",
+        "stack": "Python · Flask · APScheduler · WebSockets · SQLite",
+        "highlight": "Paper-trading only · keyless market data · hot-reloadable strategy params",
+    },
 ]
 REPOS_BY_SLUG = {r["slug"]: r for r in REPOS if r["slug"]}
 
@@ -164,18 +197,21 @@ def job_engine():
 
 @app.route("/docfiler")
 def docfiler():
-    return render_template("docfiler.html", active_page="docfiler")
+    return render_template("docfiler.html", active_page="docfiler",
+                           repo=REPOS_BY_SLUG.get("docfiler"))
 
 
 @app.route("/crypto")
 def crypto():
-    return render_template("crypto.html", active_page="crypto")
+    return render_template("crypto.html", active_page="crypto",
+                           repo=REPOS_BY_SLUG.get("crypto"))
 
 
 @app.route("/budget")
 def budget():
     # Public marketing page now (the real budget dashboard lives in the Console).
-    return render_template("budget.html", active_page="budget")
+    return render_template("budget.html", active_page="budget",
+                           repo=REPOS_BY_SLUG.get("budget"))
 
 
 # ---------------------------------------------------------------------------
