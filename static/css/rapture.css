@@ -794,7 +794,7 @@ canvas { max-width: 100%; }
 .console:not(.console--demo) .console-hero-img {
   position: relative;
   width: 100%;
-  height: 440px;
+  height: 520px;
   overflow: hidden;
   background: var(--teal);
   border-bottom: 1px solid var(--gold);
@@ -836,11 +836,11 @@ canvas { max-width: 100%; }
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 
-/* --- 130px letterbox sliver replacing a .sec-head heading --- */
+/* --- Letterbox still replacing a .sec-head heading --- */
 .console:not(.console--demo) .sec-head--img {
   position: relative;
   display: block;               /* override the flex row; children are absolutely placed */
-  height: 130px;
+  height: 260px;
   padding: 0;
   margin-bottom: 18px;
   overflow: hidden;
@@ -853,7 +853,7 @@ canvas { max-width: 100%; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 45%;
+  object-position: center 42%;
   display: block;
 }
 .console:not(.console--demo) .sec-head--img .sec-head__scrim {
@@ -892,13 +892,13 @@ canvas { max-width: 100%; }
 }
 
 @media (max-width: 720px) {
-  .console:not(.console--demo) .console-hero-img { height: 300px; }
+  .console:not(.console--demo) .console-hero-img { height: 340px; }
   /* keep the sliver a single row - the base .sec-head 720px rule stacks it,
      but sec-head--img children are absolutely positioned, so just hold height */
   .console:not(.console--demo) .sec-head--img {
-    height: 110px;
+    height: 180px;
     display: block;
   }
-  .console:not(.console--demo) .sec-head--img h2 { bottom: 10px; }
-  .console:not(.console--demo) .sec-head--img .freshness { bottom: 12px; }
+  .console:not(.console--demo) .sec-head--img h2 { bottom: 12px; }
+  .console:not(.console--demo) .sec-head--img .freshness { bottom: 14px; }
 }
