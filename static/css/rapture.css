@@ -790,32 +790,32 @@ canvas { max-width: 100%; }
    headings. No motion, no parallax. All scoped so the demo view is untouched.
    ========================================================================= */
 
-/* --- Full-width header still at the top of the Console --- */
+/* --- Full-width header still at the top of the Console ---
+   Full-bleed, whole image, no crop: height:auto lets the image set the
+   band height at whatever the viewport width is. Scrim only over the
+   lower band where the "Console" title sits. */
 .console:not(.console--demo) .console-hero-img {
   position: relative;
   width: 100%;
-  height: 520px;
   overflow: hidden;
   background: var(--teal);
   border-bottom: 1px solid var(--gold);
 }
 .console:not(.console--demo) .console-hero-img img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 42%;
   display: block;
+  width: 100%;
+  height: auto;
 }
 .console:not(.console--demo) .console-hero-img__scrim {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
   background: linear-gradient(
     180deg,
-    rgba(8, 24, 22, 0.22) 0%,
-    rgba(8, 24, 22, 0.30) 40%,
-    rgba(8, 24, 22, 0.62) 78%,
+    rgba(8, 24, 22, 0) 0%,
+    rgba(8, 24, 22, 0.45) 55%,
     rgba(8, 24, 22, 0.86) 100%
   );
 }
@@ -893,9 +893,10 @@ canvas { max-width: 100%; }
 }
 
 @media (max-width: 720px) {
-  .console:not(.console--demo) .console-hero-img { height: 340px; }
-  /* band is height:auto here too - the image just scales down with the column,
-     still fully uncropped. Nudge the label in a touch. */
+  /* hero + section bands are all height:auto now - images scale down with the
+     viewport, still fully uncropped. Just nudge the labels in. */
+  .console:not(.console--demo) .console-hero-img__title { padding-bottom: 18px; }
+  .console:not(.console--demo) .console-hero-img__title h1 { font-size: 1.9rem; }
   .console:not(.console--demo) .sec-head--img h2 { bottom: 10px; font-size: 0.9rem; }
   .console:not(.console--demo) .sec-head--img .freshness { bottom: 12px; }
 }
