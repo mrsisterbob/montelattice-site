@@ -783,3 +783,122 @@ canvas { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .console * { transition: none !important; animation: none !important; }
 }
+
+/* =========================================================================
+   Console imagery layer  (signed-in only - .console:not(.console--demo)).
+   Art Deco / dieselpunk stills behind the page header and four section
+   headings. No motion, no parallax. All scoped so the demo view is untouched.
+   ========================================================================= */
+
+/* --- Full-width header still at the top of the Console --- */
+.console:not(.console--demo) .console-hero-img {
+  position: relative;
+  width: 100%;
+  height: 440px;
+  overflow: hidden;
+  background: var(--teal);
+  border-bottom: 1px solid var(--gold);
+}
+.console:not(.console--demo) .console-hero-img img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+}
+.console:not(.console--demo) .console-hero-img__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 24, 22, 0.22) 0%,
+    rgba(8, 24, 22, 0.30) 40%,
+    rgba(8, 24, 22, 0.62) 78%,
+    rgba(8, 24, 22, 0.86) 100%
+  );
+}
+.console:not(.console--demo) .console-hero-img__title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 0 28px 30px;
+}
+.console:not(.console--demo) .console-hero-img__title h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* --- 130px letterbox sliver replacing a .sec-head heading --- */
+.console:not(.console--demo) .sec-head--img {
+  position: relative;
+  display: block;               /* override the flex row; children are absolutely placed */
+  height: 130px;
+  padding: 0;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+}
+.console:not(.console--demo) .sec-head--img .sec-head__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  display: block;
+}
+.console:not(.console--demo) .sec-head--img .sec-head__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 24, 22, 0.12) 0%,
+    rgba(8, 24, 22, 0.20) 38%,
+    rgba(8, 24, 22, 0.58) 74%,
+    rgba(8, 24, 22, 0.84) 100%
+  );
+}
+.console:not(.console--demo) .sec-head--img h2 {
+  position: absolute;
+  left: 0;
+  bottom: 14px;
+  margin: 0;
+  color: #fff;
+  /* match the existing .sec-head h2 weight/tracking */
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+.console:not(.console--demo) .sec-head--img .freshness {
+  position: absolute;
+  right: 0;
+  bottom: 16px;
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.console:not(.console--demo) .sec-head--img .freshness::before {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 720px) {
+  .console:not(.console--demo) .console-hero-img { height: 300px; }
+  /* keep the sliver a single row - the base .sec-head 720px rule stacks it,
+     but sec-head--img children are absolutely positioned, so just hold height */
+  .console:not(.console--demo) .sec-head--img {
+    height: 110px;
+    display: block;
+  }
+  .console:not(.console--demo) .sec-head--img h2 { bottom: 10px; }
+  .console:not(.console--demo) .sec-head--img .freshness { bottom: 12px; }
+}

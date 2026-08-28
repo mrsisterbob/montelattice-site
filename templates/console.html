@@ -10,12 +10,21 @@
   </div>
   {% endif %}
 
+  {% if not demo %}
+  <div class="console-hero-img">
+    <img src="{{ url_for('static', filename='img/hero-console.webp') }}"
+         alt="" width="1920" height="460" decoding="async" fetchpriority="high">
+    <div class="console-hero-img__scrim"></div>
+    <div class="console-hero-img__title"><h1>Console</h1></div>
+  </div>
+  {% else %}
   <div class="title-band">
     <div class="title-band__inner">
       <h1>Console</h1>
       <div class="title-band__rule"></div>
     </div>
   </div>
+  {% endif %}
 
   <div class="wrap">
     <p class="solves-line">
@@ -48,7 +57,16 @@
 
   <!-- STATUS -->
   <div class="wrap section">
+    {% if not demo %}
+    <div class="sec-head sec-head--img">
+      <img class="sec-head__img" src="{{ url_for('static', filename='img/sec-status.webp') }}"
+           alt="" width="1920" height="300" loading="lazy" decoding="async">
+      <div class="sec-head__scrim"></div>
+      <h2>System Status</h2><span class="freshness" id="fresh-status">&mdash;</span>
+    </div>
+    {% else %}
     <div class="sec-head"><h2>System Status</h2><span class="freshness" id="fresh-status">&mdash;</span></div>
+    {% endif %}
     <div class="status-board" id="status-board"></div>
   </div>
 
@@ -68,7 +86,16 @@
 
   <!-- JOB ENGINE -->
   <div class="wrap section">
+    {% if not demo %}
+    <div class="sec-head sec-head--img">
+      <img class="sec-head__img" src="{{ url_for('static', filename='img/sec-job.webp') }}"
+           alt="" width="1920" height="300" loading="lazy" decoding="async">
+      <div class="sec-head__scrim"></div>
+      <h2>Job Engine</h2><span class="freshness" id="fresh-job">&mdash;</span>
+    </div>
+    {% else %}
     <div class="sec-head"><h2>Job Engine</h2><span class="freshness" id="fresh-job">&mdash;</span></div>
+    {% endif %}
     <div class="kpi-row kpi-row--3">
       <div class="kpi-tile"><span class="kpi-value" id="j-applied">&mdash;</span><span class="kpi-label">Applications</span></div>
       <div class="kpi-tile"><span class="kpi-value" id="j-interviews">&mdash;</span><span class="kpi-label">Interviews</span></div>
@@ -82,7 +109,16 @@
 
   <!-- CRYPTO -->
   <div class="wrap section">
+    {% if not demo %}
+    <div class="sec-head sec-head--img">
+      <img class="sec-head__img" src="{{ url_for('static', filename='img/sec-crypto.webp') }}"
+           alt="" width="1920" height="300" loading="lazy" decoding="async">
+      <div class="sec-head__scrim"></div>
+      <h2>Crypto</h2><span class="freshness" id="fresh-crypto">&mdash;</span>
+    </div>
+    {% else %}
     <div class="sec-head"><h2>Crypto</h2><span class="freshness" id="fresh-crypto">&mdash;</span></div>
+    {% endif %}
     <div class="kpi-row kpi-row--4">
       <div class="kpi-tile"><span class="kpi-value" id="c-open">&mdash;</span><span class="kpi-label">Open Positions</span></div>
       <div class="kpi-tile"><span class="kpi-value" id="c-closed">&mdash;</span><span class="kpi-label">Closed Trades</span></div>
@@ -98,7 +134,16 @@
 
   <!-- BUDGET -->
   <div class="wrap section">
+    {% if not demo %}
+    <div class="sec-head sec-head--img">
+      <img class="sec-head__img" src="{{ url_for('static', filename='img/sec-budget.webp') }}"
+           alt="" width="1920" height="300" loading="lazy" decoding="async">
+      <div class="sec-head__scrim"></div>
+      <h2>Budget</h2><span class="freshness" id="fresh-budget">&mdash;</span>
+    </div>
+    {% else %}
     <div class="sec-head"><h2>Budget</h2><span class="freshness" id="fresh-budget">&mdash;</span></div>
+    {% endif %}
     <div class="console-2col">
       <div class="data-card"><canvas id="chart-income" height="120"></canvas></div>
       <div class="data-card"><canvas id="chart-wheel" height="120"></canvas></div>
