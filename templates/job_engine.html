@@ -28,7 +28,42 @@
 </div>
 
 <div class="wrap section">
-  <p id="no-data-msg" class="empty-state" style="display:none;">Populates once the engine logs outcomes.</p>
+  <h2 class="section-heading">How It Works</h2>
+  <div class="explain-grid">
+    <div class="explain-card">
+      <span class="step">Step 1 &mdash; Source</span>
+      <h3>Pull &amp; screen</h3>
+      <p>Listings are pulled from multiple boards and scored against a strict evidence bank &mdash; no invented experience.</p>
+    </div>
+    <div class="explain-card">
+      <span class="step">Step 2 &mdash; Tailor</span>
+      <h3>Compile outreach</h3>
+      <p>A résumé and message are compiled per role, then queued in a swipe-to-send Telegram review.</p>
+    </div>
+    <div class="explain-card">
+      <span class="step">Step 3 &mdash; Track</span>
+      <h3>Log to CRM</h3>
+      <p>Every send, reply, and interview lands in the CRM. The metrics above are read straight from it.</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section">
+  <h2 class="section-heading">Pipeline Output</h2>
+  <div class="data-card">
+    <div class="table-scroll">
+      <table class="sample-table">
+        <caption>Sample &mdash; the shape of each logged outcome</caption>
+        <thead><tr><th>Source</th><th>Role</th><th>Path</th><th>Status</th><th>Logged</th></tr></thead>
+        <tbody>
+          <tr><td>LinkedIn</td><td>Data Analyst</td><td>Referral</td><td>Interview</td><td>2d ago</td></tr>
+          <tr><td>Indeed</td><td>Ops Associate</td><td>Direct</td><td>Applied</td><td>3d ago</td></tr>
+          <tr><td>Company site</td><td>Jr. PM</td><td>Direct</td><td>Applied</td><td>5d ago</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sample-note" id="no-data-msg">Illustrative rows. The live table and metrics replace this once the engine logs real outcomes.</p>
+  </div>
 </div>
 
 <script>
@@ -38,12 +73,11 @@ async function loadJobEngineDashboard() {
   const res = await fetch('/api/job-engine/summary');
   const data = await res.json();
 
-  if (!data.data_available) {
-    document.getElementById('no-data-msg').style.display = 'block';
-    return;
-  }
+  if (!data.data_available) return;  // sample table + note already shown
 
   document.getElementById('dashboard').style.display = 'block';
+  var note = document.getElementById('no-data-msg');
+  if (note) note.style.display = 'none';
   document.getElementById('m-applied').textContent = data.total_applied;
   document.getElementById('m-interviews').textContent = data.total_interviews;
   document.getElementById('m-reply-rate').textContent = data.reply_rate_pct + '%';

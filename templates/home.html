@@ -43,38 +43,43 @@
   </div>
 </div>
 
-<div class="deco-divider" aria-hidden="true">
-  <svg viewBox="0 0 40 20" fill="none" stroke="#C9A24B" stroke-width="1.5">
-    <path d="M2 18 L20 3 L38 18"/>
-    <path d="M9 18 L20 9 L31 18"/>
-  </svg>
-</div>
-
 <div class="wrap section">
   <div class="card-grid">
 
     <a class="card" href="/job-engine">
-      <span class="card__tag">Utility &middot; Public</span>
-      <h3>Job Outreach Engine</h3>
-      <p>AI-screened job-search pipeline with a live CRM, r&eacute;sum&eacute; compiler, and outcome tracking.</p>
+      <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-job.webp') }}')"></div>
+      <div class="card__body">
+        <span class="card__tag">Utility &middot; Public</span>
+        <h3>Job Outreach Engine</h3>
+        <p>AI-screened job-search pipeline with a live CRM, r&eacute;sum&eacute; compiler, and outcome tracking.</p>
+      </div>
     </a>
 
     <a class="card" href="/docfiler">
-      <span class="card__tag">Marketing &middot; Public</span>
-      <h3>DocFiler</h3>
-      <p>Automated document intake and filing for small law firms and RIAs.</p>
+      <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-docs.webp') }}')"></div>
+      <div class="card__body">
+        <span class="card__tag">Marketing &middot; Public</span>
+        <h3>DocFiler</h3>
+        <p>Automated document intake and filing for small law firms and RIAs.</p>
+      </div>
     </a>
 
     <a class="card" href="/crypto">
-      <span class="card__tag">Utility &middot; Public</span>
-      <h3>Crypto Trading Engine</h3>
-      <p>Market-regime dashboard tracking gamma exposure, funding, and open interest across BTC/ETH.</p>
+      <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-crypto.webp') }}')"></div>
+      <div class="card__body">
+        <span class="card__tag">Utility &middot; Public</span>
+        <h3>Crypto Trading Engine</h3>
+        <p>Market-regime dashboard tracking gamma exposure, funding, and open interest across BTC/ETH.</p>
+      </div>
     </a>
 
     <a class="card" href="/budget">
-      <span class="card__tag is-private">Private</span>
-      <h3>Budget Tracker</h3>
-      <p>Personal income and spending tracker. Access restricted.</p>
+      <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-budget.webp') }}')"></div>
+      <div class="card__body">
+        <span class="card__tag is-private">Private</span>
+        <h3>Budget Tracker</h3>
+        <p>Personal income and spending tracker. Access restricted.</p>
+      </div>
     </a>
 
   </div>

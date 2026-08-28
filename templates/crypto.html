@@ -29,7 +29,42 @@
 </div>
 
 <div class="wrap section">
-  <p id="no-data-msg" class="empty-state" style="display:none;">Populates once the engine is running.</p>
+  <h2 class="section-heading">What It Tracks</h2>
+  <div class="explain-grid">
+    <div class="explain-card">
+      <span class="step">Regime</span>
+      <h3>Dealer gamma</h3>
+      <p>Deribit dealer gamma exposure &mdash; the sign flips that tend to precede a shift from range to trend.</p>
+    </div>
+    <div class="explain-card">
+      <span class="step">Positioning</span>
+      <h3>Funding &amp; OI</h3>
+      <p>Binance funding rates and open interest across BTC, ETH, and tracked alts, with BTC-dominance volatility.</p>
+    </div>
+    <div class="explain-card">
+      <span class="step">Trigger</span>
+      <h3>Breakout signals</h3>
+      <p>A Donchian / ATR / RVOL breakout rule with a backtested edge, drawdown circuit breaker, and 2-stage risk.</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section">
+  <h2 class="section-heading">Signal Format</h2>
+  <div class="data-card">
+    <div class="table-scroll">
+      <table class="sample-table">
+        <caption>Sample &mdash; the shape of each emitted signal</caption>
+        <thead><tr><th>Symbol</th><th>Confidence</th><th>Context</th><th>Triggered</th></tr></thead>
+        <tbody>
+          <tr><td>BTCUSDT</td><td>72 / 100</td><td>Gamma flip + funding reset</td><td>1h ago</td></tr>
+          <tr><td>ETHUSDT</td><td>64 / 100</td><td>RVOL expansion at range high</td><td>4h ago</td></tr>
+          <tr><td>SOLUSDT</td><td>58 / 100</td><td>OI build, no confirmation yet</td><td>6h ago</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sample-note" id="no-data-msg">Illustrative rows. Paper-trading only &mdash; no live capital. Live portfolio and signals replace this once the engine is running.</p>
+  </div>
 </div>
 
 <script>
@@ -37,12 +72,11 @@ async function loadCryptoDashboard() {
   const res = await fetch('/api/crypto/summary');
   const data = await res.json();
 
-  if (!data.data_available) {
-    document.getElementById('no-data-msg').style.display = 'block';
-    return;
-  }
+  if (!data.data_available) return;  // sample table + note already shown
 
   document.getElementById('dashboard').style.display = 'block';
+  var note = document.getElementById('no-data-msg');
+  if (note) note.style.display = 'none';
   document.getElementById('c-open').textContent = data.open_positions.length;
   document.getElementById('c-closed').textContent = data.closed_trade_count;
   document.getElementById('c-winrate').textContent = data.win_rate_pct + '%';

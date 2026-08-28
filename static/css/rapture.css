@@ -16,7 +16,7 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-wordmark: "Poiret One", "Segoe UI", var(--font-sans);
 
-  --wrap: 1080px;
+  --wrap: 1180px;
 }
 
 * { box-sizing: border-box; }
@@ -193,19 +193,21 @@ p:last-child { margin-bottom: 0; }
   text-align: center;
 }
 
-/* --- Project card grid (home) --- */
+/* --- Project card grid (home): 2x2 on desktop --- */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 22px;
+  max-width: 760px;
+  margin: 0 auto;
 }
 .card {
   position: relative;
   display: block;
   background: #fff;
   border: 1px solid var(--card-border);
-  padding: 24px 22px;
   color: var(--teal);
+  overflow: hidden;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 .card:hover {
@@ -213,6 +215,43 @@ p:last-child { margin-bottom: 0; }
   transform: translateY(-3px);
   box-shadow: 0 10px 26px rgba(14, 58, 58, 0.12);
 }
+
+/* Art Deco "place in the city" image band across the top of each card. A teal wash +
+   slight desaturation keeps the four reading as one set and stops them competing with
+   the card text below. */
+.card__img {
+  position: relative;
+  height: 150px;
+  background-size: cover;
+  background-position: center 42%;
+}
+/* Scrim + inset gold hairline frame, drawn as one layered ::after over the image. */
+.card__img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 58, 58, 0.14) 0%, rgba(14, 58, 58, 0.36) 100%);
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 75, 0.6);
+}
+/* gold Deco corner brackets on the image band */
+.card__img::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  z-index: 3;
+  background:
+    linear-gradient(var(--gold), var(--gold)) top left / 14px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) top left / 1.5px 14px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) top right / 14px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) top right / 1.5px 14px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom left / 14px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom left / 1.5px 14px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom right / 14px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom right / 1.5px 14px no-repeat;
+}
+.card__body { padding: 20px 22px 22px; }
+
 /* gold L-shaped corner ticks */
 .card::before,
 .card::after {
@@ -235,6 +274,8 @@ p:last-child { margin-bottom: 0; }
   padding: 3px 9px;
   margin-bottom: 12px;
 }
+/* corner ticks sit on the card edge, above the image band */
+.card::before, .card::after { z-index: 2; }
 .card__tag.is-private { background: rgba(232, 130, 58, 0.18); }
 .card h3 { margin-bottom: 8px; }
 .card p { font-size: 0.9rem; color: var(--teal-70); margin: 0; }
@@ -312,8 +353,8 @@ p:last-child { margin-bottom: 0; }
 }
 
 .solves-line {
-  max-width: 62ch;
-  margin: 26px auto 8px;
+  max-width: 68ch;
+  margin: 26px 0 8px;
   font-size: 1.08rem;
   color: var(--teal);
 }
@@ -325,10 +366,28 @@ p:last-child { margin-bottom: 0; }
   gap: 22px;
 }
 .data-card {
+  position: relative;
   background: #fff;
   border: 1px solid var(--card-border);
   border-top: 3px solid var(--gold);
-  padding: 22px;
+  padding: 24px 22px 22px;
+}
+/* gold Deco corner brackets on every product-page card */
+.data-card::after,
+.explain-card::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--gold), var(--gold)) top left / 13px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) top left / 1.5px 13px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) top right / 13px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) top right / 1.5px 13px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom left / 13px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom left / 1.5px 13px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom right / 13px 1.5px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) bottom right / 1.5px 13px no-repeat;
 }
 .data-card h3 {
   font-size: 0.95rem;
@@ -353,6 +412,68 @@ p:last-child { margin-bottom: 0; }
   font-size: 0.95rem;
   text-align: center;
 }
+
+/* --- Explainer card (product pages): "how it works" step cards --- */
+.explain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+}
+.explain-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--card-border);
+  padding: 24px 22px;
+}
+.explain-card .step {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding-left: 12px;
+  border-left: 2px solid var(--gold);
+  margin-bottom: 10px;
+}
+.explain-card h3 { margin-bottom: 8px; }
+.explain-card p { font-size: 0.9rem; color: var(--teal-70); margin: 0; }
+
+/* --- Sample-output table (shows the shape of the data even when empty) --- */
+.sample-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.sample-table caption {
+  text-align: left;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal-70);
+  padding-bottom: 10px;
+}
+.sample-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--teal);
+  border-bottom: 1px solid var(--gold);
+  padding: 8px 12px 8px 0;
+}
+.sample-table td {
+  color: var(--teal-70);
+  border-bottom: 1px solid var(--line);
+  padding: 9px 12px 9px 10px;
+}
+.sample-table tbody tr:nth-child(odd) td { background: rgba(201, 162, 75, 0.06); }
+.sample-table tr:last-child td { border-bottom: 0; }
+.sample-table th { padding-left: 10px; }
+.sample-note {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--teal-70);
+  font-style: italic;
+}
+.table-scroll { overflow-x: auto; }
 
 /* --- Forms (docfiler, budget login) --- */
 input, button, select, textarea { font-family: inherit; font-size: 1rem; }
@@ -431,6 +552,7 @@ canvas { max-width: 100%; }
   .hero-belowfold p { color: var(--teal-70); margin: 0 auto; max-width: 32ch; }
   .origin-line { font-size: 1rem; }
 
-  .card-grid, .data-grid { grid-template-columns: 1fr; }
+  .card-grid, .data-grid, .explain-grid { grid-template-columns: 1fr; }
+  .card-grid { max-width: none; }
   .section { margin: 32px auto; }
 }
