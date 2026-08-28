@@ -85,6 +85,35 @@ Run: `python main.py` (serves on port 5003).
 
 ## Deployment
 
-Intended to run on the same always-on host as job-outreach-engine and crypto-trading-engine, so
-its read-only DB paths resolve without any network hop. Point `montelattice.com`'s DNS at
-whichever host serves this app once deployed.
+### Render (current)
+
+Deployed as a **Web Service** (not a Cron Job). `render.yaml` in the repo root is the blueprint;
+or configure manually:
+
+| Field | Value |
+|---|---|
+| Build command | `pip install -r requirements.txt` |
+| Start command | `gunicorn main:app --workers 2 --bind 0.0.0.0:$PORT --timeout 30` |
+| Health check path | `/` |
+
+Set these in the dashboard's **Environment** tab (never in git):
+
+- `SITE_SECRET_KEY` — any long random string
+- `BUDGET_SITE_PASSWORD` — the Console password
+- `CONSOLE_HEARTBEAT_TOKEN` — optional; only needed once the bots POST run heartbeats
+
+On the free plan the service sleeps after 15 min idle (first request then takes ~30-50s to wake),
+and the filesystem is ephemeral — `console_heartbeats.db` resets on each deploy, which just makes
+the Today strip fall back to "no pipeline run recorded yet". Upgrade to Starter for always-on, or
+set `CONSOLE_HEARTBEAT_DB` to a path on a persistent disk.
+
+**Live Console data:** `/console` reads the sibling projects' SQLite files by local path. On a
+generic host those don't exist, so the Console sections show "down" and `/console/demo` (baked
+fake data) is the shareable view. To get real Console numbers public, run this app on the same
+box as the bots.
+
+### DNS (Namecheap -> Render)
+
+In Render, add the custom domain `montelattice.com` (and `www`); Render shows the exact target.
+Then in Namecheap **Advanced DNS**: remove the old `A @` records and the `www` CNAME pointing at
+the previous host, add Render's records, and **keep** the SPF/DMARC `TXT` records (email, unrelated).

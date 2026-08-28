@@ -54,7 +54,13 @@ if not os.environ.get("BUDGET_SITE_PASSWORD") and os.environ.get("SITE_PASSWORD"
 # Shared secret the bots present (X-Console-Token header) to POST run heartbeats. If unset, the
 # heartbeat endpoint is disabled (returns 503) rather than accepting unauthenticated writes.
 CONSOLE_HEARTBEAT_TOKEN = os.environ.get("CONSOLE_HEARTBEAT_TOKEN")
-CONSOLE_HEARTBEAT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "console_heartbeats.db")
+# On an ephemeral-filesystem host (Render free tier) this resets each deploy - fine, the
+# Today strip just falls back to "no pipeline run recorded yet". Point CONSOLE_HEARTBEAT_DB
+# at a persistent disk to keep it across restarts.
+CONSOLE_HEARTBEAT_DB = os.environ.get(
+    "CONSOLE_HEARTBEAT_DB",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "console_heartbeats.db"),
+)
 
 # Paths to the other projects' SQLite DBs - read-only queries only, never written to from here.
 # Overridable via env vars so this app can run on the same host as the other repos without
@@ -727,7 +733,10 @@ def api_console_heartbeat():
     return jsonify({"ok": True}), 200
 
 
+# Ensure the heartbeat table exists under gunicorn too (no __main__ there).
+_heartbeat_init()
+
 if __name__ == "__main__":
-    _heartbeat_init()
-    app.run(host="0.0.0.0", port=5003, debug=False)
+    # Local dev only. In production Render runs `gunicorn main:app` and sets $PORT.
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5003")), debug=False)
 

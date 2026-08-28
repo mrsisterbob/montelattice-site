@@ -1,0 +1,25 @@
+# Render blueprint for montelattice-site.
+# In the Render dashboard: New + -> Blueprint -> pick this repo, OR create a
+# Web Service manually with the build/start commands below.
+services:
+  - type: web
+    name: montelattice-site
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --workers 2 --bind 0.0.0.0:$PORT --timeout 30
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # Set the two secrets in the dashboard (Environment tab) so they never land in git:
+      #   SITE_SECRET_KEY       - any long random string (Flask session signing)
+      #   BUDGET_SITE_PASSWORD  - the Console password
+      #   CONSOLE_HEARTBEAT_TOKEN - optional; only needed once the bots POST run heartbeats
+      - key: SITE_SECRET_KEY
+        sync: false
+      - key: BUDGET_SITE_PASSWORD
+        sync: false
+      - key: CONSOLE_HEARTBEAT_TOKEN
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12"
