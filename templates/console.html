@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Console &middot; Monte Lattice{% endblock %}
+{% block head_extra %}<style>/* console theme lands in rapture.css .console block */</style>{% endblock %}
+{% block content %}
+<div class="console{{ ' console--demo' if demo else '' }}" data-demo="{{ '1' if demo else '0' }}">
+  <div class="wrap section">
+    <h1 class="section-heading">Console</h1>
+    <p class="solves-line">Cockpit under construction &mdash; step 1 stub.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,13 +1,19 @@
-"""Monte Lattice site: unifying Flask app for the 4-project dashboard.
+"""Monte Lattice site: unifying Flask app for the portfolio site + the private Console cockpit.
 
-Serves 4 public/private pages (home, job-engine, docfiler, crypto, budget) in a shared Art
-Deco theme. Static pages (home, docfiler) need no backend data. The two utility dashboards
-(job-engine, crypto) read from their respective project's own SQLite DB directly - this app
-does not duplicate their logic, it only queries their existing tables read-only. The budget
-page is gated behind a single shared-password session, since it's a single-user private tool.
+Public marketing pages (home, job-engine, docfiler, crypto, budget) share an Art Deco theme and
+carry sample/explainer content only. The private Console (/console) is the owner's control panel:
+it reads every sibling project's own SQLite DB read-only (never writes to them) and rolls the
+numbers into one cockpit - a Today strip, a status board, a KPI row, live per-system sections,
+trend charts, and a Telegram-run heartbeat. The Console is gated behind a single shared-password
+session; /console/demo is a public, number-scrubbed snapshot for linking in applications.
+
+The only database this app itself writes is console_heartbeats.db in this directory, populated by
+POSTs from the bots to /api/console/heartbeat.
 """
 from __future__ import annotations
 
+import datetime as _dt
+import logging
 import os
 import sqlite3
 from functools import wraps
@@ -17,7 +23,16 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 app = Flask(__name__)
 app.secret_key = os.environ.get("SITE_SECRET_KEY", "dev-only-change-me")
 
-SITE_PASSWORD = os.environ.get("BUDGET_SITE_PASSWORD")  # required to unlock /budget
+# Canonical name is BUDGET_SITE_PASSWORD (it has gated /budget historically and still gates
+# /console). SITE_PASSWORD is accepted as an alias so a future rename doesn't lock the owner out.
+SITE_PASSWORD = os.environ.get("BUDGET_SITE_PASSWORD") or os.environ.get("SITE_PASSWORD")
+if not os.environ.get("BUDGET_SITE_PASSWORD") and os.environ.get("SITE_PASSWORD"):
+    logging.warning("Using SITE_PASSWORD; prefer BUDGET_SITE_PASSWORD (canonical name for the Console gate).")
+
+# Shared secret the bots present (X-Console-Token header) to POST run heartbeats. If unset, the
+# heartbeat endpoint is disabled (returns 503) rather than accepting unauthenticated writes.
+CONSOLE_HEARTBEAT_TOKEN = os.environ.get("CONSOLE_HEARTBEAT_TOKEN")
+CONSOLE_HEARTBEAT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "console_heartbeats.db")
 
 # Paths to the other projects' SQLite DBs - read-only queries only, never written to from here.
 # Overridable via env vars so this app can run on the same host as the other repos without
@@ -48,10 +63,26 @@ def _read_only_query(db_path: str, query: str, params: tuple = ()) -> list[dict]
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if not session.get("budget_authed"):
-            return redirect(url_for("budget_login"))
+        if not session.get("console_authed"):
+            return redirect(url_for("console_login"))
         return view(*args, **kwargs)
     return wrapped
+
+
+def _relpath_exists(path: str) -> bool:
+    try:
+        return bool(path) and os.path.exists(path)
+    except OSError:
+        return False
+
+
+def _newest_ts(db_path: str, query: str):
+    """Return the single scalar (usually a timestamp string) from `query`, or None."""
+    rows = _read_only_query(db_path, query)
+    if rows:
+        first = rows[0]
+        return next(iter(first.values()), None)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -75,6 +106,12 @@ def docfiler():
 @app.route("/crypto")
 def crypto():
     return render_template("crypto.html", active_page="crypto")
+
+
+@app.route("/budget")
+def budget():
+    # Public marketing page now (the real budget dashboard lives in the Console).
+    return render_template("budget.html", active_page="budget")
 
 
 # ---------------------------------------------------------------------------
@@ -169,29 +206,46 @@ def api_docfiler_contact():
 
 
 # ---------------------------------------------------------------------------
-# Budget tracker: password-gated
+# Console: the private cockpit (password-gated). /console/demo is public + scrubbed.
 # ---------------------------------------------------------------------------
-@app.route("/budget/login", methods=["GET", "POST"])
-def budget_login():
+@app.route("/console/login", methods=["GET", "POST"])
+def console_login():
     error = None
     if request.method == "POST":
         if SITE_PASSWORD and request.form.get("password") == SITE_PASSWORD:
-            session["budget_authed"] = True
-            return redirect(url_for("budget"))
+            session["console_authed"] = True
+            return redirect(url_for("console"))
         error = "Incorrect password."
-    return render_template("budget_login.html", error=error)
+    return render_template("console_login.html", error=error)
 
 
-@app.route("/budget/logout")
-def budget_logout():
-    session.pop("budget_authed", None)
+@app.route("/console/logout")
+def console_logout():
+    session.pop("console_authed", None)
     return redirect(url_for("home"))
 
 
-@app.route("/budget")
+@app.route("/console")
 @login_required
-def budget():
-    return render_template("budget.html", active_page="budget")
+def console():
+    return render_template("console.html", demo=False)
+
+
+@app.route("/console/demo")
+def console_demo():
+    # Public, number-scrubbed snapshot - same layout, values rounded/masked client-side.
+    return render_template("console.html", demo=True)
+
+
+# Back-compat: old /budget/login and /budget/logout links redirect to the Console equivalents.
+@app.route("/budget/login")
+def _legacy_budget_login():
+    return redirect(url_for("console_login"))
+
+
+@app.route("/budget/logout")
+def _legacy_budget_logout():
+    return redirect(url_for("console_logout"))
 
 
 @app.route("/api/budget/income-over-time")
@@ -225,5 +279,316 @@ def api_budget_wheel():
     return jsonify({"bucket_totals": {k: round(v, 2) for k, v in totals.items()}})
 
 
+# ---------------------------------------------------------------------------
+# Console cockpit APIs (all gated; all read sibling DBs read-only; all degrade
+# to zeros / "down" rather than raising when a DB file is missing).
+# ---------------------------------------------------------------------------
+_STALE_HOURS = 24  # a system whose newest row is older than this shows "warn"
+
+
+def _job_engine_rollup() -> dict:
+    outcomes = _read_only_query(
+        JOB_ENGINE_DB_PATH,
+        "SELECT source, status, created_at FROM application_outcomes ORDER BY created_at ASC",
+    )
+    daily = _read_only_query(
+        JOB_ENGINE_DB_PATH,
+        "SELECT date, drafts_staged, applied_count, notes_logged FROM daily_activity ORDER BY date ASC LIMIT 120",
+    )
+    applied = sum(1 for r in outcomes if r["status"] == "applied")
+    interviews = sum(1 for r in outcomes if r["status"] == "interview")
+    by_source: dict[str, dict] = {}
+    for r in outcomes:
+        s = r["source"] or "unknown"
+        b = by_source.setdefault(s, {"applied": 0, "interview": 0})
+        if r["status"] == "applied":
+            b["applied"] += 1
+        elif r["status"] == "interview":
+            b["interview"] += 1
+    for b in by_source.values():
+        b["reply_rate_pct"] = round(b["interview"] / b["applied"] * 100, 1) if b["applied"] else 0.0
+
+    today = _dt.date.today()
+    week_ago = (today - _dt.timedelta(days=7)).isoformat()
+    applies_this_week = sum(int(r["applied_count"] or 0) for r in daily if str(r["date"]) >= week_ago)
+    active_days = [r for r in daily if (int(r["applied_count"] or 0) + int(r["drafts_staged"] or 0)) > 0]
+    streak = 0
+    seen = {str(r["date"]) for r in active_days}
+    probe = today
+    while probe.isoformat() in seen:
+        streak += 1
+        probe -= _dt.timedelta(days=1)
+
+    return {
+        "applied": applied,
+        "interviews": interviews,
+        "reply_rate_pct": round(interviews / applied * 100, 1) if applied else 0.0,
+        "by_source": by_source,
+        "daily": daily,
+        "applies_this_week": applies_this_week,
+        "active_day_streak": streak,
+        "newest_ts": outcomes[-1]["created_at"] if outcomes else (daily[-1]["date"] if daily else None),
+        "has_db": _relpath_exists(JOB_ENGINE_DB_PATH),
+        "has_data": bool(outcomes or daily),
+    }
+
+
+def _crypto_rollup() -> dict:
+    open_trades = _read_only_query(
+        CRYPTO_ENGINE_DB_PATH,
+        "SELECT symbol, entry_price, stop_loss, take_profit, opened_at FROM paper_portfolio WHERE status = 'OPEN'",
+    )
+    closed = _read_only_query(
+        CRYPTO_ENGINE_DB_PATH,
+        "SELECT pnl_usd, status, closed_at FROM paper_portfolio "
+        "WHERE status IN ('CLOSED_TP','CLOSED_SL','CLOSED_BE','CLOSED_MANUAL') ORDER BY closed_at ASC",
+    )
+    signals = _read_only_query(
+        CRYPTO_ENGINE_DB_PATH,
+        "SELECT symbol, confidence_score, context_summary, triggered_at FROM open_signals ORDER BY triggered_at DESC LIMIT 10",
+    )
+    wins = sum(1 for c in closed if (c["pnl_usd"] or 0) > 0)
+    realized = sum((c["pnl_usd"] or 0) for c in closed)
+    equity, running = [], 0.0
+    for c in closed:
+        running += c["pnl_usd"] or 0
+        equity.append({"t": c["closed_at"], "equity": round(running, 2)})
+
+    # Circuit breaker: best-effort read of an engine state table if it exists; else None.
+    cb_rows = _read_only_query(
+        CRYPTO_ENGINE_DB_PATH,
+        "SELECT value FROM engine_state WHERE key = 'circuit_breaker'",
+    )
+    circuit_breaker = (cb_rows[0]["value"] if cb_rows else None)
+
+    newest = None
+    for cand in (signals[0]["triggered_at"] if signals else None,
+                 open_trades[-1]["opened_at"] if open_trades else None,
+                 closed[-1]["closed_at"] if closed else None):
+        if cand and (newest is None or str(cand) > str(newest)):
+            newest = cand
+
+    return {
+        "open_positions": open_trades,
+        "recent_signals": signals,
+        "closed_trade_count": len(closed),
+        "win_rate_pct": round(wins / len(closed) * 100, 1) if closed else 0.0,
+        "realized_pnl_usd": round(realized, 2),
+        "equity_curve": equity,
+        "circuit_breaker": circuit_breaker,
+        "newest_ts": newest,
+        "has_db": _relpath_exists(CRYPTO_ENGINE_DB_PATH),
+        "has_data": bool(open_trades or closed or signals),
+    }
+
+
+def _budget_rollup() -> dict:
+    rows = _read_only_query(
+        BUDGET_TRACKER_DB_PATH, "SELECT date, amount, bucket FROM transactions ORDER BY date ASC"
+    )
+    from collections import defaultdict
+    monthly = defaultdict(lambda: {"income": 0.0, "expenses": 0.0})
+    for r in rows:
+        key = str(r["date"])[:7]
+        if r["bucket"] == "income":
+            monthly[key]["income"] += r["amount"] or 0
+        else:
+            monthly[key]["expenses"] += abs(r["amount"] or 0)
+    months = sorted(monthly)
+    this_month = _dt.date.today().isoformat()[:7]
+    net_this_month = round(monthly[this_month]["income"] - monthly[this_month]["expenses"], 2) if this_month in monthly else 0.0
+    return {
+        "months": months,
+        "income": [round(monthly[m]["income"], 2) for m in months],
+        "expenses": [round(monthly[m]["expenses"], 2) for m in months],
+        "net_this_month": net_this_month,
+        "newest_ts": str(rows[-1]["date"]) if rows else None,
+        "has_db": _relpath_exists(BUDGET_TRACKER_DB_PATH),
+        "has_data": bool(rows),
+    }
+
+
+def _heartbeat_init():
+    try:
+        conn = sqlite3.connect(CONSOLE_HEARTBEAT_DB, timeout=5)
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS console_heartbeats ("
+            "source TEXT PRIMARY KEY, ran_at TEXT, summary TEXT, received_at TEXT)"
+        )
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as exc:  # pragma: no cover
+        logging.warning("heartbeat DB init failed: %s", exc)
+
+
+def _heartbeats() -> list[dict]:
+    if not os.path.exists(CONSOLE_HEARTBEAT_DB):
+        return []
+    return _read_only_query(
+        CONSOLE_HEARTBEAT_DB, "SELECT source, ran_at, summary, received_at FROM console_heartbeats"
+    )
+
+
+def _parse_ts(ts):
+    """Best-effort parse of the assorted timestamp shapes the sibling DBs use."""
+    if not ts:
+        return None
+    s = str(ts).strip().replace("Z", "+00:00")
+    try:
+        return _dt.datetime.fromisoformat(s).replace(tzinfo=None)
+    except ValueError:
+        pass
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d", "%Y-%m"):
+        try:
+            return _dt.datetime.strptime(s[:19], fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _age_hours(ts):
+    dt = _parse_ts(ts)
+    if dt is None:
+        return None
+    return (_dt.datetime.now() - dt).total_seconds() / 3600.0
+
+
+def _system_status(name: str, has_db: bool, has_data: bool, newest_ts) -> dict:
+    if not has_db:
+        state, detail = "down", "database not reachable"
+    elif not has_data:
+        state, detail = "warn", "no rows yet"
+    else:
+        age = _age_hours(newest_ts)
+        if age is None:
+            state, detail = "ok", "live"
+        elif age > _STALE_HOURS:
+            state, detail = "warn", f"newest data {int(age)}h old"
+        else:
+            state, detail = "ok", f"data {int(age)}h old" if age >= 1 else "data <1h old"
+    return {"system": name, "state": state, "detail": detail, "newest_ts": newest_ts}
+
+
+@app.route("/api/console/kpis")
+@login_required
+def api_console_kpis():
+    j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
+    return jsonify({
+        "applications_sent": j["applied"],
+        "reply_rate_pct": j["reply_rate_pct"],
+        "applies_this_week": j["applies_this_week"],
+        "active_day_streak": j["active_day_streak"],
+        "open_positions": len(c["open_positions"]),
+        "realized_pnl_usd": c["realized_pnl_usd"],
+        "net_this_month": b["net_this_month"],
+    })
+
+
+@app.route("/api/console/status")
+@login_required
+def api_console_status():
+    j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
+    return jsonify({
+        "checked_at": _dt.datetime.now().isoformat(timespec="seconds"),
+        "systems": [
+            _system_status("Job Engine", j["has_db"], j["has_data"], j["newest_ts"]),
+            _system_status("Crypto", c["has_db"], c["has_data"], c["newest_ts"]),
+            _system_status("Budget", b["has_db"], b["has_data"], b["newest_ts"]),
+        ],
+    })
+
+
+@app.route("/api/console/today")
+@login_required
+def api_console_today():
+    j, c = _job_engine_rollup(), _crypto_rollup()
+    items = []
+
+    # Pipeline freshness from the bot heartbeat (preferred) or the newest outcome row.
+    hb = {h["source"]: h for h in _heartbeats()}
+    job_hb = hb.get("job") or hb.get("job-engine")
+    pipeline_ts = (job_hb["ran_at"] if job_hb else j["newest_ts"])
+    age = _age_hours(pipeline_ts)
+    if age is None:
+        items.append({"kind": "pipeline", "level": "info", "text": "No pipeline run recorded yet."})
+    elif age > 24:
+        items.append({"kind": "pipeline", "level": "warn",
+                      "text": f"Job pipeline last ran {int(age)}h ago — stale."})
+    else:
+        extra = f" ({job_hb['summary']})" if job_hb and job_hb.get("summary") else ""
+        items.append({"kind": "pipeline", "level": "ok",
+                      "text": f"Job pipeline ran {int(age)}h ago{extra}."})
+
+    # Crypto circuit breaker
+    cb = (c["circuit_breaker"] or "").lower()
+    if cb in ("1", "true", "tripped", "on"):
+        items.append({"kind": "crypto", "level": "warn", "text": "Crypto circuit breaker is TRIPPED."})
+
+    # Streak nudge
+    if j["active_day_streak"] == 0 and j["has_data"]:
+        items.append({"kind": "job", "level": "warn", "text": "No outreach activity logged today."})
+    elif j["applies_this_week"] == 0 and j["has_data"]:
+        items.append({"kind": "job", "level": "warn", "text": "Zero applications sent this week."})
+
+    if not items or all(i["level"] == "ok" for i in items):
+        items.insert(0, {"kind": "all", "level": "clear", "text": "All clear."})
+
+    return jsonify({"items": items, "generated_at": _dt.datetime.now().isoformat(timespec="seconds")})
+
+
+@app.route("/api/console/trends")
+@login_required
+def api_console_trends():
+    j, c = _job_engine_rollup(), _crypto_rollup()
+    # Applies per ISO week from daily_activity
+    from collections import defaultdict
+    weekly = defaultdict(int)
+    for r in j["daily"]:
+        dt = _parse_ts(r["date"])
+        if dt:
+            iso = dt.isocalendar()
+            weekly[f"{iso[0]}-W{iso[1]:02d}"] += int(r["applied_count"] or 0)
+    weeks = sorted(weekly)
+    return jsonify({
+        "applies_by_week": {"weeks": weeks, "counts": [weekly[w] for w in weeks]},
+        "reply_rate_by_source": {
+            "sources": list(j["by_source"].keys()),
+            "applied": [v["applied"] for v in j["by_source"].values()],
+            "interview": [v["interview"] for v in j["by_source"].values()],
+        },
+        "crypto_equity": c["equity_curve"],
+    })
+
+
+@app.route("/api/console/heartbeat", methods=["POST"])
+def api_console_heartbeat():
+    if not CONSOLE_HEARTBEAT_TOKEN:
+        return jsonify({"error": "heartbeat disabled (CONSOLE_HEARTBEAT_TOKEN unset)"}), 503
+    if request.headers.get("X-Console-Token") != CONSOLE_HEARTBEAT_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+    payload = request.get_json(silent=True) or {}
+    source = (payload.get("source") or "").strip().lower()
+    if not source:
+        return jsonify({"error": "source required"}), 400
+    ran_at = (payload.get("ran_at") or _dt.datetime.now().isoformat(timespec="seconds")).strip()
+    summary = (payload.get("summary") or "").strip()[:200]
+    _heartbeat_init()
+    try:
+        conn = sqlite3.connect(CONSOLE_HEARTBEAT_DB, timeout=5)
+        conn.execute(
+            "INSERT INTO console_heartbeats (source, ran_at, summary, received_at) VALUES (?,?,?,?) "
+            "ON CONFLICT(source) DO UPDATE SET ran_at=excluded.ran_at, summary=excluded.summary, received_at=excluded.received_at",
+            (source, ran_at, summary, _dt.datetime.now().isoformat(timespec="seconds")),
+        )
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as exc:
+        logging.warning("heartbeat write failed: %s", exc)
+        return jsonify({"error": "write failed"}), 500
+    return jsonify({"ok": True}), 200
+
+
 if __name__ == "__main__":
+    _heartbeat_init()
     app.run(host="0.0.0.0", port=5003, debug=False)
+
