@@ -1,11 +1,300 @@
 {% extends "base.html" %}
 {% block title %}Console &middot; Monte Lattice{% endblock %}
-{% block head_extra %}<style>/* console theme lands in rapture.css .console block */</style>{% endblock %}
 {% block content %}
-<div class="console{{ ' console--demo' if demo else '' }}" data-demo="{{ '1' if demo else '0' }}">
-  <div class="wrap section">
-    <h1 class="section-heading">Console</h1>
-    <p class="solves-line">Cockpit under construction &mdash; step 1 stub.</p>
+
+<div class="console{{ ' console--demo' if demo else '' }}" id="console" data-demo="{{ '1' if demo else '0' }}">
+
+  <div class="title-band">
+    <div class="title-band__inner">
+      <h1>Console</h1>
+      <div class="title-band__rule"></div>
+    </div>
   </div>
+
+  <div class="wrap">
+    <p class="solves-line">
+      Every system, one screen. Refreshes every 60&nbsp;seconds.
+      {% if not demo %}<a href="/console/logout">Sign out</a>{% endif %}
+    </p>
+  </div>
+
+  <!-- TODAY -->
+  <div class="wrap section">
+    <div class="sec-head"><h2>Today</h2><span class="freshness" id="fresh-today">&mdash;</span></div>
+    <div class="today-strip" id="today-strip">
+      <div class="today-item is-clear">Loading&hellip;</div>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="wrap section">
+    <div class="sec-head"><h2>System Status</h2><span class="freshness" id="fresh-status">&mdash;</span></div>
+    <div class="status-board" id="status-board"></div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="wrap section">
+    <div class="sec-head"><h2>Key Numbers</h2><span class="freshness" id="fresh-kpi">&mdash;</span></div>
+    <div class="kpi-row" id="kpi-row">
+      <div class="kpi-tile"><span class="kpi-value" data-count id="k-applied">&mdash;</span><span class="kpi-label">Applications Sent</span></div>
+      <div class="kpi-tile"><span class="kpi-value is-highlight" data-count data-suffix="%" id="k-reply">&mdash;</span><span class="kpi-label">Reply Rate</span></div>
+      <div class="kpi-tile"><span class="kpi-value" data-count id="k-week">&mdash;</span><span class="kpi-label">Applies This Week</span></div>
+      <div class="kpi-tile"><span class="kpi-value" data-count id="k-streak">&mdash;</span><span class="kpi-label">Active-Day Streak</span></div>
+      <div class="kpi-tile"><span class="kpi-value" data-count id="k-open">&mdash;</span><span class="kpi-label">Open Positions</span></div>
+      <div class="kpi-tile"><span class="kpi-value" id="k-pnl">&mdash;</span><span class="kpi-label">Realized PnL</span></div>
+      <div class="kpi-tile"><span class="kpi-value" id="k-net">&mdash;</span><span class="kpi-label">Net This Month</span></div>
+    </div>
+  </div>
+
+  <!-- JOB ENGINE -->
+  <div class="wrap section">
+    <div class="sec-head"><h2>Job Engine</h2><span class="freshness" id="fresh-job">&mdash;</span></div>
+    <div class="data-grid">
+      <div class="data-card"><h3>Applications</h3><span class="value" id="j-applied" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Interviews</h3><span class="value" id="j-interviews" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Reply Rate</h3><span class="value is-highlight" id="j-reply" style="font-size:1.9rem;">&mdash;</span></div>
+    </div>
+    <div class="section--tight"></div>
+    <div class="data-card"><canvas id="chart-applies-week" height="90"></canvas></div>
+    <div class="section--tight"></div>
+    <div class="data-card"><canvas id="chart-by-source" height="90"></canvas></div>
+  </div>
+
+  <!-- CRYPTO -->
+  <div class="wrap section">
+    <div class="sec-head"><h2>Crypto</h2><span class="freshness" id="fresh-crypto">&mdash;</span></div>
+    <div class="data-grid">
+      <div class="data-card"><h3>Open Positions</h3><span class="value" id="c-open" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Closed Trades</h3><span class="value" id="c-closed" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Win Rate</h3><span class="value" id="c-winrate" style="font-size:1.9rem;">&mdash;</span></div>
+      <div class="data-card"><h3>Realized PnL</h3><span class="value is-highlight" id="c-pnl" style="font-size:1.9rem;">&mdash;</span></div>
+    </div>
+    <div class="section--tight"></div>
+    <div class="data-card"><canvas id="chart-equity" height="90"></canvas></div>
+    <div class="section--tight"></div>
+    <div class="data-card"><h3 class="section-heading" style="font-size:0.9rem;">Recent Signals</h3><div class="data-list" id="c-signals">&mdash;</div></div>
+    <div class="section--tight"></div>
+    <div class="data-card"><h3 class="section-heading" style="font-size:0.9rem;">Open Positions</h3><div class="data-list" id="c-positions">&mdash;</div></div>
+  </div>
+
+  <!-- BUDGET -->
+  <div class="wrap section">
+    <div class="sec-head"><h2>Budget</h2><span class="freshness" id="fresh-budget">&mdash;</span></div>
+    <div class="data-card"><canvas id="chart-income" height="90"></canvas></div>
+    <div class="section--tight"></div>
+    <div class="data-card"><canvas id="chart-wheel" height="90"></canvas></div>
+  </div>
+
 </div>
+
+<script>
+(function () {
+  var DEMO = document.getElementById('console').dataset.demo === '1';
+  var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var DARK = window.matchMedia('(prefers-color-scheme: dark)').matches &&
+             document.documentElement.getAttribute('data-theme') !== 'light';
+  if (document.documentElement.getAttribute('data-theme') === 'dark') DARK = true;
+  var fmtRel = (window.MonteLattice && window.MonteLattice.formatRelative) || function (t) { return t || '—'; };
+  var ML = {
+    bar1: DARK ? '#5b9b8a' : '#0E3A3A',
+    gold: '#C9A24B',
+    orange: '#E8823A',
+    grid: DARK ? 'rgba(231,239,233,0.10)' : 'rgba(14,58,58,0.12)',
+    tick: DARK ? '#9fb8ad' : '#3a5f5f',
+    legend: DARK ? '#cfe0d8' : '#0E3A3A'
+  };
+  var charts = {};
+  var sysState = {};
+
+  function scrub(n, kind) {
+    if (!DEMO || n === null || n === undefined) return n;
+    if (kind === 'pct') return Math.round(n / 5) * 5;
+    if (kind === 'money') return Math.round(n / 100) * 100;
+    if (typeof n === 'number') return Math.max(1, Math.round(n / 5) * 5);
+    return n;
+  }
+  function money(n) {
+    if (n === null || n === undefined) return '—';
+    var v = scrub(n, 'money');
+    return (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+  function setText(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+  function setCount(id, target, suffix) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (REDUCE || DEMO) { el.textContent = Math.round(target || 0) + (suffix || ''); return; }
+    el.dataset.target = (target || 0);
+    el.dataset.suffix = suffix || '';
+  }
+  function stamp(id, ts, state) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'freshness' + (state === 'down' ? ' is-down' : state === 'warn' ? ' is-stale' : '');
+    el.textContent = ts ? ('updated ' + fmtRel(ts)) : (state === 'down' ? 'offline' : 'live');
+  }
+  function showCard(canvasId, has) {
+    var el = document.getElementById(canvasId);
+    if (el && el.parentElement) el.parentElement.style.display = has ? '' : 'none';
+  }
+  function chartOpts(extra) {
+    return Object.assign({
+      responsive: true, maintainAspectRatio: true,
+      animation: REDUCE ? false : { duration: 450 },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: ML.tick }, grid: { color: ML.grid } },
+        x: { ticks: { color: ML.tick, maxRotation: 0, autoSkip: true }, grid: { color: ML.grid } }
+      },
+      plugins: { legend: { labels: { color: ML.legend, boxWidth: 12 } } }
+    }, extra || {});
+  }
+  function upsertChart(id, cfg) {
+    if (charts[id]) { charts[id].data = cfg.data; charts[id].update(); return; }
+    var el = document.getElementById(id);
+    if (el) charts[id] = new Chart(el, cfg);
+  }
+
+  function renderToday(d) {
+    d = d || { items: [] };
+    var host = document.getElementById('today-strip');
+    host.innerHTML = (d.items || []).map(function (it) {
+      var cls = it.level === 'warn' ? ' is-warn' : (it.level === 'clear' ? ' is-clear' : '');
+      return '<div class="today-item' + cls + '">' + (it.text || '') + '</div>';
+    }).join('') || '<div class="today-item is-clear">All clear.</div>';
+    stamp('fresh-today', d.generated_at, 'ok');
+  }
+
+  function renderStatus(d) {
+    d = d || { systems: [] };
+    document.getElementById('status-board').innerHTML = (d.systems || []).map(function (s) {
+      return '<div class="status-item"><h3>' + s.system + '</h3>' +
+             '<span class="dot ' + s.state + '"></span><span class="detail">' + s.detail + '</span></div>';
+    }).join('');
+    stamp('fresh-status', d.checked_at, 'ok');
+    sysState = {};
+    (d.systems || []).forEach(function (s) { sysState[s.system] = s.state; });
+  }
+
+  function renderKPIs(k) {
+    k = k || {};
+    setCount('k-applied', scrub(k.applications_sent));
+    setCount('k-reply', scrub(k.reply_rate_pct, 'pct'), '%');
+    setCount('k-week', scrub(k.applies_this_week));
+    setCount('k-streak', k.active_day_streak);
+    setCount('k-open', scrub(k.open_positions));
+    var pnl = document.getElementById('k-pnl');
+    pnl.textContent = money(k.realized_pnl_usd);
+    pnl.className = 'kpi-value' + ((k.realized_pnl_usd || 0) < 0 ? ' is-neg' : ' is-highlight');
+    var net = document.getElementById('k-net');
+    net.textContent = money(k.net_this_month);
+    net.className = 'kpi-value' + ((k.net_this_month || 0) < 0 ? ' is-neg' : '');
+    if (!REDUCE && !DEMO && window.MonteLattice) window.MonteLattice.armCountUp();
+    stamp('fresh-kpi', new Date().toISOString(), 'ok');
+  }
+
+  function renderJob(job, trends) {
+    job = job || {}; trends = trends || {};
+    setText('j-applied', (scrub(job.total_applied) == null ? "—" : scrub(job.total_applied)));
+    setText('j-interviews', (scrub(job.total_interviews) == null ? "—" : scrub(job.total_interviews)));
+    setText('j-reply', (scrub(job.reply_rate_pct, "pct") || 0) + '%');
+    var newest = (job.daily_activity && job.daily_activity.length)
+      ? job.daily_activity[job.daily_activity.length - 1].date : null;
+    stamp('fresh-job', newest, sysState['Job Engine'] || 'ok');
+
+    var w = trends.applies_by_week || { weeks: [], counts: [] };
+    showCard('chart-applies-week', w.weeks && w.weeks.length);
+    if (w.weeks && w.weeks.length) upsertChart('chart-applies-week', {
+      type: 'bar',
+      data: { labels: w.weeks, datasets: [{ label: 'Applies / week', data: w.counts, backgroundColor: ML.bar1 }] },
+      options: chartOpts()
+    });
+    var s = trends.reply_rate_by_source || { sources: [] };
+    showCard('chart-by-source', s.sources && s.sources.length);
+    if (s.sources && s.sources.length) upsertChart('chart-by-source', {
+      type: 'bar',
+      data: { labels: s.sources, datasets: [
+        { label: 'Applied', data: s.applied, backgroundColor: ML.bar1 },
+        { label: 'Interview', data: s.interview, backgroundColor: ML.gold }
+      ] },
+      options: chartOpts()
+    });
+  }
+
+  function renderCrypto(cr, trends) {
+    cr = cr || { open_positions: [], recent_signals: [] }; trends = trends || {};
+    setText('c-open', scrub((cr.open_positions || []).length));
+    setText('c-closed', scrub(cr.closed_trade_count));
+    setText('c-winrate', (scrub(cr.win_rate_pct, "pct") || 0) + '%');
+    setText('c-pnl', money(cr.realized_pnl_usd));
+    var newest = (cr.recent_signals && cr.recent_signals.length) ? cr.recent_signals[0].triggered_at : null;
+    stamp('fresh-crypto', newest, sysState['Crypto'] || 'ok');
+
+    document.getElementById('c-signals').innerHTML = (cr.recent_signals || []).length
+      ? cr.recent_signals.map(function (x) {
+          return '<div><strong>' + x.symbol + '</strong> &mdash; ' + x.confidence_score + '/100 &mdash; ' + (x.context_summary || '') + '</div>';
+        }).join('') : '<div>No signals yet.</div>';
+    document.getElementById('c-positions').innerHTML = (cr.open_positions || []).length
+      ? cr.open_positions.map(function (p) {
+          return '<div><strong>' + p.symbol + '</strong> @ ' + p.entry_price + ' (SL ' + p.stop_loss + ' / TP ' + p.take_profit + ')</div>';
+        }).join('') : '<div>No open positions.</div>';
+
+    var eq = trends.crypto_equity || [];
+    showCard('chart-equity', eq.length);
+    if (eq.length) upsertChart('chart-equity', {
+      type: 'line',
+      data: { labels: eq.map(function (p) { return p.t; }),
+              datasets: [{ label: 'Equity ($ cum. PnL)', data: eq.map(function (p) { return p.equity; }),
+                           borderColor: ML.orange, tension: 0.2, pointRadius: 0 }] },
+      options: chartOpts()
+    });
+  }
+
+  function renderBudget(bd) {
+    bd = bd || { months: [], bucket_totals: {} };
+    stamp('fresh-budget', (bd.months && bd.months.length) ? bd.months[bd.months.length - 1] : null,
+          sysState['Budget'] || 'ok');
+    var has = bd.months && bd.months.length;
+    showCard('chart-income', has);
+    if (has) upsertChart('chart-income', {
+      type: 'bar',
+      data: { labels: bd.months, datasets: [
+        { label: 'Income', data: bd.income, backgroundColor: ML.bar1 },
+        { label: 'Expenses', data: bd.expenses, backgroundColor: ML.orange }
+      ] },
+      options: chartOpts()
+    });
+    var b = bd.bucket_totals || {};
+    var wk = Object.keys(b).length;
+    showCard('chart-wheel', wk);
+    if (wk) upsertChart('chart-wheel', {
+      type: 'doughnut',
+      data: { labels: Object.keys(b), datasets: [{ data: Object.values(b),
+              backgroundColor: [ML.teal, ML.gold, ML.orange, '#3a5f5f', '#8a6d2f', '#b5652a'] }] },
+      options: { responsive: true, animation: REDUCE ? false : { duration: 450 },
+                 plugins: { legend: { labels: { color: ML.legend, boxWidth: 12 } } } }
+    });
+  }
+
+  function refresh() {
+    var url = '/api/console/snapshot' + (DEMO ? '?demo=1' : '');
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (s) {
+        renderStatus(s.status);
+        renderToday(s.today);
+        renderKPIs(s.kpis);
+        renderJob(s.job, s.trends);
+        renderCrypto(s.crypto, s.trends);
+        renderBudget(s.budget);
+      })
+      .catch(function (e) {
+        document.getElementById('today-strip').innerHTML =
+          '<div class="today-item is-warn">Snapshot unavailable (' + e.message + ').</div>';
+      });
+  }
+
+  refresh();
+  setInterval(refresh, 60000);
+})();
+</script>
+
 {% endblock %}

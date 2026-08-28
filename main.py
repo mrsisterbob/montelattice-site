@@ -469,39 +469,7 @@ def _system_status(name: str, has_db: bool, has_data: bool, newest_ts) -> dict:
     return {"system": name, "state": state, "detail": detail, "newest_ts": newest_ts}
 
 
-@app.route("/api/console/kpis")
-@login_required
-def api_console_kpis():
-    j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
-    return jsonify({
-        "applications_sent": j["applied"],
-        "reply_rate_pct": j["reply_rate_pct"],
-        "applies_this_week": j["applies_this_week"],
-        "active_day_streak": j["active_day_streak"],
-        "open_positions": len(c["open_positions"]),
-        "realized_pnl_usd": c["realized_pnl_usd"],
-        "net_this_month": b["net_this_month"],
-    })
-
-
-@app.route("/api/console/status")
-@login_required
-def api_console_status():
-    j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
-    return jsonify({
-        "checked_at": _dt.datetime.now().isoformat(timespec="seconds"),
-        "systems": [
-            _system_status("Job Engine", j["has_db"], j["has_data"], j["newest_ts"]),
-            _system_status("Crypto", c["has_db"], c["has_data"], c["newest_ts"]),
-            _system_status("Budget", b["has_db"], b["has_data"], b["newest_ts"]),
-        ],
-    })
-
-
-@app.route("/api/console/today")
-@login_required
-def api_console_today():
-    j, c = _job_engine_rollup(), _crypto_rollup()
+def _today_items(j, c):
     items = []
 
     # Pipeline freshness from the bot heartbeat (preferred) or the newest outcome row.
@@ -533,14 +501,10 @@ def api_console_today():
     if not items or all(i["level"] == "ok" for i in items):
         items.insert(0, {"kind": "all", "level": "clear", "text": "All clear."})
 
-    return jsonify({"items": items, "generated_at": _dt.datetime.now().isoformat(timespec="seconds")})
+    return {"items": items, "generated_at": _dt.datetime.now().isoformat(timespec="seconds")}
 
 
-@app.route("/api/console/trends")
-@login_required
-def api_console_trends():
-    j, c = _job_engine_rollup(), _crypto_rollup()
-    # Applies per ISO week from daily_activity
+def _trends(j, c):
     from collections import defaultdict
     weekly = defaultdict(int)
     for r in j["daily"]:
@@ -549,7 +513,7 @@ def api_console_trends():
             iso = dt.isocalendar()
             weekly[f"{iso[0]}-W{iso[1]:02d}"] += int(r["applied_count"] or 0)
     weeks = sorted(weekly)
-    return jsonify({
+    return {
         "applies_by_week": {"weeks": weeks, "counts": [weekly[w] for w in weeks]},
         "reply_rate_by_source": {
             "sources": list(j["by_source"].keys()),
@@ -557,7 +521,123 @@ def api_console_trends():
             "interview": [v["interview"] for v in j["by_source"].values()],
         },
         "crypto_equity": c["equity_curve"],
-    })
+    }
+
+
+def _demo_snapshot() -> dict:
+    """A baked, plausible-but-fake snapshot for the public /console/demo. Numbers are
+    illustrative only - nothing here touches a real database."""
+    weeks = [f"2026-W{n:02d}" for n in range(28, 35)]
+    return {
+        "demo": True,
+        "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
+        "kpis": {
+            "applications_sent": 63, "reply_rate_pct": 14.3, "applies_this_week": 9,
+            "active_day_streak": 6, "open_positions": 2, "realized_pnl_usd": 418.20,
+            "net_this_month": 1240.0,
+        },
+        "status": {
+            "checked_at": _dt.datetime.now().isoformat(timespec="seconds"),
+            "systems": [
+                {"system": "Job Engine", "state": "ok", "detail": "data 4h old", "newest_ts": None},
+                {"system": "Crypto", "state": "ok", "detail": "data <1h old", "newest_ts": None},
+                {"system": "Budget", "state": "warn", "detail": "newest data 9d old", "newest_ts": None},
+            ],
+        },
+        "today": {"items": [
+            {"kind": "pipeline", "level": "ok", "text": "Job pipeline ran 4h ago (5 cards, 1 warm match)."},
+            {"kind": "job", "level": "warn", "text": "3 follow-ups overdue."},
+        ], "generated_at": _dt.datetime.now().isoformat(timespec="seconds")},
+        "job": {
+            "total_applied": 63, "total_interviews": 9, "reply_rate_pct": 14.3,
+            "daily_activity": [{"date": w, "applied_count": 0} for w in weeks],
+        },
+        "crypto": {
+            "open_positions": [
+                {"symbol": "BTCUSDT", "entry_price": 61240, "stop_loss": 59800, "take_profit": 64100},
+                {"symbol": "ETHUSDT", "entry_price": 2980, "stop_loss": 2870, "take_profit": 3220},
+            ],
+            "recent_signals": [
+                {"symbol": "SOLUSDT", "confidence_score": 71, "context_summary": "RVOL expansion at range high", "triggered_at": None},
+                {"symbol": "BTCUSDT", "confidence_score": 64, "context_summary": "Funding reset", "triggered_at": None},
+            ],
+            "closed_trade_count": 41, "win_rate_pct": 58.5, "realized_pnl_usd": 418.20,
+        },
+        "budget": {
+            "months": ["2026-05", "2026-06", "2026-07", "2026-08"],
+            "income": [4100, 4100, 4300, 4100],
+            "expenses": [3050, 3380, 2910, 2860],
+            "bucket_totals": {"Housing": 1450, "Food": 620, "Transport": 340, "Everything else": 450},
+        },
+        "trends": {
+            "applies_by_week": {"weeks": weeks, "counts": [7, 11, 5, 9, 8, 6, 9]},
+            "reply_rate_by_source": {"sources": ["jsearch", "greenhouse", "lever", "referral"],
+                                     "applied": [28, 14, 9, 12], "interview": [3, 2, 1, 3]},
+            "crypto_equity": [{"t": f"2026-08-{d:02d}", "equity": v}
+                              for d, v in zip(range(1, 22, 3), [40, 95, 60, 180, 250, 330, 418])],
+        },
+    }
+
+
+def _live_snapshot() -> dict:
+    j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
+    return {
+        "demo": False,
+        "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
+        "kpis": {
+            "applications_sent": j["applied"],
+            "reply_rate_pct": j["reply_rate_pct"],
+            "applies_this_week": j["applies_this_week"],
+            "active_day_streak": j["active_day_streak"],
+            "open_positions": len(c["open_positions"]),
+            "realized_pnl_usd": c["realized_pnl_usd"],
+            "net_this_month": b["net_this_month"],
+        },
+        "status": {
+            "checked_at": _dt.datetime.now().isoformat(timespec="seconds"),
+            "systems": [
+                _system_status("Job Engine", j["has_db"], j["has_data"], j["newest_ts"]),
+                _system_status("Crypto", c["has_db"], c["has_data"], c["newest_ts"]),
+                _system_status("Budget", b["has_db"], b["has_data"], b["newest_ts"]),
+            ],
+        },
+        "today": _today_items(j, c),
+        "job": {
+            "total_applied": j["applied"], "total_interviews": j["interviews"],
+            "reply_rate_pct": j["reply_rate_pct"], "daily_activity": j["daily"],
+        },
+        "crypto": {
+            "open_positions": c["open_positions"], "recent_signals": c["recent_signals"],
+            "closed_trade_count": c["closed_trade_count"], "win_rate_pct": c["win_rate_pct"],
+            "realized_pnl_usd": c["realized_pnl_usd"],
+        },
+        "budget": {
+            "months": b["months"], "income": b["income"], "expenses": b["expenses"],
+            "bucket_totals": _budget_bucket_totals(),
+        },
+        "trends": _trends(j, c),
+    }
+
+
+def _budget_bucket_totals() -> dict:
+    rows = _read_only_query(
+        BUDGET_TRACKER_DB_PATH, "SELECT amount, bucket FROM transactions WHERE bucket != 'income'"
+    )
+    from collections import defaultdict
+    totals = defaultdict(float)
+    for r in rows:
+        totals[r["bucket"]] += abs(r["amount"] or 0)
+    return {k: round(v, 2) for k, v in totals.items()}
+
+
+@app.route("/api/console/snapshot")
+def api_console_snapshot():
+    # One payload for the whole cockpit. Public + baked when ?demo=1; gated + live otherwise.
+    if request.args.get("demo") == "1":
+        return jsonify(_demo_snapshot())
+    if not session.get("console_authed"):
+        return jsonify({"error": "auth required"}), 401
+    return jsonify(_live_snapshot())
 
 
 @app.route("/api/console/heartbeat", methods=["POST"])

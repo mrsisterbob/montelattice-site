@@ -686,8 +686,16 @@ canvas { max-width: 100%; }
   text-transform: uppercase; color: var(--teal-70);
 }
 
+/* Cockpit cards are stacked full-width many-deep - drop the Deco corner brackets
+   (they read as clutter here, unlike the 3-up storefront grids) and flatten the
+   top rule so the sections don't strobe. */
+.console .data-card { border-top: 1px solid var(--card-border); }
+.console .data-card::after,
+.console .data-card::before { display: none; }
+.console .data-card h3 { color: var(--teal-70); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 6px; }
 .console .data-list > div { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
 .console .data-list > div:last-child { border-bottom: 0; }
+.console canvas { max-height: 260px; }
 .console--demo .kpi-value, .console--demo .data-list { filter: blur(0); }
 .console--demo::before {
   content: "Demo — numbers rounded / masked"; display: block; text-align: center;

@@ -49,5 +49,20 @@
     els.forEach(function (el) { observer.observe(el); });
   }
 
-  window.MonteLattice = { armCountUp: armCountUp };
+  // Relative-time formatter shared by the Console cockpit (freshness stamps, Today strip).
+  function formatRelative(ts) {
+    if (!ts) return "never";
+    var then = new Date(String(ts).replace(" ", "T"));
+    if (isNaN(then.getTime())) return String(ts);
+    var secs = Math.max(0, (Date.now() - then.getTime()) / 1000);
+    if (secs < 90) return "just now";
+    var mins = Math.round(secs / 60);
+    if (mins < 90) return mins + " min ago";
+    var hrs = Math.round(mins / 60);
+    if (hrs < 36) return hrs + "h ago";
+    var days = Math.round(hrs / 24);
+    return days + "d ago";
+  }
+
+  window.MonteLattice = { armCountUp: armCountUp, formatRelative: formatRelative };
 })();
