@@ -422,12 +422,25 @@ def _job_engine_rollup() -> dict:
         streak += 1
         probe -= _dt.timedelta(days=1)
 
+    # Activity calendar (GitHub-style heatmap): the most recent ~20 weeks of daily_activity,
+    # one cell per day, intensity = drafts staged + applications sent.
+    cal_rows = _read_only_query(
+        JOB_ENGINE_DB_PATH,
+        "SELECT date, drafts_staged, applied_count FROM daily_activity ORDER BY date DESC LIMIT 140",
+    )
+    activity_calendar = [
+        {"date": str(r["date"]),
+         "count": int(r["drafts_staged"] or 0) + int(r["applied_count"] or 0)}
+        for r in reversed(cal_rows)
+    ]
+
     return {
         "applied": applied,
         "interviews": interviews,
         "reply_rate_pct": round(interviews / applied * 100, 1) if applied else 0.0,
         "by_source": by_source,
         "daily": daily,
+        "activity_calendar": activity_calendar,
         "applies_this_week": applies_this_week,
         "active_day_streak": streak,
         "newest_ts": outcomes[-1]["created_at"] if outcomes else (daily[-1]["date"] if daily else None),
@@ -710,6 +723,18 @@ def _demo_snapshot() -> dict:
         _eq_peak = max(_eq_peak, _v)
         _eq_pts.append({"t": f"2026-08-{_i * 2 + 1:02d}", "equity": _v, "peak": _eq_peak})
 
+    # Activity calendar: ~17 weeks of plausible daily action counts (heavier on weekdays).
+    _cal_today = _dt.date.today()
+    _activity_calendar = []
+    for _n in range(118, -1, -1):
+        _d = _cal_today - _dt.timedelta(days=_n)
+        _wd = _d.weekday()
+        _base = 0 if _wd >= 5 else 3
+        _c = max(0, _base + ((_n * 7 + _wd * 3) % 5) - 2)
+        if _n % 11 == 0:
+            _c = 0
+        _activity_calendar.append({"date": _d.isoformat(), "count": _c})
+
     # Per-trade R-multiples: mostly -1R losers and +2..3R winners, a couple of scratches.
     _rmults = [1.9, -1.0, 2.4, -1.0, 0.05, 2.8, -1.05, -0.4, 1.6, 3.1, -1.0, 0.8, -1.1, 2.2, -0.95, 1.4]
     _rsyms = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"]
@@ -741,6 +766,7 @@ def _demo_snapshot() -> dict:
         "job": {
             "total_applied": total, "total_interviews": 9, "reply_rate_pct": 14.3,
             "daily_activity": [{"date": w, "applied_count": 0} for w in weeks],
+            "activity_calendar": _activity_calendar,
         },
         "crypto": {
             "open_positions": [
@@ -806,6 +832,7 @@ def _live_snapshot() -> dict:
         "job": {
             "total_applied": j["applied"], "total_interviews": j["interviews"],
             "reply_rate_pct": j["reply_rate_pct"], "daily_activity": j["daily"],
+            "activity_calendar": j["activity_calendar"],
         },
         "crypto": {
             "open_positions": c["open_positions"], "recent_signals": c["recent_signals"],

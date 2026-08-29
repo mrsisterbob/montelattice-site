@@ -107,6 +107,7 @@
     </div>
     {% if not demo %}
     <div class="data-card"><h3>Cumulative Applications</h3><canvas id="chart-job-cumulative" height="110"></canvas></div>
+    <div class="data-card"><h3>Activity Calendar</h3><div id="cal-job" class="cal-heatmap"></div></div>
     {% endif %}
   </div>
 
@@ -293,6 +294,57 @@
     stamp('fresh-kpi', new Date().toISOString(), 'ok');
   }
 
+  function renderCalendar(hostId, days) {
+    var host = document.getElementById(hostId);
+    if (!host) return;
+    var card = host.parentElement;
+    if (!days || !days.length) { if (card) card.style.display = 'none'; return; }
+    if (card) card.style.display = '';
+
+    function fmt(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' +
+             String(d.getDate()).padStart(2, '0');
+    }
+    var byDate = {}, max = 0;
+    days.forEach(function (d) { byDate[d.date] = d.count; if (d.count > max) max = d.count; });
+
+    var first = new Date(days[0].date + 'T00:00:00');
+    var last = new Date(days[days.length - 1].date + 'T00:00:00');
+    var start = new Date(first);
+    start.setDate(start.getDate() - start.getDay());  // back to the Sunday of that week
+
+    var cell = 15, gap = 4, pad = 4, topPad = 16;
+    function level(c) {
+      if (!c) return 0;
+      if (max <= 1) return 4;
+      var q = c / max;
+      return q > 0.75 ? 4 : q > 0.5 ? 3 : q > 0.25 ? 2 : 1;
+    }
+
+    var rects = '', months = '', lastMonth = -1, col = 0, cur = new Date(start);
+    while (cur <= last) {
+      var row = cur.getDay();
+      if (row === 0) col = Math.round((cur - start) / 86400000 / 7);
+      if (cur >= first || byDate[fmt(cur)] != null) {
+        var c = byDate[fmt(cur)];
+        var x = pad + col * (cell + gap), y = topPad + row * (cell + gap);
+        rects += '<rect x="' + x + '" y="' + y + '" width="' + cell + '" height="' + cell +
+                 '" rx="2" fill="var(--cal' + level(c == null ? 0 : c) + ')">' +
+                 '<title>' + fmt(cur) + ': ' + (c || 0) + ' actions</title></rect>';
+        if (cur.getDate() <= 7 && cur.getMonth() !== lastMonth) {
+          lastMonth = cur.getMonth();
+          months += '<text x="' + x + '" y="10" fill="var(--teal-70)" font-size="9">' +
+                    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][lastMonth] +
+                    '</text>';
+        }
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    var w = pad * 2 + (col + 1) * (cell + gap), h = topPad + 7 * (cell + gap) + pad;
+    host.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h +
+      '" role="img" aria-label="Daily activity heatmap">' + months + rects + '</svg>';
+  }
+
   function renderJob(job, trends) {
     job = job || {}; trends = trends || {};
     setText('j-applied', (scrub(job.total_applied) == null ? '—' : scrub(job.total_applied)));
@@ -319,6 +371,8 @@
       ] },
       options: chartOpts()
     });
+
+    renderCalendar('cal-job', job.activity_calendar);
 
     var cum = trends.applies_by_week || { weeks: [], cumulative: [] };
     var hasCum = cum.weeks && cum.weeks.length && cum.cumulative && cum.cumulative.length;

@@ -619,6 +619,11 @@ canvas { max-width: 100%; }
   --ok: #3d8168;
   --warn: #C9862B;
   --down: #B4472F;
+  --cal0: rgba(14, 58, 58, 0.08);
+  --cal1: #a9cdbe;
+  --cal2: #6fae94;
+  --cal3: #3d8168;
+  --cal4: #1f5340;
   background: var(--bg);
 }
 @media (prefers-color-scheme: dark) {
@@ -632,6 +637,11 @@ canvas { max-width: 100%; }
     --ok: #5cc79f;
     --warn: #e0a548;
     --down: #e8795f;
+    --cal0: rgba(231, 239, 233, 0.08);
+    --cal1: #2f5f52;
+    --cal2: #3d8168;
+    --cal3: #5cc79f;
+    --cal4: #8fe3c4;
   }
 }
 :root[data-theme="dark"] .console {
@@ -644,6 +654,11 @@ canvas { max-width: 100%; }
   --ok: #5cc79f;
   --warn: #e0a548;
   --down: #e8795f;
+  --cal0: rgba(231, 239, 233, 0.08);
+  --cal1: #2f5f52;
+  --cal2: #3d8168;
+  --cal3: #5cc79f;
+  --cal4: #8fe3c4;
 }
 .console { color: var(--teal); }
 .console .section-heading { color: var(--teal); }
@@ -767,6 +782,11 @@ canvas { max-width: 100%; }
 .console .data-list > div { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
 .console .data-list > div:last-child { border-bottom: 0; }
 .console canvas { max-height: 260px; }
+
+/* GitHub-style activity heatmap (inline SVG, scoped to the Console) */
+.console .cal-heatmap { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+.console .cal-heatmap svg { display: block; height: auto; }
+.console .cal-heatmap rect { stroke: var(--bg); stroke-width: 1; }
 
 @media (max-width: 820px) {
   .console-hero { grid-template-columns: 1fr; gap: 16px; text-align: left; }
