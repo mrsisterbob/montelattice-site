@@ -333,15 +333,36 @@
         }).join('') : '<div>No open positions.</div>';
 
     var eq = trends.crypto_equity || [];
+    var eqMeta = trends.crypto_equity_meta || {};
     showCard('chart-equity', eq.length);
-    if (eq.length) upsertChart('chart-equity', {
-      type: 'line',
-      data: { labels: eq.map(function (p) { return p.t; }),
-              datasets: [{ label: 'Equity ($ cumulative PnL)', data: eq.map(function (p) { return p.equity; }),
-                           borderColor: ML.orange, backgroundColor: 'rgba(232,130,58,0.10)', fill: true,
-                           tension: 0.2, pointRadius: 0 }] },
-      options: chartOpts()
-    });
+    if (eq.length) {
+      var eqLabels = eq.map(function (p) { return p.t; });
+      var eqData = eq.map(function (p) { return p.equity; });
+      var peakData = eq.map(function (p) { return (p.peak == null ? p.equity : p.peak); });
+      var eqSets = [
+        { label: 'Running peak', data: peakData, borderColor: ML.tick, borderWidth: 1,
+          borderDash: [4, 3], pointRadius: 0, fill: false, tension: 0 },
+        { label: 'Equity ($ cumulative PnL)', data: eqData, borderColor: ML.orange,
+          backgroundColor: 'rgba(184,71,47,0.30)', fill: '-1', tension: 0.2, pointRadius: 0 }
+      ];
+      if (eqMeta.circuit_breaker_level != null) {
+        eqSets.push({
+          label: 'Circuit breaker (−' + (eqMeta.circuit_breaker_pct || 15) + '%)',
+          data: eqLabels.map(function () { return eqMeta.circuit_breaker_level; }),
+          borderColor: '#B4472F', borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, fill: false
+        });
+      }
+      upsertChart('chart-equity', {
+        type: 'line',
+        data: { labels: eqLabels, datasets: eqSets },
+        options: chartOpts({
+          scales: {
+            y: { beginAtZero: false, ticks: { color: ML.tick }, grid: { color: ML.grid } },
+            x: { ticks: { color: ML.tick, maxRotation: 0, autoSkip: true }, grid: { color: ML.grid } }
+          }
+        })
+      });
+    }
   }
 
   function renderBudget(bd) {

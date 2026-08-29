@@ -443,7 +443,8 @@ def _crypto_rollup() -> dict:
     )
     closed = _read_only_query(
         CRYPTO_ENGINE_DB_PATH,
-        "SELECT pnl_usd, status, closed_at FROM paper_portfolio "
+        "SELECT pnl_usd, status, closed_at, risk_pct, entry_price, initial_quantity, quantity, symbol "
+        "FROM paper_portfolio "
         "WHERE status IN ('CLOSED_TP','CLOSED_SL','CLOSED_BE','CLOSED_MANUAL') ORDER BY closed_at ASC",
     )
     signals = _read_only_query(
@@ -452,12 +453,35 @@ def _crypto_rollup() -> dict:
     )
     wins = sum(1 for c in closed if (c["pnl_usd"] or 0) > 0)
     realized = sum((c["pnl_usd"] or 0) for c in closed)
-    equity, running = [], 0.0
+
+    # Equity curve = running sum of realized PnL, with a running peak alongside it so the
+    # front-end can shade the drawdown (gap between peak and equity) in red.
+    equity, running, peak = [], 0.0, 0.0
     for c in closed:
         running += c["pnl_usd"] or 0
-        equity.append({"t": c["closed_at"], "equity": round(running, 2)})
+        peak = max(peak, running)
+        equity.append({"t": c["closed_at"], "equity": round(running, 2), "peak": round(peak, 2)})
 
-    # Circuit breaker: best-effort read of an engine state table if it exists; else None.
+    # Circuit-breaker threshold: the engine halts new entries once drawdown from the peak
+    # balance crosses max_drawdown_pct (system_config; engine default 15%). Rendered as a
+    # horizontal reference on the cumulative-PnL axis, anchored to the virtual trading
+    # balance (system_config.virtual_balance_usd, default 10k).
+    _cfg = {r["key"]: r["value"] for r in _read_only_query(
+        CRYPTO_ENGINE_DB_PATH,
+        "SELECT key, value FROM system_config WHERE key IN ('max_drawdown_pct', 'virtual_balance_usd')",
+    )}
+
+    def _num(v, default):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return default
+
+    cb_pct = _num(_cfg.get("max_drawdown_pct"), 15.0)
+    anchor_balance = _num(_cfg.get("virtual_balance_usd"), 10000.0)
+    cb_level = round(-(cb_pct / 100.0) * anchor_balance, 2)
+
+    # Circuit breaker latch: best-effort read of an engine state table if it exists; else None.
     cb_rows = _read_only_query(
         CRYPTO_ENGINE_DB_PATH,
         "SELECT value FROM engine_state WHERE key = 'circuit_breaker'",
@@ -478,6 +502,8 @@ def _crypto_rollup() -> dict:
         "win_rate_pct": round(wins / len(closed) * 100, 1) if closed else 0.0,
         "realized_pnl_usd": round(realized, 2),
         "equity_curve": equity,
+        "circuit_breaker_pct": cb_pct,
+        "circuit_breaker_level": cb_level,
         "circuit_breaker": circuit_breaker,
         "newest_ts": newest,
         "has_db": _relpath_exists(CRYPTO_ENGINE_DB_PATH),
@@ -625,6 +651,10 @@ def _trends(j, c):
             "interview": [v["interview"] for v in j["by_source"].values()],
         },
         "crypto_equity": c["equity_curve"],
+        "crypto_equity_meta": {
+            "circuit_breaker_pct": c.get("circuit_breaker_pct"),
+            "circuit_breaker_level": c.get("circuit_breaker_level"),
+        },
     }
 
 
@@ -642,6 +672,14 @@ def _demo_snapshot() -> dict:
     weeks = [f"2026-W{n:02d}" for n in range(24, 35)]
     week_counts = [3, 5, 4, 6, 5, 8, 11, 5, 9, 8, 12]
     total = sum(week_counts)
+
+    # Crypto equity curve: an early dip (drawdown shading), then recovery to new highs.
+    _eq_vals = [-120, 180, 90, 420, 260, 610, 880, 720, 1040, 1290, 1120, 1380]
+    _eq_peak, _eq_pts = 0.0, []
+    for _i, _v in enumerate(_eq_vals):
+        _eq_peak = max(_eq_peak, _v)
+        _eq_pts.append({"t": f"2026-08-{_i * 2 + 1:02d}", "equity": _v, "peak": _eq_peak})
+
     return {
         "demo": True,
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
@@ -689,8 +727,8 @@ def _demo_snapshot() -> dict:
             "applies_by_week": {"weeks": weeks, "counts": week_counts, "cumulative": _cumulative(week_counts)},
             "reply_rate_by_source": {"sources": ["jsearch", "greenhouse", "lever", "referral"],
                                      "applied": [28, 14, 9, 12], "interview": [3, 2, 1, 3]},
-            "crypto_equity": [{"t": f"2026-08-{d:02d}", "equity": v}
-                              for d, v in zip(range(1, 22, 3), [40, 95, 60, 180, 250, 330, 418])],
+            "crypto_equity": _eq_pts,
+            "crypto_equity_meta": {"circuit_breaker_pct": 15.0, "circuit_breaker_level": -900.0},
         },
     }
 
