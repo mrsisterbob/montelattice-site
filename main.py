@@ -470,6 +470,18 @@ def _crypto_rollup() -> dict:
             "pnl": round(c["pnl_usd"] or 0, 2),
         })
 
+    # Exit-reason breakdown: how each closed trade ended (the status IS the exit reason) -
+    # count and net PnL per bucket.
+    exit_reasons = {k: {"count": 0, "pnl": 0.0}
+                    for k in ("CLOSED_TP", "CLOSED_SL", "CLOSED_BE", "CLOSED_MANUAL")}
+    for c in closed:
+        b = exit_reasons.get(c["status"])
+        if b is not None:
+            b["count"] += 1
+            b["pnl"] += c["pnl_usd"] or 0
+    for b in exit_reasons.values():
+        b["pnl"] = round(b["pnl"], 2)
+
     # Equity curve = running sum of realized PnL, with a running peak alongside it so the
     # front-end can shade the drawdown (gap between peak and equity) in red.
     equity, running, peak = [], 0.0, 0.0
@@ -518,6 +530,7 @@ def _crypto_rollup() -> dict:
         "win_rate_pct": round(wins / len(closed) * 100, 1) if closed else 0.0,
         "realized_pnl_usd": round(realized, 2),
         "r_multiples": r_multiples,
+        "exit_reasons": exit_reasons,
         "equity_curve": equity,
         "circuit_breaker_pct": cb_pct,
         "circuit_breaker_level": cb_level,
@@ -740,6 +753,12 @@ def _demo_snapshot() -> dict:
             ],
             "closed_trade_count": 41, "win_rate_pct": 58.5, "realized_pnl_usd": 418.20,
             "r_multiples": _r_multiples,
+            "exit_reasons": {
+                "CLOSED_TP": {"count": 15, "pnl": 1320.0},
+                "CLOSED_SL": {"count": 19, "pnl": -910.0},
+                "CLOSED_BE": {"count": 4, "pnl": -18.0},
+                "CLOSED_MANUAL": {"count": 3, "pnl": 26.2},
+            },
         },
         "budget": {
             "months": ["2026-05", "2026-06", "2026-07", "2026-08"],
@@ -792,6 +811,7 @@ def _live_snapshot() -> dict:
             "open_positions": c["open_positions"], "recent_signals": c["recent_signals"],
             "closed_trade_count": c["closed_trade_count"], "win_rate_pct": c["win_rate_pct"],
             "realized_pnl_usd": c["realized_pnl_usd"], "r_multiples": c["r_multiples"],
+            "exit_reasons": c["exit_reasons"],
         },
         "budget": {
             "months": b["months"], "income": b["income"], "expenses": b["expenses"],

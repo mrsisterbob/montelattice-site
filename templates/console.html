@@ -128,6 +128,7 @@
     <div class="data-card"><canvas id="chart-equity" height="110"></canvas></div>
     {% if not demo %}
     <div class="data-card"><h3>Per-Trade R-Multiple</h3><canvas id="chart-r-multiple" height="120"></canvas></div>
+    <div class="data-card"><h3>Exit-Reason Breakdown</h3><canvas id="chart-exit-reasons" height="120"></canvas></div>
     {% endif %}
     <div class="console-2col">
       <div class="data-card"><h3>Recent Signals</h3><div class="data-list" id="c-signals">&mdash;</div></div>
@@ -397,6 +398,42 @@
                title: { display: true, text: 'R', color: ML.tick } },
           x: { ticks: { color: ML.tick, autoSkip: true, maxRotation: 0 },
                grid: { display: false }, title: { display: true, text: 'closed trade #', color: ML.tick } }
+        }
+      })
+    });
+
+    var er = cr.exit_reasons || {};
+    var erKeys = ['CLOSED_TP', 'CLOSED_SL', 'CLOSED_BE', 'CLOSED_MANUAL'];
+    var erLabel = { CLOSED_TP: 'Take-profit', CLOSED_SL: 'Stop-loss', CLOSED_BE: 'Break-even', CLOSED_MANUAL: 'Manual' };
+    var erShow = erKeys.filter(function (k) { return er[k] && (er[k].count || er[k].pnl); });
+    showCard('chart-exit-reasons', erShow.length);
+    if (erShow.length) upsertChart('chart-exit-reasons', {
+      // Net PnL is plotted in hundreds of dollars so it shares one zero-aligned axis with
+      // the trade count; the tooltip restores the real dollar figure.
+      type: 'bar',
+      data: {
+        labels: erShow.map(function (k) { return erLabel[k]; }),
+        datasets: [
+          { label: 'Trades', backgroundColor: ML.bar1,
+            data: erShow.map(function (k) { return er[k].count; }) },
+          { label: 'Net PnL (hundreds $)',
+            backgroundColor: erShow.map(function (k) { return er[k].pnl >= 0 ? ML.gold : '#B4472F'; }),
+            data: erShow.map(function (k) { return Math.round((er[k].pnl / 100) * 10) / 10; }) }
+        ]
+      },
+      options: chartOpts({
+        plugins: {
+          legend: { labels: { color: ML.legend, boxWidth: 12 } },
+          tooltip: { callbacks: { label: function (item) {
+            var k = erShow[item.dataIndex];
+            return item.datasetIndex === 0
+              ? er[k].count + ' trades'
+              : 'Net PnL $' + er[k].pnl.toLocaleString();
+          } } }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: ML.tick }, grid: { color: ML.grid } },
+          x: { ticks: { color: ML.tick }, grid: { display: false } }
         }
       })
     });
