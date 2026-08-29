@@ -454,6 +454,22 @@ def _crypto_rollup() -> dict:
     wins = sum(1 for c in closed if (c["pnl_usd"] or 0) > 0)
     realized = sum((c["pnl_usd"] or 0) for c in closed)
 
+    # Per-trade R-multiple: realized PnL as a multiple of the dollars that were at risk
+    # (risk_pct of the notional entry). Trades with a zero/unknown risk denominator are
+    # skipped rather than charted as a spike.
+    r_multiples = []
+    for c in closed:
+        qty = c["initial_quantity"] if c["initial_quantity"] not in (None, 0) else c["quantity"]
+        denom = ((c["risk_pct"] or 0) / 100.0) * (c["entry_price"] or 0) * (qty or 0)
+        if not denom:
+            continue
+        r_multiples.append({
+            "t": c["closed_at"],
+            "symbol": c["symbol"],
+            "r": round((c["pnl_usd"] or 0) / denom, 2),
+            "pnl": round(c["pnl_usd"] or 0, 2),
+        })
+
     # Equity curve = running sum of realized PnL, with a running peak alongside it so the
     # front-end can shade the drawdown (gap between peak and equity) in red.
     equity, running, peak = [], 0.0, 0.0
@@ -501,6 +517,7 @@ def _crypto_rollup() -> dict:
         "closed_trade_count": len(closed),
         "win_rate_pct": round(wins / len(closed) * 100, 1) if closed else 0.0,
         "realized_pnl_usd": round(realized, 2),
+        "r_multiples": r_multiples,
         "equity_curve": equity,
         "circuit_breaker_pct": cb_pct,
         "circuit_breaker_level": cb_level,
@@ -680,6 +697,12 @@ def _demo_snapshot() -> dict:
         _eq_peak = max(_eq_peak, _v)
         _eq_pts.append({"t": f"2026-08-{_i * 2 + 1:02d}", "equity": _v, "peak": _eq_peak})
 
+    # Per-trade R-multiples: mostly -1R losers and +2..3R winners, a couple of scratches.
+    _rmults = [1.9, -1.0, 2.4, -1.0, 0.05, 2.8, -1.05, -0.4, 1.6, 3.1, -1.0, 0.8, -1.1, 2.2, -0.95, 1.4]
+    _rsyms = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"]
+    _r_multiples = [{"t": f"2026-08-{_i + 4:02d}", "symbol": _rsyms[_i % 4], "r": _r,
+                    "pnl": round(_r * 185.0, 2)} for _i, _r in enumerate(_rmults)]
+
     return {
         "demo": True,
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
@@ -716,6 +739,7 @@ def _demo_snapshot() -> dict:
                 {"symbol": "BTCUSDT", "confidence_score": 64, "context_summary": "Funding reset", "triggered_at": None},
             ],
             "closed_trade_count": 41, "win_rate_pct": 58.5, "realized_pnl_usd": 418.20,
+            "r_multiples": _r_multiples,
         },
         "budget": {
             "months": ["2026-05", "2026-06", "2026-07", "2026-08"],
@@ -767,7 +791,7 @@ def _live_snapshot() -> dict:
         "crypto": {
             "open_positions": c["open_positions"], "recent_signals": c["recent_signals"],
             "closed_trade_count": c["closed_trade_count"], "win_rate_pct": c["win_rate_pct"],
-            "realized_pnl_usd": c["realized_pnl_usd"],
+            "realized_pnl_usd": c["realized_pnl_usd"], "r_multiples": c["r_multiples"],
         },
         "budget": {
             "months": b["months"], "income": b["income"], "expenses": b["expenses"],

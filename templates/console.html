@@ -126,6 +126,9 @@
       <div class="kpi-tile"><span class="kpi-value is-highlight" id="c-pnl">&mdash;</span><span class="kpi-label">Realized PnL</span></div>
     </div>
     <div class="data-card"><canvas id="chart-equity" height="110"></canvas></div>
+    {% if not demo %}
+    <div class="data-card"><h3>Per-Trade R-Multiple</h3><canvas id="chart-r-multiple" height="120"></canvas></div>
+    {% endif %}
     <div class="console-2col">
       <div class="data-card"><h3>Recent Signals</h3><div class="data-list" id="c-signals">&mdash;</div></div>
       <div class="data-card"><h3>Open Positions</h3><div class="data-list" id="c-positions">&mdash;</div></div>
@@ -363,6 +366,40 @@
         })
       });
     }
+
+    var rm = cr.r_multiples || [];
+    showCard('chart-r-multiple', rm.length);
+    if (rm.length) upsertChart('chart-r-multiple', {
+      type: 'bar',
+      data: {
+        labels: rm.map(function (_, i) { return i + 1; }),
+        datasets: [{
+          label: 'R multiple', data: rm.map(function (x) { return x.r; }),
+          backgroundColor: rm.map(function (x) { return x.r >= 0 ? ML.bar1 : '#B4472F'; })
+        }]
+      },
+      options: chartOpts({
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            title: function (items) {
+              var x = rm[items[0].dataIndex];
+              return x.symbol + '  ·  ' + String(x.t || '').slice(0, 10);
+            },
+            label: function (item) {
+              var x = rm[item.dataIndex];
+              return 'R ' + x.r + '   ($' + x.pnl + ')';
+            }
+          } }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: ML.tick }, grid: { color: ML.grid },
+               title: { display: true, text: 'R', color: ML.tick } },
+          x: { ticks: { color: ML.tick, autoSkip: true, maxRotation: 0 },
+               grid: { display: false }, title: { display: true, text: 'closed trade #', color: ML.tick } }
+        }
+      })
+    });
   }
 
   function renderBudget(bd) {
