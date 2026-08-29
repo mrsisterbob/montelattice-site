@@ -156,6 +156,9 @@
       <div class="data-card"><canvas id="chart-income" height="120"></canvas></div>
       <div class="data-card"><canvas id="chart-wheel" height="120"></canvas></div>
     </div>
+    {% if not demo %}
+    <div class="data-card"><h3>Cumulative Savings</h3><canvas id="chart-budget-savings" height="110"></canvas></div>
+    {% endif %}
   </div>
 
 </div>
@@ -531,6 +534,18 @@
               backgroundColor: [ML.bar1, ML.gold, ML.orange, '#3a5f5f', '#8a6d2f', '#b5652a'] }] },
       options: { responsive: true, animation: REDUCE ? false : { duration: 450 },
                  plugins: { legend: { labels: { color: ML.legend, boxWidth: 12 } } } }
+    });
+
+    var sav = bd.savings_cumulative || [];
+    var hasSav = has && sav.length;
+    showCard('chart-budget-savings', hasSav);
+    if (hasSav) upsertChart('chart-budget-savings', {
+      type: 'line',
+      data: { labels: bd.months, datasets: [{
+        label: 'Cumulative savings', data: sav, borderColor: ML.orange,
+        backgroundColor: 'rgba(232,130,58,0.12)', fill: true, tension: 0.25, pointRadius: 0
+      }] },
+      options: chartOpts({ plugins: { legend: { display: false } } })
     });
   }
 

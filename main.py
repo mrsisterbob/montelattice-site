@@ -569,10 +569,18 @@ def _budget_rollup() -> dict:
     months = sorted(monthly)
     this_month = _dt.date.today().isoformat()[:7]
     net_this_month = round(monthly[this_month]["income"] - monthly[this_month]["expenses"], 2) if this_month in monthly else 0.0
+
+    # Cumulative savings: running sum of (income - expenses) month over month.
+    savings_cumulative, _run = [], 0.0
+    for m in months:
+        _run += monthly[m]["income"] - monthly[m]["expenses"]
+        savings_cumulative.append(round(_run, 2))
+
     return {
         "months": months,
         "income": [round(monthly[m]["income"], 2) for m in months],
         "expenses": [round(monthly[m]["expenses"], 2) for m in months],
+        "savings_cumulative": savings_cumulative,
         "net_this_month": net_this_month,
         "newest_ts": str(rows[-1]["date"]) if rows else None,
         "has_db": _relpath_exists(BUDGET_TRACKER_DB_PATH),
@@ -723,6 +731,15 @@ def _demo_snapshot() -> dict:
         _eq_peak = max(_eq_peak, _v)
         _eq_pts.append({"t": f"2026-08-{_i * 2 + 1:02d}", "equity": _v, "peak": _eq_peak})
 
+    # Budget: monthly income/expenses and the running savings total.
+    _b_months = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"]
+    _b_income = [4100, 4250, 4100, 4100, 4300, 4100]
+    _b_expenses = [3600, 3900, 3050, 3380, 2910, 2860]
+    _b_savings, _b_run = [], 0.0
+    for _inc, _exp in zip(_b_income, _b_expenses):
+        _b_run += _inc - _exp
+        _b_savings.append(round(_b_run, 2))
+
     # Activity calendar: ~17 weeks of plausible daily action counts (heavier on weekdays).
     _cal_today = _dt.date.today()
     _activity_calendar = []
@@ -787,9 +804,8 @@ def _demo_snapshot() -> dict:
             },
         },
         "budget": {
-            "months": ["2026-05", "2026-06", "2026-07", "2026-08"],
-            "income": [4100, 4100, 4300, 4100],
-            "expenses": [3050, 3380, 2910, 2860],
+            "months": _b_months, "income": _b_income, "expenses": _b_expenses,
+            "savings_cumulative": _b_savings,
             "bucket_totals": {"Housing": 1450, "Food": 620, "Transport": 340, "Everything else": 450},
         },
         "trends": {
@@ -842,6 +858,7 @@ def _live_snapshot() -> dict:
         },
         "budget": {
             "months": b["months"], "income": b["income"], "expenses": b["expenses"],
+            "savings_cumulative": b["savings_cumulative"],
             "bucket_totals": _budget_bucket_totals(),
         },
         "trends": tr,
