@@ -13,6 +13,7 @@ POSTs from the bots to /api/console/heartbeat.
 from __future__ import annotations
 
 import datetime as _dt
+import json
 import logging
 import os
 import sqlite3
@@ -609,6 +610,81 @@ def _heartbeats() -> list[dict]:
     )
 
 
+# ---------------------------------------------------------------------------
+# console_history: one daily rollup row per system, written by the snapshot
+# endpoint into our own console_heartbeats.db. This is the durable backstop
+# for the "over time" charts - a sibling bot that wipes and rebuilds its own
+# SQLite loses its history, but ours survives. Charts read the live sibling
+# DB first and only lean on this when the live series is shorter or empty.
+# ---------------------------------------------------------------------------
+def _history_init():
+    try:
+        conn = sqlite3.connect(CONSOLE_HEARTBEAT_DB, timeout=5)
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS console_history ("
+            "day TEXT NOT NULL, system TEXT NOT NULL, metrics TEXT NOT NULL, "
+            "updated_at TEXT NOT NULL, PRIMARY KEY (day, system))"
+        )
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as exc:  # pragma: no cover
+        logging.warning("history DB init failed: %s", exc)
+
+
+def _history_write(system: str, metrics: dict):
+    """Upsert today's rollup row for one system. Best-effort: a write failure must never
+    break the snapshot response."""
+    _history_init()
+    try:
+        conn = sqlite3.connect(CONSOLE_HEARTBEAT_DB, timeout=5)
+        conn.execute(
+            "INSERT INTO console_history (day, system, metrics, updated_at) VALUES (?,?,?,?) "
+            "ON CONFLICT(day, system) DO UPDATE SET metrics=excluded.metrics, updated_at=excluded.updated_at",
+            (_dt.date.today().isoformat(), system, json.dumps(metrics),
+             _dt.datetime.now().isoformat(timespec="seconds")),
+        )
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as exc:
+        logging.warning("history write failed (%s): %s", system, exc)
+
+
+def _history_series(system: str, key: str) -> list[dict]:
+    """Chronological [{'t': day, 'v': value}] for one metric of one system, from console_history."""
+    rows = _read_only_query(
+        CONSOLE_HEARTBEAT_DB,
+        "SELECT day, metrics FROM console_history WHERE system = ? ORDER BY day ASC",
+        (system,),
+    )
+    out = []
+    for r in rows:
+        try:
+            val = json.loads(r["metrics"]).get(key)
+        except (TypeError, ValueError):
+            continue
+        if isinstance(val, (int, float)):
+            out.append({"t": r["day"], "v": round(float(val), 2)})
+    return out
+
+
+def _history_record(snap: dict):
+    """Persist one daily rollup row per system from a freshly built live snapshot."""
+    job, crypto, budget = snap.get("job", {}), snap.get("crypto", {}), snap.get("budget", {})
+    sav = budget.get("savings_cumulative") or []
+    _history_write("job", {
+        "applied_total": job.get("total_applied", 0),
+        "interviews": job.get("total_interviews", 0),
+    })
+    _history_write("crypto", {
+        "realized_pnl_usd": crypto.get("realized_pnl_usd", 0),
+        "closed_trades": crypto.get("closed_trade_count", 0),
+    })
+    _history_write("budget", {
+        "savings_total": sav[-1] if sav else 0,
+        "net_this_month": snap.get("kpis", {}).get("net_this_month", 0),
+    })
+
+
 def _parse_ts(ts):
     """Best-effort parse of the assorted timestamp shapes the sibling DBs use."""
     if not ts:
@@ -822,7 +898,7 @@ def _live_snapshot() -> dict:
     j, c, b = _job_engine_rollup(), _crypto_rollup(), _budget_rollup()
     tr = _trends(j, c)
     tr["applies_by_week"]["cumulative"] = _cumulative(tr["applies_by_week"]["counts"])
-    return {
+    snap = {
         "demo": False,
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
         "hero": {"label": "Applications sent", "value": j["applied"],
@@ -863,6 +939,12 @@ def _live_snapshot() -> dict:
         },
         "trends": tr,
     }
+    # Durable-history backstop for the cumulative charts: only used front-end when the live
+    # series is empty or shorter (a sibling bot wiped its own DB).
+    snap["trends"]["job_cumulative_history"] = _history_series("job", "applied_total")
+    snap["trends"]["crypto_equity_history"] = _history_series("crypto", "realized_pnl_usd")
+    snap["budget"]["savings_history"] = _history_series("budget", "savings_total")
+    return snap
 
 
 def _budget_bucket_totals() -> dict:
@@ -882,7 +964,9 @@ def api_console_snapshot():
     # data; the owner, once logged in, gets the live sibling-DB rollup.
     if request.args.get("demo") == "1" or not session.get("console_authed"):
         return jsonify(_demo_snapshot())
-    return jsonify(_live_snapshot())
+    snap = _live_snapshot()
+    _history_record(snap)  # roll one durable row per system into console_history
+    return jsonify(snap)
 
 
 @app.route("/api/console/heartbeat", methods=["POST"])
@@ -913,8 +997,9 @@ def api_console_heartbeat():
     return jsonify({"ok": True}), 200
 
 
-# Ensure the heartbeat table exists under gunicorn too (no __main__ there).
+# Ensure our own tables exist under gunicorn too (no __main__ there).
 _heartbeat_init()
+_history_init()
 
 if __name__ == "__main__":
     # Local dev only. In production Render runs `gunicorn main:app` and sets $PORT.

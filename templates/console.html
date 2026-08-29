@@ -228,6 +228,16 @@
     var el = document.getElementById(id);
     if (el) charts[id] = new Chart(el, cfg);
   }
+  // Prefer the live sibling-DB series; fall back to the durable console_history series
+  // ([{t, v}]) when it covers more points (i.e. a bot wiped its own DB).
+  function pickSeries(liveLabels, liveData, hist) {
+    var ln = (liveData && liveData.length) || 0;
+    if (hist && hist.length > ln) {
+      return { labels: hist.map(function (p) { return p.t; }),
+               data: hist.map(function (p) { return p.v; }) };
+    }
+    return { labels: liveLabels || [], data: liveData || [] };
+  }
 
   function renderHero(h, trends) {
     h = h || {};
@@ -378,12 +388,13 @@
     renderCalendar('cal-job', job.activity_calendar);
 
     var cum = trends.applies_by_week || { weeks: [], cumulative: [] };
-    var hasCum = cum.weeks && cum.weeks.length && cum.cumulative && cum.cumulative.length;
+    var jcs = pickSeries(cum.weeks, cum.cumulative, trends.job_cumulative_history);
+    var hasCum = jcs.labels.length && jcs.data.length;
     showCard('chart-job-cumulative', hasCum);
     if (hasCum) upsertChart('chart-job-cumulative', {
       type: 'line',
-      data: { labels: cum.weeks, datasets: [{
-        label: 'Cumulative applications', data: cum.cumulative, borderColor: ML.orange,
+      data: { labels: jcs.labels, datasets: [{
+        label: 'Cumulative applications', data: jcs.data, borderColor: ML.orange,
         backgroundColor: 'rgba(232,130,58,0.12)', fill: true, tension: 0.25, pointRadius: 0
       }] },
       options: chartOpts({ plugins: { legend: { display: false } } })
@@ -409,6 +420,13 @@
         }).join('') : '<div>No open positions.</div>';
 
     var eq = trends.crypto_equity || [];
+    if (!eq.length && trends.crypto_equity_history && trends.crypto_equity_history.length) {
+      var pk = 0;
+      eq = trends.crypto_equity_history.map(function (p) {
+        pk = Math.max(pk, p.v);
+        return { t: p.t, equity: p.v, peak: pk };
+      });
+    }
     var eqMeta = trends.crypto_equity_meta || {};
     showCard('chart-equity', eq.length);
     if (eq.length) {
@@ -536,13 +554,13 @@
                  plugins: { legend: { labels: { color: ML.legend, boxWidth: 12 } } } }
     });
 
-    var sav = bd.savings_cumulative || [];
-    var hasSav = has && sav.length;
+    var bsv = pickSeries(bd.months, bd.savings_cumulative, bd.savings_history);
+    var hasSav = bsv.labels.length && bsv.data.length;
     showCard('chart-budget-savings', hasSav);
     if (hasSav) upsertChart('chart-budget-savings', {
       type: 'line',
-      data: { labels: bd.months, datasets: [{
-        label: 'Cumulative savings', data: sav, borderColor: ML.orange,
+      data: { labels: bsv.labels, datasets: [{
+        label: 'Cumulative savings', data: bsv.data, borderColor: ML.orange,
         backgroundColor: 'rgba(232,130,58,0.12)', fill: true, tension: 0.25, pointRadius: 0
       }] },
       options: chartOpts({ plugins: { legend: { display: false } } })
