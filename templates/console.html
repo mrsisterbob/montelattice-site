@@ -105,6 +105,9 @@
       <div class="data-card"><canvas id="chart-applies-week" height="110"></canvas></div>
       <div class="data-card"><canvas id="chart-by-source" height="110"></canvas></div>
     </div>
+    {% if not demo %}
+    <div class="data-card"><h3>Cumulative Applications</h3><canvas id="chart-job-cumulative" height="110"></canvas></div>
+    {% endif %}
   </div>
 
   <!-- CRYPTO -->
@@ -315,6 +318,18 @@
         { label: 'Interview', data: s.interview, backgroundColor: ML.gold }
       ] },
       options: chartOpts()
+    });
+
+    var cum = trends.applies_by_week || { weeks: [], cumulative: [] };
+    var hasCum = cum.weeks && cum.weeks.length && cum.cumulative && cum.cumulative.length;
+    showCard('chart-job-cumulative', hasCum);
+    if (hasCum) upsertChart('chart-job-cumulative', {
+      type: 'line',
+      data: { labels: cum.weeks, datasets: [{
+        label: 'Cumulative applications', data: cum.cumulative, borderColor: ML.orange,
+        backgroundColor: 'rgba(232,130,58,0.12)', fill: true, tension: 0.25, pointRadius: 0
+      }] },
+      options: chartOpts({ plugins: { legend: { display: false } } })
     });
   }
 
