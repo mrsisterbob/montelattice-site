@@ -2,35 +2,36 @@
    Every template loads this first; rapture.css (Art Deco pages + Console) and profile.css
    (homepage) consume these names and define no palette of their own.
 
-   Palette: dusk blue ground, rose accent, blue-white surfaces. The token NAMES are historical
-   (they date from the green-and-gold palette) and are kept so the palette stays one file:
+   Palette: dusk blue ground, champagne accent, blue-white surfaces. The token NAMES are
+   historical (they date from the green-and-gold palette) and are kept so the palette stays
+   one file:
      --teal       = the dusk-blue ground (bands: nav, masthead, title bands, footer)
-     --brass      = the display rose (rules, ticks, fills, text on the blue band)
-     --brass-text = the darker rose for words on paper
+     --brass      = the display champagne (rules, ticks, fills, text on the blue band)
+     --brass-text = the darker champagne for words on paper
    Rules: the full light palette lives on bare :root. Dark mode redefines only token values,
    twice (OS preference unless the page forces light, and an explicit data-theme="dark"),
-   and sets color-scheme with them. Neutrals lean warm toward the rose; none is a pure grey.
+   and sets color-scheme with them. Neutrals lean warm toward the champagne; none is a pure grey.
    Contrast (WCAG), measured 2026-09-26:
-     light: ink/paper 15.8, ink/surface 16.6, muted/paper 6.4, brass-text/paper 6.0,
-            on-teal/teal 13.0, brass/teal 5.7
-     dark:  ink/paper 14.3, ink/surface 12.9, muted/paper 7.0, brass-text/paper 8.9,
-            on-teal/teal 16.1, brass/teal 9.1
-   Plain --brass is 2.35 on light paper, so it is for rules, fills and text on the blue band,
-   never body text on paper. */
+     light: ink/paper 15.8, ink/surface 16.6, muted/paper 6.4, brass-text/paper 5.7,
+            on-teal/teal 13.0, brass/teal 7.9
+     dark:  ink/paper 14.3, ink/surface 12.9, muted/paper 7.0, brass-text/paper 10.7,
+            on-teal/teal 16.1, brass/teal 11.5
+   Plain --brass is 1.69 on light paper, so it is for rules, fills and text on the blue band,
+   never body text on paper. Words on paper take --brass-text, which is measured to clear AA. */
 
 :root {
   color-scheme: light;
 
   /* core */
   --teal: #18284A;          /* bands: nav, masthead, title bands, footer */
-  --brass: #D98C9C;         /* rules, hairlines, corner ticks, fills, text on teal */
+  --brass: #E0B978;         /* rules, hairlines, corner ticks, fills, text on teal */
   --paper: #F2F5FA;         /* page ground */
   --ink: #1D1A1F;           /* body text */
 
   /* derived */
   --surface: #FAFBFE;       /* cards sitting on paper */
   --muted: #5E5760;         /* secondary text */
-  --brass-text: #9B3E56;    /* brass-coloured words on paper */
+  --brass-text: #7E5A1C;    /* brass-coloured words on paper */
   --on-teal: #EEF2F9;       /* text on a teal band or over imagery */
   --rule: color-mix(in srgb, var(--ink) 14%, transparent);
   --rule-strong: color-mix(in srgb, var(--ink) 20%, transparent);
@@ -48,11 +49,11 @@
 
   /* chart series (Chart.js reads these at load; plain hex so JS can add alpha) */
   --chart-1: #2E4C7F;
-  --chart-2: #C0647B;
+  --chart-2: #B08428;
   --chart-3: #3F8C8A;
   --chart-4: #6A84AD;
-  --chart-5: #8A6488;
-  --chart-6: #9C7A45;
+  --chart-5: #9C6B3A;
+  --chart-6: #7A8752;
   --chart-grid: #1D1A1F1F;
 
   /* type */
@@ -65,12 +66,12 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --teal: #0C1528;
-    --brass: #E8A5B3;
+    --brass: #EBC98A;
     --paper: #121C31;
     --ink: #EEEAF0;
     --surface: #19253D;
     --muted: #ABA4B2;
-    --brass-text: #EBAAB8;
+    --brass-text: #EBC98A;
     --on-teal: #EDF1F8;
     --ok: #5CC79F;
     --warn: #E0A548;
@@ -80,23 +81,23 @@
     --cal3: #6F95D1;
     --cal4: #A9C4EE;
     --chart-1: #7FA4DC;
-    --chart-2: #E8A5B3;
+    --chart-2: #EBC98A;
     --chart-3: #5FBDB8;
     --chart-4: #B3C3DD;
-    --chart-5: #C69BC6;
-    --chart-6: #D6B887;
+    --chart-5: #D9A273;
+    --chart-6: #A7B77E;
     --chart-grid: #EEEAF01A;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --teal: #0C1528;
-  --brass: #E8A5B3;
+  --brass: #EBC98A;
   --paper: #121C31;
   --ink: #EEEAF0;
   --surface: #19253D;
   --muted: #ABA4B2;
-  --brass-text: #EBAAB8;
+  --brass-text: #EBC98A;
   --on-teal: #EDF1F8;
   --ok: #5CC79F;
   --warn: #E0A548;
@@ -106,11 +107,11 @@
   --cal3: #6F95D1;
   --cal4: #A9C4EE;
   --chart-1: #7FA4DC;
-  --chart-2: #E8A5B3;
+  --chart-2: #EBC98A;
   --chart-3: #5FBDB8;
   --chart-4: #B3C3DD;
-  --chart-5: #C69BC6;
-  --chart-6: #D6B887;
+  --chart-5: #D9A273;
+  --chart-6: #A7B77E;
   --chart-grid: #EEEAF01A;
 }
 
