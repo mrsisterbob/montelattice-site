@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Console &middot; Monte Lattice{% endblock %}
 {% block content %}
+{# Crypto hides from the public demo while PUBLIC_CRYPTO is off; the signed-in view keeps it. #}
+{% set show_crypto = public_crypto or not demo %}
 
 <div class="console{{ ' console--demo' if demo else '' }}" id="console" data-demo="{{ '1' if demo else '0' }}">
 
@@ -78,8 +80,10 @@
       <div class="kpi-tile"><span class="kpi-value is-highlight" data-count data-suffix="%" id="k-reply">&mdash;</span><span class="kpi-label">Reply Rate</span></div>
       <div class="kpi-tile"><span class="kpi-value" data-count id="k-week">&mdash;</span><span class="kpi-label">Applies This Week</span></div>
       <div class="kpi-tile"><span class="kpi-value" data-count id="k-streak">&mdash;</span><span class="kpi-label">Active-Day Streak</span></div>
+      {% if show_crypto %}
       <div class="kpi-tile"><span class="kpi-value" data-count id="k-open">&mdash;</span><span class="kpi-label">Open Positions</span></div>
       <div class="kpi-tile"><span class="kpi-value" id="k-pnl">&mdash;</span><span class="kpi-label">Realized PnL</span></div>
+      {% endif %}
       <div class="kpi-tile"><span class="kpi-value" id="k-net">&mdash;</span><span class="kpi-label">Net This Month</span></div>
     </div>
   </div>
@@ -111,6 +115,7 @@
     {% endif %}
   </div>
 
+  {% if show_crypto %}
   <!-- CRYPTO -->
   <div class="wrap section">
     {% if not demo %}
@@ -140,6 +145,8 @@
     </div>
   </div>
 
+  {% endif %}
+
   <!-- BUDGET -->
   <div class="wrap section">
     {% if not demo %}
@@ -167,17 +174,22 @@
 (function () {
   var DEMO = document.getElementById('console').dataset.demo === '1';
   var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var DARK = window.matchMedia('(prefers-color-scheme: dark)').matches &&
-             document.documentElement.getAttribute('data-theme') !== 'light';
-  if (document.documentElement.getAttribute('data-theme') === 'dark') DARK = true;
   var fmtRel = (window.MonteLattice && window.MonteLattice.formatRelative) || function (t) { return t || '—'; };
+  // Chart colours come from tokens.css, so they follow the page's light/dark palette.
+  var CSSV = getComputedStyle(document.documentElement);
+  function tok(name) { return CSSV.getPropertyValue(name).trim(); }
+  function alpha(hex, a) { return hex + Math.round(a * 255).toString(16).padStart(2, '0'); }
   var ML = {
-    bar1: DARK ? '#5b9b8a' : '#0E3A3A',
-    gold: '#C9A24B',
-    orange: '#E8823A',
-    grid: DARK ? 'rgba(231,239,233,0.10)' : 'rgba(14,58,58,0.12)',
-    tick: DARK ? '#9fb8ad' : '#3a5f5f',
-    legend: DARK ? '#cfe0d8' : '#0E3A3A'
+    bar1: tok('--chart-1'),
+    gold: tok('--chart-2'),
+    orange: tok('--chart-3'),
+    c4: tok('--chart-4'),
+    c5: tok('--chart-5'),
+    c6: tok('--chart-6'),
+    down: tok('--down'),
+    grid: tok('--chart-grid'),
+    tick: tok('--muted'),
+    legend: tok('--ink')
   };
   var charts = {};
   var sysState = {};
@@ -255,7 +267,7 @@
         labels: w.weeks,
         datasets: [
           { label: 'Cumulative applications', data: w.cumulative, borderColor: ML.orange,
-            backgroundColor: 'rgba(232,130,58,0.10)', fill: true, tension: 0.25, pointRadius: 0, yAxisID: 'y' },
+            backgroundColor: alpha(ML.orange, 0.10), fill: true, tension: 0.25, pointRadius: 0, yAxisID: 'y' },
           { label: 'Per week', data: w.counts, type: 'bar', backgroundColor: ML.bar1, yAxisID: 'y1' }
         ]
       },
@@ -298,8 +310,10 @@
     setCount('k-streak', k.active_day_streak);
     setCount('k-open', scrub(k.open_positions));
     var pnl = document.getElementById('k-pnl');
-    pnl.textContent = money(k.realized_pnl_usd);
-    pnl.className = 'kpi-value' + ((k.realized_pnl_usd || 0) < 0 ? ' is-neg' : ' is-highlight');
+    if (pnl) {
+      pnl.textContent = money(k.realized_pnl_usd);
+      pnl.className = 'kpi-value' + ((k.realized_pnl_usd || 0) < 0 ? ' is-neg' : ' is-highlight');
+    }
     var net = document.getElementById('k-net');
     net.textContent = money(k.net_this_month);
     net.className = 'kpi-value' + ((k.net_this_month || 0) < 0 ? ' is-neg' : '');
@@ -395,7 +409,7 @@
       type: 'line',
       data: { labels: jcs.labels, datasets: [{
         label: 'Cumulative applications', data: jcs.data, borderColor: ML.orange,
-        backgroundColor: 'rgba(232,130,58,0.12)', fill: true, tension: 0.25, pointRadius: 0
+        backgroundColor: alpha(ML.orange, 0.12), fill: true, tension: 0.25, pointRadius: 0
       }] },
       options: chartOpts({ plugins: { legend: { display: false } } })
     });
@@ -437,13 +451,13 @@
         { label: 'Running peak', data: peakData, borderColor: ML.tick, borderWidth: 1,
           borderDash: [4, 3], pointRadius: 0, fill: false, tension: 0 },
         { label: 'Equity ($ cumulative PnL)', data: eqData, borderColor: ML.orange,
-          backgroundColor: 'rgba(184,71,47,0.30)', fill: '-1', tension: 0.2, pointRadius: 0 }
+          backgroundColor: alpha(ML.down, 0.30), fill: '-1', tension: 0.2, pointRadius: 0 }
       ];
       if (eqMeta.circuit_breaker_level != null) {
         eqSets.push({
           label: 'Circuit breaker (−' + (eqMeta.circuit_breaker_pct || 15) + '%)',
           data: eqLabels.map(function () { return eqMeta.circuit_breaker_level; }),
-          borderColor: '#B4472F', borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, fill: false
+          borderColor: ML.down, borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, fill: false
         });
       }
       upsertChart('chart-equity', {
@@ -466,7 +480,7 @@
         labels: rm.map(function (_, i) { return i + 1; }),
         datasets: [{
           label: 'R multiple', data: rm.map(function (x) { return x.r; }),
-          backgroundColor: rm.map(function (x) { return x.r >= 0 ? ML.bar1 : '#B4472F'; })
+          backgroundColor: rm.map(function (x) { return x.r >= 0 ? ML.bar1 : ML.down; })
         }]
       },
       options: chartOpts({
@@ -507,7 +521,7 @@
           { label: 'Trades', backgroundColor: ML.bar1,
             data: erShow.map(function (k) { return er[k].count; }) },
           { label: 'Net PnL (hundreds $)',
-            backgroundColor: erShow.map(function (k) { return er[k].pnl >= 0 ? ML.gold : '#B4472F'; }),
+            backgroundColor: erShow.map(function (k) { return er[k].pnl >= 0 ? ML.gold : ML.down; }),
             data: erShow.map(function (k) { return Math.round((er[k].pnl / 100) * 10) / 10; }) }
         ]
       },
@@ -549,7 +563,7 @@
     if (wk) upsertChart('chart-wheel', {
       type: 'doughnut',
       data: { labels: Object.keys(b), datasets: [{ data: Object.values(b),
-              backgroundColor: [ML.bar1, ML.gold, ML.orange, '#3a5f5f', '#8a6d2f', '#b5652a'] }] },
+              backgroundColor: [ML.bar1, ML.gold, ML.orange, ML.c4, ML.c5, ML.c6] }] },
       options: { responsive: true, animation: REDUCE ? false : { duration: 450 },
                  plugins: { legend: { labels: { color: ML.legend, boxWidth: 12 } } } }
     });
@@ -561,7 +575,7 @@
       type: 'line',
       data: { labels: bsv.labels, datasets: [{
         label: 'Cumulative savings', data: bsv.data, borderColor: ML.orange,
-        backgroundColor: 'rgba(232,130,58,0.12)', fill: true, tension: 0.25, pointRadius: 0
+        backgroundColor: alpha(ML.orange, 0.12), fill: true, tension: 0.25, pointRadius: 0
       }] },
       options: chartOpts({ plugins: { legend: { display: false } } })
     });
@@ -577,7 +591,7 @@
         renderToday(s.today);
         renderKPIs(s.kpis);
         renderJob(s.job, s.trends);
-        renderCrypto(s.crypto, s.trends);
+        if (document.getElementById('c-open')) renderCrypto(s.crypto, s.trends);
         renderBudget(s.budget);
       })
       .catch(function (e) {

@@ -1,0 +1,108 @@
+/* Monte Lattice design tokens - the ONE place a color or typeface is defined.
+   Every template loads this first; rapture.css (Art Deco pages + Console) and profile.css
+   (homepage) consume these names and define no palette of their own.
+
+   Rules: the full light palette lives on bare :root. Dark mode redefines only token values,
+   twice (OS preference unless the page forces light, and an explicit data-theme="dark"),
+   and sets color-scheme with them. Neutrals lean warm toward the brass; none is a pure grey.
+   Contrast (WCAG) measured against --paper: ink 16.0, muted 5.9, brass-text 5.0 light;
+   ink 14.0, muted 7.1, brass-text 7.6 dark. Plain --brass is 2.5 on light paper, so it is for
+   rules, fills and text on teal (5.5) - never body text on paper. */
+
+:root {
+  color-scheme: light;
+
+  /* core */
+  --teal: #0E2B2B;          /* bands: nav, masthead, title bands, footer */
+  --brass: #C9922E;         /* rules, hairlines, corner ticks, fills, text on teal */
+  --paper: #F7F5EF;         /* page ground */
+  --ink: #1A1A18;           /* body text */
+
+  /* derived */
+  --surface: #FFFDF8;       /* cards sitting on paper */
+  --muted: #625E54;         /* secondary text */
+  --brass-text: #8C6118;    /* brass-coloured words on paper */
+  --on-teal: #F2EFE6;       /* text on a teal band or over imagery */
+  --rule: color-mix(in srgb, var(--ink) 14%, transparent);
+  --rule-strong: color-mix(in srgb, var(--ink) 20%, transparent);
+  --scrim: #081816;         /* photo scrims; used through color-mix for alpha */
+
+  /* status (Console) */
+  --ok: #2F7556;
+  --warn: #A8741B;
+  --down: #A8432C;
+  --cal0: color-mix(in srgb, var(--ink) 8%, transparent);
+  --cal1: #BFD6C8;
+  --cal2: #7DB097;
+  --cal3: #3F8466;
+  --cal4: #1F5340;
+
+  /* chart series (Chart.js reads these at load; plain hex so JS can add alpha) */
+  --chart-1: #1D4A47;
+  --chart-2: #C9922E;
+  --chart-3: #B5652A;
+  --chart-4: #5E7F77;
+  --chart-5: #8A6D2F;
+  --chart-6: #7A8752;
+  --chart-grid: #1A1A181F;
+
+  /* type */
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-body: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --teal: #0A1817;
+    --brass: #D9A340;
+    --paper: #111E1D;
+    --ink: #ECE8DD;
+    --surface: #172826;
+    --muted: #A6A89C;
+    --brass-text: #D9A340;
+    --on-teal: #EDEAE0;
+    --ok: #5CC79F;
+    --warn: #E0A548;
+    --down: #E8795F;
+    --cal1: #2F5F52;
+    --cal2: #3D8168;
+    --cal3: #5CC79F;
+    --cal4: #8FE3C4;
+    --chart-1: #5B9B8A;
+    --chart-2: #D9A340;
+    --chart-3: #E0875A;
+    --chart-4: #8FB5AC;
+    --chart-5: #B89A5A;
+    --chart-6: #A7B77E;
+    --chart-grid: #ECE8DD1A;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --teal: #0A1817;
+  --brass: #D9A340;
+  --paper: #111E1D;
+  --ink: #ECE8DD;
+  --surface: #172826;
+  --muted: #A6A89C;
+  --brass-text: #D9A340;
+  --on-teal: #EDEAE0;
+  --ok: #5CC79F;
+  --warn: #E0A548;
+  --down: #E8795F;
+  --cal1: #2F5F52;
+  --cal2: #3D8168;
+  --cal3: #5CC79F;
+  --cal4: #8FE3C4;
+  --chart-1: #5B9B8A;
+  --chart-2: #D9A340;
+  --chart-3: #E0875A;
+  --chart-4: #8FB5AC;
+  --chart-5: #B89A5A;
+  --chart-6: #A7B77E;
+  --chart-grid: #ECE8DD1A;
+}
+
+html, body { background: var(--paper); color: var(--ink); }

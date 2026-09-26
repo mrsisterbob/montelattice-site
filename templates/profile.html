@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{# Every biographical string below comes from evidence_bank.json via homepage.build_profile().
+   Do not type a fact into this file: edit the bank instead. #}
+<title>{{ p.name if p else 'Monte Lattice' }}</title>
+{% if p %}<meta name="description" content="{{ p.name }}. {{ p.eyebrow }}. Operations, and the software that runs them.">{% endif %}
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+</head>
+<body>
+
+<nav class="sitenav" aria-label="Site">
+  <div class="sitenav-inner">
+    <a class="wordmark" href="/">Monte Lattice</a>
+    <div class="navlinks">
+      <a href="/lattice">The Lattice</a>
+      <a href="/job-engine">Job Engine</a>
+      <a href="/docfiler">DocFiler</a>
+      {% if public_crypto %}<a href="/crypto">Crypto</a>{% endif %}
+      <a href="/budget">Budget</a>
+      <a href="/code">Code</a>
+    </div>
+  </div>
+</nav>
+
+{% if not p %}
+<div class="wrap">
+  <h2>Temporarily unavailable</h2>
+  <p>This page could not load its content just now. The systems are still up: <a href="/lattice">see them here</a>.</p>
+</div>
+{% else %}
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <img class="portrait" src="{{ url_for('static', filename='img/kevin-portrait.jpg') }}" alt="{{ p.name }}">
+    <div>
+      <p class="eyebrow">{{ p.eyebrow }}</p>
+      <h1>{{ p.name }}</h1>
+      <p class="claim">{{ p.claim_html | safe }}</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  {% if p.figures %}
+  <div class="figures">
+    {% for f in p.figures %}
+    <div class="fig">
+      <div class="fig-n">{{ f.value }}</div>
+      <div class="fig-l">{{ f.label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if p.story %}
+  <h2>How I got here</h2>
+  <div class="story">
+    {% for s in p.story %}
+    <p{% if s.pull %} class="pull"{% endif %}>{{ s.text }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h2>Background</h2>
+  {% for r in p.roles %}
+  <div class="role">
+    <div class="role-head">
+      <span class="role-title">{{ r.title }}</span>
+      <span class="role-org">{{ r.company }}</span>
+      <span class="role-when">{{ r.when }}</span>
+    </div>
+    {% if r.bullets %}
+    <ul class="role-bullets">
+      {% for b in r.bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <h2>Credentials and research</h2>
+  <ul class="plain">
+    {% for c in p.credentials %}<li>{{ c }}</li>{% endfor %}
+    {% for r in p.research %}<li>{{ r.kind }}: <em>{{ r.title }}</em>{% if r.tail %}, {{ r.tail }}{% endif %}</li>{% endfor %}
+    {% if p.memberships %}<li>{{ p.memberships }}</li>{% endif %}
+    {% for a in p.athletics %}<li>{{ a }}</li>{% endfor %}
+  </ul>
+
+  <h2>Proof: the systems</h2>
+  <p>
+    Four systems I built and use every day. The code is public and the dashboards
+    are running. Each one is open from the menu at the top.
+  </p>
+  <div class="systems">
+    <div class="sys">
+      <div class="sys-name"><a href="/job-engine">Job Outreach Engine</a></div>
+      <p class="sys-desc">
+        An AI-screened job pipeline with a live CRM, a Typst compiler that assembles
+        tailored one-page PDFs on demand, and outcome tracking. The model routes and
+        scores. Every line that ships comes from banked copy, never generated text.
+      </p>
+      <div class="sys-meta">Python / Flask / SQLite / Gemini / Typst</div>
+    </div>
+    <div class="sys">
+      {# Described while hidden (it is real engineering evidence), but no dashboard link. #}
+      <div class="sys-name">{% if public_crypto %}<a href="/crypto">Crypto Trading Engine</a>{% else %}Crypto Trading Engine{% endif %}</div>
+      <p class="sys-desc">
+        A concurrent backend on SQLite in WAL mode with explicit write locks, a live
+        WebSocket reconciliation feed, and a backtester that replays the same logic
+        over historical data.
+      </p>
+      <div class="sys-meta">Python / WebSockets / SQLite WAL</div>
+    </div>
+    <div class="sys">
+      <div class="sys-name"><a href="/docfiler">DocFiler</a></div>
+      <p class="sys-desc">Automated document intake and filing, built for small law firms and RIAs.</p>
+      <div class="sys-meta">Python / Document automation</div>
+    </div>
+    <div class="sys">
+      <div class="sys-name"><a href="/budget">Budget Tracker</a></div>
+      <p class="sys-desc">A personal income and spending tracker with monthly rollups and a category breakdown.</p>
+      <div class="sys-meta">Python / SQLite</div>
+    </div>
+  </div>
+
+  {% if p.offhours %}
+  <h2>Off the clock</h2>
+  {% for o in p.offhours %}
+  <div class="offhours">
+    <img{% if o.landscape %} class="landscape"{% endif %} src="{{ url_for('static', filename='img/' ~ o.photo) }}" alt="{{ o.alt }}" loading="lazy">
+    <p>{{ o.text }}</p>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+
+<div class="contact">
+  <div class="contact-inner">
+    <h2>Get in touch</h2>
+    <div class="lines">
+      {% if p.email %}<div class="line"><span class="line-k">Email</span><a class="line-v" href="mailto:{{ p.email }}">{{ p.email }}</a></div>{% endif %}
+      {% if p.phone %}<div class="line"><span class="line-k">Phone</span><span class="line-v" tabindex="0">{{ p.phone }}</span></div>{% endif %}
+      {% if p.resume_note %}<div class="line"><span class="line-k">Résumé</span><span class="line-v resume-note">{{ p.resume_note }}</span></div>{% endif %}
+      {% if p.github %}<div class="line"><span class="line-k">Code</span><a class="line-v" href="{{ p.github_url }}">{{ p.github }}</a></div>{% endif %}
+      {% if p.linkedin_url %}<div class="line"><span class="line-k">LinkedIn</span><a class="line-v" href="{{ p.linkedin_url }}">{{ p.linkedin_label }}</a></div>{% endif %}
+    </div>
+    {% if p.footnote %}<p class="footnote">{{ p.footnote }}</p>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+</body>
+</html>

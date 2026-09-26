@@ -8,13 +8,13 @@
   <div class="hero__scrim"></div>
   <div class="hero__content">
     <h1 class="hero__wordmark wordmark">Monte Lattice</h1>
-    <p class="hero__line">Working systems for job search, document filing, market monitoring, and personal finance.</p>
+    <p class="hero__line">Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
   </div>
 </section>
 
 <div class="hero-belowfold">
   <span class="wordmark">Monte Lattice</span>
-  <p>Working systems for job search, document filing, market monitoring, and personal finance.</p>
+  <p>Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
 </div>
 
 <div class="wrap">
@@ -22,7 +22,7 @@
 </div>
 
 <div class="deco-divider" aria-hidden="true">
-  <svg viewBox="0 0 40 20" fill="none" stroke="#C9A24B" stroke-width="1.5">
+  <svg viewBox="0 0 40 20" fill="none" style="stroke: var(--brass)" stroke-width="1.5">
     <path d="M2 18 L20 3 L38 18"/>
     <path d="M9 18 L20 9 L31 18"/>
   </svg>
@@ -31,14 +31,15 @@
 <div class="wrap section">
   <div class="live-strip">
     <p class="live-strip__label">Live from the Job Engine</p>
+    {% if teaser %}
     <div class="metric-row" id="teaser-metrics">
-      <div class="metric"><span class="value" id="teaser-applied" data-count>&mdash;</span><span class="label">Applications Sent</span></div>
-      <div class="metric"><span class="value" id="teaser-interviews" data-count>&mdash;</span><span class="label">Interviews</span></div>
-      <div class="metric"><span class="value is-highlight" id="teaser-reply-rate" data-count data-suffix="%">&mdash;</span><span class="label">Reply Rate</span></div>
+      {% for t in teaser %}
+      <div class="metric"><span class="value" data-count data-target="{{ t.value }}" data-suffix="{{ t.suffix }}">{{ t.value }}{{ t.suffix }}</span><span class="label">{{ t.label }}</span></div>
+      {% endfor %}
     </div>
-    <p id="teaser-no-data" class="live-strip__more" style="display:none;">
-      Populates once the engine logs outcomes.
-    </p>
+    {% else %}
+    <p class="live-strip__more">The engine's live feed is not answering right now, so there is nothing to show rather than a made-up number.</p>
+    {% endif %}
     <p class="live-strip__more"><a href="/job-engine">See the full dashboard &rarr;</a></p>
   </div>
 </div>
@@ -64,6 +65,7 @@
       </div>
     </a>
 
+    {% if public_crypto %}
     <a class="card" href="/crypto">
       <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-crypto.webp') }}')"></div>
       <div class="card__body">
@@ -72,6 +74,7 @@
         <p>Market-regime dashboard tracking gamma exposure, funding, and open interest across BTC/ETH.</p>
       </div>
     </a>
+    {% endif %}
 
     <a class="card" href="/budget">
       <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-budget.webp') }}')"></div>
@@ -85,27 +88,14 @@
   </div>
 </div>
 
+{% if teaser %}
 <script>
-(function () {
-  fetch('/api/job-engine/summary')
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      if (!data.data_available) {
-        document.getElementById('teaser-metrics').style.display = 'none';
-        document.getElementById('teaser-no-data').style.display = 'block';
-        return;
-      }
-      // Stash targets as data-target; the IntersectionObserver in site.js counts them up.
-      document.getElementById('teaser-applied').dataset.target = data.total_applied;
-      document.getElementById('teaser-interviews').dataset.target = data.total_interviews;
-      document.getElementById('teaser-reply-rate').dataset.target = data.reply_rate_pct;
-      if (window.MonteLattice && window.MonteLattice.armCountUp) window.MonteLattice.armCountUp();
-    })
-    .catch(function () {
-      document.getElementById('teaser-metrics').style.display = 'none';
-      document.getElementById('teaser-no-data').style.display = 'block';
-    });
-})();
+  // Values are server-rendered from the engine's public feed; this only arms the count-up.
+  if (window.MonteLattice && window.MonteLattice.armCountUp) window.MonteLattice.armCountUp();
+  else document.addEventListener('DOMContentLoaded', function () {
+    if (window.MonteLattice) window.MonteLattice.armCountUp();
+  });
 </script>
+{% endif %}
 
 {% endblock %}

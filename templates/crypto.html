@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Crypto &middot; Monte Lattice{% endblock %}
+{% block head_extra %}{% if not public_crypto %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 {% block content %}
 
 {% set page_name = "Crypto" %}

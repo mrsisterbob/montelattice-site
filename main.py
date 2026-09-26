@@ -21,6 +21,10 @@ from functools import wraps
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
+import homepage
+import jobstats
+import visits
+
 
 def _load_dotenv():
     """Minimal .env loader (no dependency): KEY=VALUE lines, '#' comments, optional quotes.
@@ -177,23 +181,81 @@ REPOS = [
 REPOS_BY_SLUG = {r["slug"]: r for r in REPOS if r["slug"]}
 
 
+@app.before_request
+def _forward_pageview():
+    """Private visitor analytics (see visits.py): queue this pageview for the job engine. A
+    failure here must never cost the visitor the page, so everything is swallowed."""
+    try:
+        visits.capture(request, session)
+    except Exception as e:  # noqa: BLE001 - analytics is never allowed to fail a request
+        logging.warning("Pageview capture failed: %s", e)
+
+
+# ---------------------------------------------------------------------------
+# Crypto visibility. The site now faces wealth-operations recruiters, and "crypto trading"
+# reads wrong there, so by default the crypto engine is HIDDEN, never removed: it drops out of
+# the nav, the card grid, the /code list and the public demo Console, and its page is noindex.
+# /crypto itself still serves 200 to anyone with the URL. PUBLIC_CRYPTO=true restores it all.
+# Read per request, so flipping the env var needs no code change.
+# ---------------------------------------------------------------------------
+def public_crypto() -> bool:
+    return os.environ.get("PUBLIC_CRYPTO", "false").strip().lower() in ("1", "true", "yes", "on")
+
+
+@app.context_processor
+def _inject_visibility():
+    return {"public_crypto": public_crypto()}
+
+
+def _public_repos() -> list[dict]:
+    return [r for r in REPOS if public_crypto() or r["slug"] != "crypto"]
+
+
+def _without_crypto(snap: dict) -> dict:
+    """Copy of a Console snapshot with every crypto figure removed (public demo while hidden)."""
+    out = dict(snap)
+    out.pop("crypto", None)
+    out["kpis"] = {k: v for k, v in (snap.get("kpis") or {}).items()
+                   if k not in ("open_positions", "realized_pnl_usd")}
+    out["trends"] = {k: v for k, v in (snap.get("trends") or {}).items() if not k.startswith("crypto")}
+    status = dict(snap.get("status") or {})
+    status["systems"] = [s for s in status.get("systems", []) if s.get("system") != "Crypto"]
+    out["status"] = status
+    today = dict(snap.get("today") or {})
+    today["items"] = [i for i in today.get("items", []) if i.get("kind") != "crypto"]
+    out["today"] = today
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Public pages
 # ---------------------------------------------------------------------------
+# The recruiter profile owns "/"; the Art Deco landing page moved to /lattice unchanged.
+# To revert, swap the two route decorators back.
 @app.route("/")
+def profile():
+    bank = homepage.load_bank()
+    if bank is None:
+        return render_template("profile.html", p=None), 503
+    return render_template("profile.html", p=homepage.build_profile(bank))
+
+
+@app.route("/lattice")
 def home():
-    return render_template("home.html", active_page="home")
+    return render_template("home.html", active_page="home", teaser=jobstats.teaser(jobstats.fetch()))
 
 
 @app.route("/code")
 def code():
-    return render_template("code.html", active_page="code", repos=REPOS)
+    return render_template("code.html", active_page="code", repos=_public_repos())
 
 
 @app.route("/job-engine")
 def job_engine():
+    # Live, read-only: every figure comes from the engine's /public/dashboard (see jobstats.py).
+    dash = jobstats.build_view(jobstats.fetch(), jobstats.public_funnel_stats())
     return render_template("job_engine.html", active_page="job-engine",
-                           repo=REPOS_BY_SLUG.get("job-engine"))
+                           repo=REPOS_BY_SLUG.get("job-engine"), dash=dash)
 
 
 @app.route("/docfiler")
@@ -963,7 +1025,8 @@ def api_console_snapshot():
     # One payload for the whole cockpit. Logged-out visitors (or ?demo=1) get baked sample
     # data; the owner, once logged in, gets the live sibling-DB rollup.
     if request.args.get("demo") == "1" or not session.get("console_authed"):
-        return jsonify(_demo_snapshot())
+        snap = _demo_snapshot()
+        return jsonify(snap if public_crypto() else _without_crypto(snap))
     snap = _live_snapshot()
     _history_record(snap)  # roll one durable row per system into console_history
     return jsonify(snap)

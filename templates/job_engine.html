@@ -2,49 +2,144 @@
 {% block title %}Job Engine &middot; Monte Lattice{% endblock %}
 {% block content %}
 
+{# Live dashboard. This file holds NO figures: every value and every sentence around one comes
+   from jobstats.build_view(), which reads the engine's /public/dashboard at request time. #}
+
 {% set page_name = "Job Engine" %}
 {% set solves = "An AI-screened job-search pipeline with a live CRM, résumé compiler, and outcome tracking. Run daily." %}
 {% include "_product_head.html" %}
+
+{% macro tile(t) %}
+<div class="kpi-tile">
+  {% if t.value is not none %}
+  <span class="kpi-value">{{ t.value }}</span>
+  <span class="kpi-label">{{ t.label }}</span>
+  {% if t.sub %}<span class="kpi-sub">{{ t.sub }}</span>{% endif %}
+  {% if t.cite %}<span class="kpi-cite">vs {{ t.cite.value }} &middot; <a href="{{ t.cite.url }}" target="_blank" rel="noopener">{{ t.cite.source }}</a></span>{% endif %}
+  {% else %}
+  <span class="kpi-label">{{ t.label }}</span>
+  <span class="kpi-empty">{{ t.empty }}</span>
+  {% endif %}
+</div>
+{% endmacro %}
+
+<div class="wrap section dash">
+  <div class="dash-head">
+    <h2 class="section-heading">Live from the Engine</h2>
+    {% if dash %}
+    <p class="dash-meta">
+      Read at page load from the engine's public feed{% if dash.as_of %}, as of {{ dash.as_of }}{% endif %}.
+      {% if dash.stale %}<strong>The feed is not answering; showing the last copy received.</strong>{% endif %}
+      <a href="{{ dash.feed_url }}" target="_blank" rel="noopener">Raw data &rarr;</a>
+    </p>
+    {% endif %}
+  </div>
+
+  {% if not dash %}
+  <div class="empty-state">
+    The engine's live feed is not reachable right now, so there are no figures to show rather
+    than invented ones. The system itself is described below.
+  </div>
+  {% else %}
+
+  <div class="kpi-row kpi-row--4">
+    {% for t in dash.primary %}{{ tile(t) }}{% endfor %}
+  </div>
+  <div class="kpi-row kpi-row--3 dash-row">
+    {% for t in dash.secondary %}{{ tile(t) }}{% endfor %}
+  </div>
+
+  <div class="data-card dash-drafting">
+    <h3>Match to sendable draft</h3>
+    {% if dash.drafting %}
+    <div class="dash-drafting__body">
+      <span class="dash-drafting__value">{{ dash.drafting.value }}</span>
+      <div>
+        <p>{{ dash.drafting.steps }}, compiled for a real cached role. {{ dash.drafting.detail }}</p>
+        <p class="dash-note">The Gmail API round-trip that files the draft is network time and is not included.</p>
+      </div>
+    </div>
+    {% else %}
+    <p class="kpi-empty">No cached role to time against yet. The timing appears once the screener caches one.</p>
+    {% endif %}
+  </div>
+
+  <div class="data-card">
+    <h3>Pipeline volume by week</h3>
+    {% if dash.timeline %}
+    <canvas id="chart-volume" height="110" aria-label="Listings discovered and roles screened per week"></canvas>
+    <script type="application/json" id="volume-data">{{ dash.timeline | tojson }}</script>
+    {% else %}
+    <p class="kpi-empty">No pipeline activity logged in the last twelve weeks.</p>
+    {% endif %}
+  </div>
+
+  {% if dash.funnel %}
+  <h2 class="section-heading dash-funnel-head">Conversion</h2>
+  {% if dash.funnel.tiles %}
+  <div class="kpi-row kpi-row--3">
+    {% for t in dash.funnel.tiles %}{{ tile(t) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">{{ dash.funnel.empty }}</div>
+  {% endif %}
+  {% endif %}
+
+  {% endif %}
+</div>
 
 <div class="wrap section">
   <h2 class="section-heading">How It Works</h2>
   <div class="explain-grid">
     <div class="explain-card">
-      <span class="step">Step 1 &mdash; Source</span>
+      <span class="step">Source</span>
       <h3>Pull &amp; screen</h3>
       <p>Listings are pulled from multiple boards and scored against a strict evidence bank &mdash; no invented experience.</p>
     </div>
     <div class="explain-card">
-      <span class="step">Step 2 &mdash; Tailor</span>
+      <span class="step">Tailor</span>
       <h3>Compile outreach</h3>
       <p>A résumé and message are compiled per role, then queued in a swipe-to-send Telegram review.</p>
     </div>
     <div class="explain-card">
-      <span class="step">Step 3 &mdash; Track</span>
+      <span class="step">Track</span>
       <h3>Log to CRM</h3>
-      <p>Every send, reply, and interview lands in the CRM. The metrics above are read straight from it.</p>
+      <p>Every send, reply, and interview lands in the CRM. The figures above are read from it and from the engine's own log.</p>
     </div>
-  </div>
-</div>
-
-<div class="wrap section">
-  <h2 class="section-heading">Pipeline Output</h2>
-  <div class="data-card">
-    <div class="table-scroll">
-      <table class="sample-table">
-        <caption>Sample &mdash; the shape of each logged outcome</caption>
-        <thead><tr><th>Source</th><th>Role</th><th>Path</th><th>Status</th><th>Logged</th></tr></thead>
-        <tbody>
-          <tr><td>LinkedIn</td><td>Data Analyst</td><td>Referral</td><td>Interview</td><td>2d ago</td></tr>
-          <tr><td>Indeed</td><td>Ops Associate</td><td>Direct</td><td>Applied</td><td>3d ago</td></tr>
-          <tr><td>Company site</td><td>Jr. PM</td><td>Direct</td><td>Applied</td><td>5d ago</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="sample-note">Illustrative rows. The live pipeline metrics run in the <a href="/console">Console</a>.</p>
   </div>
 </div>
 
 {% include "_repo_link.html" %}
+
+{% if dash and dash.timeline %}
+<script>
+(function () {
+  var el = document.getElementById('chart-volume');
+  if (!el || !window.Chart) return;
+  var rows = JSON.parse(document.getElementById('volume-data').textContent);
+  var css = getComputedStyle(document.documentElement);
+  function tok(n) { return css.getPropertyValue(n).trim(); }
+  new Chart(el, {
+    type: 'bar',
+    data: {
+      labels: rows.map(function (r) { return r.week; }),
+      datasets: [
+        { label: 'Listings discovered', data: rows.map(function (r) { return r.discovered; }), backgroundColor: tok('--chart-2') },
+        { label: 'Roles screened', data: rows.map(function (r) { return r.screened; }), backgroundColor: tok('--chart-1') }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : undefined,
+      scales: {
+        y: { beginAtZero: true, ticks: { color: tok('--muted'), precision: 0 }, grid: { color: tok('--chart-grid') } },
+        x: { ticks: { color: tok('--muted'), maxRotation: 0, autoSkip: true }, grid: { display: false } }
+      },
+      plugins: { legend: { labels: { color: tok('--ink'), boxWidth: 12 } } }
+    }
+  });
+})();
+</script>
+{% endif %}
 
 {% endblock %}
