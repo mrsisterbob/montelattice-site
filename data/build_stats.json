@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-09-26T23:08:43+00:00",
+  "commit_hours": 159,
+  "tracked_lines": 44290,
+  "first_commit_hour": "2026-07-31 16",
+  "last_commit_hour": "2026-09-26 17",
+  "repos": {
+    "job-outreach-engine": {
+      "commit_hours": 144,
+      "tracked_lines": 32543,
+      "by_extension": {
+        ".gs": 1199,
+        ".py": 31344
+      }
+    },
+    "crypto-trading-engine": {
+      "commit_hours": 3,
+      "tracked_lines": 3674,
+      "by_extension": {
+        ".py": 3674
+      }
+    },
+    "montelattice-site": {
+      "commit_hours": 14,
+      "tracked_lines": 4865,
+      "by_extension": {
+        ".py": 2213,
+        ".css": 1209,
+        ".js": 68,
+        ".html": 1375
+      }
+    },
+    "docfiler": {
+      "commit_hours": 1,
+      "tracked_lines": 1515,
+      "by_extension": {
+        ".py": 1515
+      }
+    },
+    "budget-tracker": {
+      "commit_hours": 3,
+      "tracked_lines": 1693,
+      "by_extension": {
+        ".py": 1186,
+        ".html": 507
+      }
+    }
+  },
+  "unreachable": []
+}

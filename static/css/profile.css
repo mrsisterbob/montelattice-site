@@ -115,15 +115,16 @@ h1 {
 }
 
 /* ---- figures ---- */
+/* Flex, not grid: a short last row stretches to fill instead of leaving an empty ruled cell. */
 .figures {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
   margin-block: 2.75rem;
 }
-.fig { background: var(--surface); padding: 1.15rem 1.1rem; }
+.fig { background: var(--surface); padding: 1.15rem 1.1rem; flex: 1 1 11rem; }
 .fig-n {
   font-family: var(--font-mono);
   font-size: 1.55rem;
@@ -133,6 +134,7 @@ h1 {
   line-height: 1.1;
 }
 .fig-l { font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.35; }
+.fig-note { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.35; font-style: italic; }
 
 h2 {
   font-family: var(--font-mono);

@@ -54,8 +54,14 @@
   <div class="figures">
     {% for f in p.figures %}
     <div class="fig">
+      {% if f.value is not none %}
       <div class="fig-n">{{ f.value }}</div>
       <div class="fig-l">{{ f.label }}</div>
+      {% if f.note %}<div class="fig-note">{{ f.note }}</div>{% endif %}
+      {% else %}
+      <div class="fig-l">{{ f.label }}</div>
+      <div class="fig-note">{{ f.empty }}</div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>

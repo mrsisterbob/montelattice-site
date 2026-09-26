@@ -90,12 +90,38 @@ def _span(start: str, end: str) -> str:
     return b if not a or a == b else f"{a}–{b}"
 
 
-def _figures(site: dict, experience: list) -> list[dict]:
+# Figures the bank marks {"live": key} are measured (buildstats.py), never typed into the bank.
+# The labels live here, not in the bank, so the honest wording can't drift from what is measured.
+LIVE_FIGURES = {
+    "commit_hours": ("Hours with a commit", "A measured floor, not a total. As of {date}."),
+    "tracked_lines": ("Lines of tracked code across {repos} repos", "As of {date}."),
+}
+LIVE_EMPTY = "Not measured right now."
+
+
+def _live_figure(key: str, build: dict | None) -> dict | None:
+    if key not in LIVE_FIGURES:
+        logging.warning("Dropping homepage figure: unknown live key %r", key)
+        return None
+    label, note = LIVE_FIGURES[key]
+    if not build:
+        return {"value": None, "label": label.format(repos="my"), "note": "", "empty": LIVE_EMPTY}
+    date = f"{build['generated_at']:%b} {build['generated_at'].day}"
+    return {"value": f"{build[key]:,}", "label": label.format(repos=build["repo_count"]),
+            "note": note.format(date=date), "empty": ""}
+
+
+def _figures(site: dict, experience: list, build: dict | None = None) -> list[dict]:
     """A figure citing a bullet is shown only while that bullet still contains its value, so a
     headline number can't outlive the bullet it came from."""
     by_company = {e.get("company"): e for e in experience}
     out = []
     for fig in site.get("figures", []):
+        if fig.get("live"):
+            live = _live_figure(fig["live"], build)
+            if live:
+                out.append(live)
+            continue
         src = fig.get("source")
         if src:
             bullets = by_company.get(src.get("company"), {}).get("bullets", [])
@@ -103,7 +129,7 @@ def _figures(site: dict, experience: list) -> list[dict]:
             if not isinstance(i, int) or not 0 <= i < len(bullets) or str(fig.get("value")) not in bullets[i]:
                 logging.warning("Dropping homepage figure %r: its source bullet no longer supports it", fig.get("value"))
                 continue
-        out.append({"value": fig.get("value", ""), "label": fig.get("label", "")})
+        out.append({"value": fig.get("value", ""), "label": fig.get("label", ""), "note": "", "empty": ""})
     return out
 
 
@@ -152,7 +178,7 @@ def _athletics(bank: dict) -> list[str]:
     return lines
 
 
-def build_profile(bank: dict) -> dict:
+def build_profile(bank: dict, build: dict | None = None) -> dict:
     """Pure: bank dict in, template context out. Every biographical string on the page comes
     through here."""
     identity = bank.get("identity", {})
@@ -165,7 +191,7 @@ def build_profile(bank: dict) -> dict:
         "name": identity.get("name", ""),
         "eyebrow": site.get("eyebrow", identity.get("location", "")),
         "claim_html": _emphasis(site.get("claim", "")),
-        "figures": _figures(site, experience),
+        "figures": _figures(site, experience, build),
         "story": [{"text": s.get("text", ""), "pull": bool(s.get("pull"))} for s in site.get("story", [])],
         "roles": _roles(site, experience),
         "credentials": _credentials(bank),

@@ -149,6 +149,7 @@ p:last-child { margin-bottom: 0; }
   margin: 28px auto 8px;
 }
 .intro__body h2 { margin: 0 0 12px; }
+.intro__body .intro__subhead { margin-top: 24px; }
 .intro__body p { margin: 0 0 12px; }
 .intro__body a { color: var(--brass-text); font-weight: 600; }
 .intro__body a:hover { text-decoration: underline; }
@@ -609,7 +610,7 @@ canvas { max-width: 100%; }
 
 /* Sample-data ribbon (logged-out Console) */
 .console-ribbon {
-  background: var(--brass); color: var(--ink);
+  background: var(--brass); color: var(--teal);
   text-align: center; font-size: 0.82rem; letter-spacing: 0.04em;
   padding: 9px 16px;
 }

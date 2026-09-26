@@ -145,3 +145,35 @@ def test_dark_blocks_are_identical_and_light_is_complete():
     dark_names = set(re.findall(r"(--[\w-]+):", media))
     assert dark_names <= light_names, dark_names - light_names  # never defined only in dark
     assert "color-scheme: dark" in media and "color-scheme: dark" in forced
+
+
+# --- honest copy: "What I learned" and no sample figures ------------------------------------
+
+def test_crypto_page_carries_no_fabricated_signal_rows(client, monkeypatch):
+    _shown(monkeypatch)
+    html = _html(client, "/crypto")
+    body = html[html.index('class="title-band"'):]
+    for fake in ("72 / 100", "64 / 100", "58 / 100", "1h ago", "Illustrative rows"):
+        assert fake not in body, fake
+    assert "No sample figures here" in body
+
+
+@pytest.mark.parametrize("path, obstacle", [("/docfiler", "compliance requirements"),
+                                            ("/crypto", "The data input is")])
+def test_what_i_learned_names_the_real_obstacle_before_form_and_repo(client, monkeypatch, path, obstacle):
+    _shown(monkeypatch)
+    html = _html(client, path)
+    learned = html.index("What I Learned")
+    assert obstacle in html[learned:]
+    assert learned < html.index("View source on GitHub")
+    if path == "/docfiler":
+        assert learned < html.index('id="contact-form"')  # the audit form stays, after the block
+
+
+def test_lattice_ai_section_sits_between_intro_and_live_strip(client, monkeypatch):
+    _shown(monkeypatch)
+    html = _html(client, "/lattice")
+    ai = html.index("How I build")
+    assert html.index("What this is") < ai < html.index("Live from the Job Engine")
+    para = html[ai:].split("<p>", 1)[1].split("</p>", 1)[0]
+    assert len([s for s in para.split(". ") if s.strip()]) <= 4

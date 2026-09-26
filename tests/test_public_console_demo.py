@@ -150,9 +150,9 @@ def test_lattice_intro_replaces_hero_and_sits_above_live_strip(client):
     assert (ROOT / "static" / "img" / "card-site.webp").exists()
     intro = html[html.index('<section class="wrap intro">'):html.index("</section>")]
     assert html.index("</section>") < html.index("Live from the Job Engine")
-    assert "What this is" in intro and "mothership for my Claude coding projects" in intro
-    assert "After an internship ended abruptly" in intro and 'href="/code"' in intro
-    assert html.count("After an internship ended abruptly") == 1  # the old origin line is gone
+    assert "What this is" in intro and "hundreds of people go cold" in intro
+    assert "harder to find than the actual people" in intro and 'href="/code"' in intro
+    assert "mothership" not in html and "internship ended abruptly" not in html  # the generic intro is gone
     bank = json.loads((ROOT.parent / "job-outreach-engine" / "evidence_bank.json").read_text(encoding="utf-8"))         if (ROOT.parent / "job-outreach-engine" / "evidence_bank.json").exists() else {}
     for word in bank.get("banned_words", []):
         assert word.lower() not in intro.lower(), word

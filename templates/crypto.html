@@ -33,16 +33,24 @@
   <div class="data-card">
     <div class="table-scroll">
       <table class="sample-table">
-        <caption>Sample: the shape of each emitted signal</caption>
-        <thead><tr><th>Symbol</th><th>Confidence</th><th>Context</th><th>Triggered</th></tr></thead>
+        <caption>What each emitted signal carries</caption>
+        <thead><tr><th>Field</th><th>What it holds</th></tr></thead>
         <tbody>
-          <tr><td>BTCUSDT</td><td>72 / 100</td><td>Gamma flip + funding reset</td><td>1h ago</td></tr>
-          <tr><td>ETHUSDT</td><td>64 / 100</td><td>RVOL expansion at range high</td><td>4h ago</td></tr>
-          <tr><td>SOLUSDT</td><td>58 / 100</td><td>OI build, no confirmation yet</td><td>6h ago</td></tr>
+          <tr><td>Symbol</td><td>The trading pair the signal fired on</td></tr>
+          <tr><td>Confidence</td><td>A score out of 100 from context, breakout and volume</td></tr>
+          <tr><td>Context</td><td>The leading reason the rule fired, in one line</td></tr>
+          <tr><td>Triggered</td><td>When the signal fired</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="sample-note">Illustrative rows. Paper-trading only, no live capital. The live portfolio and signal feed run in the <a href="/console">Console</a>.</p>
+    <p class="sample-note">No sample figures here. Paper-trading only, no live capital. The live portfolio and signal feed run in the <a href="/console">Console</a>.</p>
+  </div>
+</div>
+
+<div class="wrap section">
+  <h2 class="section-heading">What I Learned</h2>
+  <div class="data-card">
+    <p>People say trading is something you can automate away. After building this, I found the code was not the hard part. The data input is, because good market data is either very expensive or very hard to get your hands on, and that is the part people selling trading bots tend to leave out.</p>
   </div>
 </div>
 

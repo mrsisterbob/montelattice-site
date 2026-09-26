@@ -21,6 +21,7 @@ from functools import wraps
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
+import buildstats
 import homepage
 import jobstats
 import visits
@@ -250,7 +251,7 @@ def profile():
     bank = homepage.load_bank()
     if bank is None:
         return render_template("profile.html", p=None), 503
-    return render_template("profile.html", p=homepage.build_profile(bank))
+    return render_template("profile.html", p=homepage.build_profile(bank, buildstats.load()))
 
 
 @app.route("/lattice")
