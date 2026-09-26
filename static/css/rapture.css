@@ -128,59 +128,30 @@ p:last-child { margin-bottom: 0; }
 }
 .deco-divider svg { width: 26px; height: 14px; display: block; opacity: 0.75; }
 
-/* --- Home hero --- */
-.hero {
-  position: relative;
-  width: 100%;
-  height: 528px;
-  overflow: hidden;
-  background: var(--teal);
+/* --- Home intro: the copy is the top of /lattice (the skyline moved to the fourth card) --- */
+.intro {
+  text-align: center;
+  padding-top: 44px;
 }
-.hero__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 40%;
-}
-.hero__scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--scrim) 62%, transparent) 0%, color-mix(in srgb, var(--scrim) 28%, transparent) 42%, color-mix(in srgb, var(--scrim) 10%, transparent) 100%);
-}
-.hero__content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  padding: 56px 28px 0;
-  max-width: var(--wrap);
-  margin: 0 auto;
-}
-.hero__wordmark {
-  color: var(--on-teal);
+.intro__wordmark {
   font-size: clamp(2rem, 5vw, 3.1rem);
-  margin: 0 0 12px;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  margin: 0 0 10px;
+  overflow-wrap: break-word;
 }
-.hero__line {
-  color: var(--on-teal);
+.intro__line {
+  color: var(--muted);
   font-size: 1.05rem;
   max-width: 40ch;
-  margin: 0;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  margin: 0 auto;
 }
-
-/* Below-image fallback copy for mobile (hidden on desktop) */
-.hero-belowfold { display: none; }
-
-/* --- Origin line --- */
-.origin-line {
+.intro__body {
   max-width: 60ch;
-  margin: 32px auto;
-  font-size: 1.05rem;
-  color: var(--muted);
-  text-align: center;
+  margin: 28px auto 8px;
 }
+.intro__body h2 { margin: 0 0 12px; }
+.intro__body p { margin: 0 0 12px; }
+.intro__body a { color: var(--brass-text); font-weight: 600; }
+.intro__body a:hover { text-decoration: underline; }
 
 /* --- Project card grid (home): 2x2 on desktop --- */
 .card-grid {
@@ -523,23 +494,7 @@ canvas { max-width: 100%; }
     max-width: 300px;
   }
 
-  .hero { height: 280px; }
-  .hero__content { display: none; }
-  .hero-belowfold {
-    display: block;
-    text-align: center;
-    padding: 24px 20px 0;
-  }
-  .hero-belowfold .wordmark {
-    display: block;
-    font-size: 1.5rem;
-    letter-spacing: 0.16em;
-    color: var(--ink);
-    margin-bottom: 10px;
-    overflow-wrap: break-word;
-  }
-  .hero-belowfold p { color: var(--muted); margin: 0 auto; max-width: 32ch; }
-  .origin-line { font-size: 1rem; }
+  .intro { padding-top: 28px; }
 
   .card-grid, .data-grid, .explain-grid { grid-template-columns: 1fr; }
   .card-grid { max-width: none; }

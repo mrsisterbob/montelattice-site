@@ -41,10 +41,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           <span>Code</span>
         </a>
+        {% if public_console_demo or console_authed %}
         <a href="/console" class="{{ 'active' if active_page == 'console' else '' }}">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14a2 2 0 0 0 1.6-3.2"/><path d="M4.6 19a9 9 0 1 1 14.8 0"/><path d="m13.4 12.6 3.1-3.1"/></svg>
           <span>Console</span>
         </a>
+        {% endif %}
       </nav>
     </div>
   </header>
@@ -55,7 +57,7 @@
     Monte Lattice &middot; Kevin Miller
     <a class="site-footer__link" href="/code">Code</a>
     <a class="site-footer__link" href="https://github.com/mrsisterbob" target="_blank" rel="noopener">GitHub</a>
-    <a class="site-footer__link" href="/console">Console</a>
+    <a class="site-footer__link" href="{{ '/console' if public_console_demo or console_authed else '/console/login' }}">Console</a>
   </footer>
 </body>
 </html>

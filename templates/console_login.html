@@ -22,7 +22,7 @@
     <div class="data-card">
       <h2 class="section-heading">Console Access</h2>
       <p style="color: var(--teal-70); font-size: 0.9rem; margin-top: 0;">
-        Private control panel. <a href="/console/demo">View the demo &rarr;</a>
+        Private control panel.{% if public_console_demo %} <a href="/console/demo">View the demo &rarr;</a>{% endif %}
       </p>
       <form method="POST">
         <input class="field" type="password" name="password" placeholder="Password" autofocus required>

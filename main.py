@@ -202,9 +202,22 @@ def public_crypto() -> bool:
     return os.environ.get("PUBLIC_CRYPTO", "false").strip().lower() in ("1", "true", "yes", "on")
 
 
+# ---------------------------------------------------------------------------
+# Console demo visibility. The demo renders SAMPLE numbers (a 15% reply rate among them) on a
+# site whose thesis is "used daily, not just shown", so by default it is HIDDEN, never removed:
+# CONSOLE drops out of the nav, logged-out /console goes to sign-in instead of sample data, the
+# login page stops offering the demo, and /console/demo is noindex. /console/demo itself still
+# serves 200 to anyone with the URL. PUBLIC_CONSOLE_DEMO=true restores it all. Read per request.
+# ---------------------------------------------------------------------------
+def public_console_demo() -> bool:
+    return os.environ.get("PUBLIC_CONSOLE_DEMO", "false").strip().lower() in ("1", "true", "yes", "on")
+
+
 @app.context_processor
 def _inject_visibility():
-    return {"public_crypto": public_crypto()}
+    return {"public_crypto": public_crypto(),
+            "public_console_demo": public_console_demo(),
+            "console_authed": bool(session.get("console_authed"))}
 
 
 def _public_repos() -> list[dict]:
@@ -393,13 +406,17 @@ def console():
     # Public page. Logged-out visitors get the baked demo snapshot with a "DEMO" ribbon
     # (every section alive with sample data); the owner, once logged in, gets the live
     # sibling-DB data. Same layout, same URL - only the data source and the ribbon differ.
+    # While PUBLIC_CONSOLE_DEMO is off, logged-out visitors go to sign-in instead of samples.
+    if not session.get("console_authed") and not public_console_demo():
+        return redirect(url_for("console_login"))
     return render_template("console.html", active_page="console",
                            demo=not session.get("console_authed"))
 
 
 @app.route("/console/demo")
 def console_demo():
-    # Kept for any old links - identical to the logged-out /console view.
+    # Kept for any old links - identical to the logged-out /console view. Unlinked and noindex
+    # while PUBLIC_CONSOLE_DEMO is off, but still 200 by direct URL.
     return render_template("console.html", active_page="console", demo=True)
 
 
@@ -799,7 +816,7 @@ def _today_items(j, c):
         items.append({"kind": "pipeline", "level": "info", "text": "No pipeline run recorded yet."})
     elif age > 24:
         items.append({"kind": "pipeline", "level": "warn",
-                      "text": f"Job pipeline last ran {int(age)}h ago — stale."})
+                      "text": f"Job pipeline last ran {int(age)}h ago. Stale."})
     else:
         extra = f" ({job_hb['summary']})" if job_hb and job_hb.get("summary") else ""
         items.append({"kind": "pipeline", "level": "ok",

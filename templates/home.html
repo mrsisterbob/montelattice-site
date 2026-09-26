@@ -2,24 +2,17 @@
 {% block title %}Monte Lattice{% endblock %}
 {% block content %}
 
-<section class="hero">
-  <img class="hero__img" src="{{ url_for('static', filename='img/hero-home.webp') }}"
-       alt="Art Deco skyline over teal water with a gold-lit central tower">
-  <div class="hero__scrim"></div>
-  <div class="hero__content">
-    <h1 class="hero__wordmark wordmark">Monte Lattice</h1>
-    <p class="hero__line">Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
+{# The skyline that used to fill this spot is now the fourth card's image (card-site.webp). #}
+<section class="wrap intro">
+  <h1 class="intro__wordmark wordmark">Monte Lattice</h1>
+  <p class="intro__line">Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
+  <div class="intro__body">
+    <h2>What this is</h2>
+    <p>This is the mothership for my Claude coding projects, and every system I build lives here.</p>
+    <p>After an internship ended abruptly, I automated the frictions I was living through. Each system here is used daily, not just shown.</p>
+    <p>All of it is public code. Every repo is linked from the <a href="/code">Code page</a>.</p>
   </div>
 </section>
-
-<div class="hero-belowfold">
-  <span class="wordmark">Monte Lattice</span>
-  <p>Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
-</div>
-
-<div class="wrap">
-  <p class="origin-line">After an internship ended abruptly, I automated the frictions I was living through. Each system here is used daily, not just shown.</p>
-</div>
 
 <div class="deco-divider" aria-hidden="true">
   <svg viewBox="0 0 40 20" fill="none" style="stroke: var(--brass)" stroke-width="1.5">
@@ -81,7 +74,17 @@
       <div class="card__body">
         <span class="card__tag">Utility &middot; Public</span>
         <h3>Budget Tracker</h3>
-        <p>Personal income and spending tracker &mdash; monthly rollups and a category breakdown.</p>
+        <p>Personal income and spending tracker, with monthly rollups and a category breakdown.</p>
+      </div>
+    </a>
+
+    {# The site itself. Art is the former /lattice hero skyline, scaled + center-cropped to 1200x520. #}
+    <a class="card" href="/code">
+      <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-site.webp') }}')"></div>
+      <div class="card__body">
+        <span class="card__tag">Utility &middot; Public</span>
+        <h3>Monte Lattice (this site)</h3>
+        <p>The Flask app serving this page, with a private read-only Console rolling up live metrics from each project&rsquo;s own database.</p>
       </div>
     </a>
 

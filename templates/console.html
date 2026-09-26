@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Console &middot; Monte Lattice{% endblock %}
+{% block head_extra %}{% if demo and not public_console_demo %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 {% block content %}
 {# Crypto hides from the public demo while PUBLIC_CRYPTO is off; the signed-in view keeps it. #}
 {% set show_crypto = public_crypto or not demo %}
@@ -7,7 +8,7 @@
 <div class="console{{ ' console--demo' if demo else '' }}" id="console" data-demo="{{ '1' if demo else '0' }}">
 
   {% if demo %}
-  <div class="console-ribbon">Sample data &mdash; the live view is private.
+  <div class="console-ribbon">Sample data. The live view is private.
     <a href="/console/login">Sign in &rarr;</a>
   </div>
   {% endif %}
@@ -426,7 +427,7 @@
 
     document.getElementById('c-signals').innerHTML = (cr.recent_signals || []).length
       ? cr.recent_signals.map(function (x) {
-          return '<div><strong>' + x.symbol + '</strong> &mdash; ' + x.confidence_score + '/100 &mdash; ' + (x.context_summary || '') + '</div>';
+          return '<div><strong>' + x.symbol + '</strong> &middot; ' + x.confidence_score + '/100 &middot; ' + (x.context_summary || '') + '</div>';
         }).join('') : '<div>No signals yet.</div>';
     document.getElementById('c-positions').innerHTML = (cr.open_positions || []).length
       ? cr.open_positions.map(function (p) {
