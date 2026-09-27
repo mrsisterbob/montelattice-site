@@ -6,3 +6,6 @@ docfiler_leads.txt
 # local secrets
 .env
 console_heartbeats.db
+
+# Unredacted screenshots: static/ is served publicly, so these must never be committed.
+*-RAW.*

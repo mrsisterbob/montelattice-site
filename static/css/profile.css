@@ -15,13 +15,13 @@ body {
   overflow-wrap: break-word;
 }
 img { max-width: 100%; }
-.wrap { max-width: 44rem; margin: 0 auto; padding: 0 20px 3rem; }
+.wrap { max-width: 44rem; margin: 0 auto; padding: 0 24px 3rem; }
 
 /* ---- site nav ---- */
 .sitenav {
   background: var(--teal);
   color: var(--on-teal);
-  padding: 0.85rem 20px;
+  padding: 0.85rem 24px;
   border-bottom: 1px solid color-mix(in srgb, var(--brass) 28%, transparent);
 }
 .sitenav-inner {
@@ -65,13 +65,15 @@ img { max-width: 100%; }
 }
 @media (max-width: 560px) {
   .navlinks { margin-left: 0; width: 100%; }
+  /* Phone width is the binding constraint: the wider 24px gutter only rewraps text here. */
+  .wrap, .sitenav, .masthead, .contact { padding-left: 20px; padding-right: 20px; }
 }
 
 /* ---- masthead ---- */
 .masthead {
   background: var(--teal);
   color: var(--on-teal);
-  padding: 3rem 20px 2.75rem;
+  padding: 2.75rem 24px 2.5rem;
   border-bottom: 2px solid var(--brass);
 }
 .masthead-inner {
@@ -79,7 +81,7 @@ img { max-width: 100%; }
   margin: 0 auto;
   display: grid;
   grid-template-columns: 9.5rem 1fr;
-  gap: 2rem;
+  gap: 2.5rem;
   align-items: center;
 }
 .portrait {
@@ -122,9 +124,9 @@ h1 {
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
-  margin-block: 2.75rem;
+  margin-block: 2.25rem;
 }
-.fig { background: var(--surface); padding: 1.15rem 1.1rem; flex: 1 1 11rem; }
+.fig { background: var(--surface); padding: 1.15rem 1.3rem; flex: 1 1 11rem; }
 /* The measured figures (buildstats) carry a warm edge, so the 3/2 split reads as "these two are
    live" rather than as a row that happened to come up short. The mark is deliberately small: an
    edge, never a filled cell.
@@ -150,7 +152,7 @@ h2 {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 3rem 0 1.2rem;
+  margin: 2.25rem 0 1.2rem;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--rule);
 }
@@ -194,7 +196,7 @@ p { margin: 0 0 1.05rem; max-width: 36rem; }
 
 /* ---- systems ---- */
 .systems { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-.sys { background: var(--surface); padding: 1.2rem; }
+.sys { background: var(--surface); padding: 1.4rem; }
 .sys-name { font-weight: 600; margin-bottom: 0.3rem; }
 .sys-name a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--brass); padding-bottom: 1px; }
 .sys-name a:hover { color: var(--brass-text); }
@@ -214,11 +216,11 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 .offhours {
   display: grid;
   grid-template-columns: 11rem 1fr;
-  gap: 1.6rem;
+  gap: 2rem;
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--rule);
-  padding: 1.4rem;
+  padding: 1.6rem;
   margin-top: 1rem;
 }
 .offhours + .offhours { margin-top: 1px; }
@@ -232,16 +234,17 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 .offhours img.landscape { aspect-ratio: 4 / 3; object-position: center 18%; }
 .offhours p { margin: 0; font-size: 0.95rem; color: var(--muted); }
 @media (max-width: 560px) {
-  .offhours { grid-template-columns: 1fr; }
+  .offhours { grid-template-columns: 1fr; gap: 1.6rem; }
+  .lines { gap: 0.7rem; }
   .offhours img { max-width: 11rem; }
   .offhours img.landscape { max-width: 100%; }
 }
 
 /* ---- contact ---- */
-.contact { margin-top: 3rem; background: var(--teal); color: var(--on-teal); padding: 2.4rem 20px; }
+.contact { margin-top: 3rem; background: var(--teal); color: var(--on-teal); padding: 2.4rem 24px; }
 .contact-inner { max-width: 44rem; margin: 0 auto; }
 .contact h2 { color: var(--brass); border-color: color-mix(in srgb, var(--brass) 30%, transparent); margin-top: 0; }
-.lines { display: grid; gap: 0.7rem; }
+.lines { display: grid; gap: 0.85rem; }
 .line {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.8rem;
   font-family: var(--font-mono); font-size: 0.9rem;

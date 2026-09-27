@@ -88,6 +88,35 @@
   {% endif %}
 </div>
 
+{# Real screenshots, redacted: contact emails and the contact ID are blocked out. Pure CSS
+   horizontal scroll (scroll-snap); each image links to its full-size file. #}
+<div class="wrap section">
+  <h2 class="section-heading">What It Looks Like</h2>
+  <div class="shot-strip" role="region" aria-label="Screenshots of the system, scroll sideways">
+    <figure class="shot">
+      <a href="{{ url_for('static', filename='img/sys-telegram-card.webp') }}" target="_blank" rel="noopener">
+        <img src="{{ url_for('static', filename='img/sys-telegram-card.webp') }}" width="970" height="940" loading="lazy"
+             alt="A Telegram message showing a screened job card: role, company, fit score, contact and command buttons">
+      </a>
+      <figcaption>A new listing arrives in Telegram as a card: the role, how well it fits, who to contact, and one-tap commands.</figcaption>
+    </figure>
+    <figure class="shot">
+      <a href="{{ url_for('static', filename='img/sys-telegram-draft.webp') }}" target="_blank" rel="noopener">
+        <img src="{{ url_for('static', filename='img/sys-telegram-draft.webp') }}" width="970" height="1270" loading="lazy"
+             alt="A Telegram message with a drafted outreach email and a tailored résumé PDF attached">
+      </a>
+      <figcaption>One command later: the email is drafted in Gmail and a résumé tailored to the role is attached.</figcaption>
+    </figure>
+    <figure class="shot">
+      <a href="{{ url_for('static', filename='img/sys-sheets-crm.webp') }}" target="_blank" rel="noopener">
+        <img src="{{ url_for('static', filename='img/sys-sheets-crm.webp') }}" width="1920" height="933" loading="lazy"
+             alt="The Google Sheets tracker listing companies, roles, fit scores, status and follow-up dates">
+      </a>
+      <figcaption>Every role lands in the tracking sheet with its status and next follow-up date.</figcaption>
+    </figure>
+  </div>
+</div>
+
 <div class="wrap section">
   <h2 class="section-heading">How It Works</h2>
   <div class="explain-grid">

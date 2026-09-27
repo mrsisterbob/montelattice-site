@@ -24,6 +24,7 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 import buildstats
 import homepage
 import jobstats
+import leads
 import visits
 
 
@@ -251,7 +252,18 @@ def profile():
     bank = homepage.load_bank()
     if bank is None:
         return render_template("profile.html", p=None), 503
-    return render_template("profile.html", p=homepage.build_profile(bank, buildstats.load()))
+    return render_template("profile.html", p=homepage.build_profile(bank, buildstats.load()),
+                           resume_pdf=_resume_pdf())
+
+
+# Kevin exports this file by hand; nothing here generates it. Checked per request so the link
+# appears the moment the file is deployed and never points at a 404 before then.
+RESUME_PDF = "kevin-miller-resume.pdf"
+
+
+def _resume_pdf() -> str | None:
+    """The résumé's static filename if the file is actually present, else None."""
+    return RESUME_PDF if os.path.isfile(os.path.join(app.static_folder, RESUME_PDF)) else None
 
 
 @app.route("/lattice")
@@ -275,7 +287,7 @@ def job_engine():
 @app.route("/docfiler")
 def docfiler():
     return render_template("docfiler.html", active_page="docfiler",
-                           repo=REPOS_BY_SLUG.get("docfiler"))
+                           repo=REPOS_BY_SLUG.get("docfiler"), fallback_email=leads.fallback_email())
 
 
 @app.route("/crypto")
@@ -364,7 +376,7 @@ def api_crypto_summary():
 
 
 # ---------------------------------------------------------------------------
-# Docfiler contact form (lead capture - stored locally, no email service wired yet)
+# Docfiler contact form (lead capture - forwarded to the job engine, see leads.py)
 # ---------------------------------------------------------------------------
 @app.route("/api/docfiler/contact", methods=["POST"])
 def api_docfiler_contact():
@@ -375,11 +387,15 @@ def api_docfiler_contact():
     if not name or not email:
         return jsonify({"error": "Name and email are required."}), 400
 
-    leads_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docfiler_leads.txt")
-    with open(leads_path, "a", encoding="utf-8") as f:
-        f.write(f"{name} | {email} | {message}\n")
-
-    return jsonify({"message": "Thanks - I'll be in touch shortly."}), 200
+    stored, reason = leads.send({"name": name, "email": email, "message": message,
+                                 "source": "montelattice.com/docfiler"})
+    if stored:
+        return jsonify({"message": "Thanks - I'll be in touch shortly."}), 200
+    # Never "thanks" here: the lead is not stored anywhere but the log line leads.send wrote.
+    fallback = leads.fallback_email()
+    lead_in = f"{reason} " if reason else ""
+    return jsonify({"error": f"{lead_in}Your request did not go through. Please email {fallback} "
+                             "directly so it isn't lost."}), 400 if reason else 502
 
 
 # ---------------------------------------------------------------------------

@@ -32,7 +32,7 @@
       <textarea class="field" name="message" placeholder="Your firm and document volume" rows="4"></textarea>
       <button class="btn" type="submit">Request Audit</button>
     </form>
-    <div id="contact-status" class="status-msg"></div>
+    <div id="contact-status" class="status-msg" data-fallback="{{ fallback_email }}"></div>
   </div>
 </div>
 
@@ -50,13 +50,17 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+    // A non-JSON reply (a proxy error page) or a dropped connection must still say plainly that
+    // nothing was sent, with the address to use instead - never a raw parser error.
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.message) throw new Error(data.error || '');
     statusEl.textContent = data.message;
     statusEl.className = 'status-msg success';
     form.reset();
   } catch (err) {
-    statusEl.textContent = err.message;
+    statusEl.textContent = (err instanceof TypeError || !err.message)
+      ? 'Your request did not go through. Please email ' + statusEl.dataset.fallback + ' directly.'
+      : err.message;
     statusEl.className = 'status-msg error';
   }
 });

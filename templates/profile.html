@@ -39,7 +39,7 @@
 
 <header class="masthead">
   <div class="masthead-inner">
-    <img class="portrait" src="{{ url_for('static', filename='img/kevin-portrait.jpg') }}" alt="{{ p.name }}">
+    <img class="portrait" src="{{ url_for('static', filename='img/kevin-cafe.jpg') }}" alt="{{ p.name }}">
     <div>
       <p class="eyebrow">{{ p.eyebrow }}</p>
       <h1>{{ p.name }}</h1>
@@ -154,8 +154,9 @@
     <h2>Get in touch</h2>
     <div class="lines">
       {% if p.email %}<div class="line"><span class="line-k">Email</span><a class="line-v" href="mailto:{{ p.email }}">{{ p.email }}</a></div>{% endif %}
-      {% if p.phone %}<div class="line"><span class="line-k">Phone</span><span class="line-v" tabindex="0">{{ p.phone }}</span></div>{% endif %}
-      {% if p.resume_note %}<div class="line"><span class="line-k">Résumé</span><span class="line-v resume-note">{{ p.resume_note }}</span></div>{% endif %}
+      {% if p.phone %}<div class="line"><span class="line-k">Phone</span><a class="line-v" href="{{ p.phone_tel }}">{{ p.phone }}</a></div>{% endif %}
+      {% if resume_pdf %}<div class="line"><span class="line-k">Résumé</span><a class="line-v" href="{{ url_for('static', filename=resume_pdf) }}" download>Download PDF</a></div>
+      {% elif p.resume_note %}<div class="line"><span class="line-k">Résumé</span><span class="line-v resume-note">{{ p.resume_note }}</span></div>{% endif %}
       {% if p.github %}<div class="line"><span class="line-k">Code</span><a class="line-v" href="{{ p.github_url }}">{{ p.github }}</a></div>{% endif %}
       {% if p.linkedin_url %}<div class="line"><span class="line-k">LinkedIn</span><a class="line-v" href="{{ p.linkedin_url }}">{{ p.linkedin_label }}</a></div>{% endif %}
     </div>

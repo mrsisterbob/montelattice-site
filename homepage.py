@@ -203,6 +203,8 @@ def build_profile(bank: dict, build: dict | None = None) -> dict:
         "offhours": site.get("offhours", []),
         "email": identity.get("site_email") or identity.get("email", ""),
         "phone": identity.get("phone", ""),
+        # tel: wants bare digits (and a leading + if there is one); the display keeps its dashes.
+        "phone_tel": "tel:" + re.sub(r"(?!^\+)[^\d]", "", identity.get("phone", "").strip()),
         "resume_note": site.get("resume_note", ""),
         "github": github,
         "github_url": f"https://{github}" if github else "",

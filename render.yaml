@@ -5,7 +5,10 @@ services:
   - type: web
     name: montelattice-site
     runtime: python
-    plan: free
+    # starter, not free: the free tier spins the service down when idle, and the next visitor
+    # waits on Render's cold-start splash while it boots. A paid instance stays up - that is
+    # what eliminates the cold start. No disk on purpose: leads go to the job engine.
+    plan: starter
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app --workers 2 --bind 0.0.0.0:$PORT --timeout 30
     healthCheckPath: /
@@ -15,11 +18,15 @@ services:
       #   SITE_SECRET_KEY       - any long random string (Flask session signing)
       #   BUDGET_SITE_PASSWORD  - the Console password
       #   CONSOLE_HEARTBEAT_TOKEN - optional; only needed once the bots POST run heartbeats
+      #   LEAD_INGEST_TOKEN     - must equal the job engine's LEAD_INGEST_TOKEN; without it the
+      #                           DocFiler form cannot store a lead and says so to the submitter
       - key: SITE_SECRET_KEY
         sync: false
       - key: BUDGET_SITE_PASSWORD
         sync: false
       - key: CONSOLE_HEARTBEAT_TOKEN
+        sync: false
+      - key: LEAD_INGEST_TOKEN
         sync: false
       - key: PYTHON_VERSION
         value: "3.12"
