@@ -2,7 +2,7 @@
 {% block title %}Monte Lattice{% endblock %}
 {% block content %}
 
-{# The skyline that used to fill this spot is now the fourth card's image (card-site.webp). #}
+{# The skyline that used to fill this spot became the fourth card; that card is now a map too. #}
 <section class="wrap intro">
   <h1 class="intro__wordmark wordmark">Monte Lattice</h1>
   <p class="intro__line">Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
@@ -81,7 +81,7 @@
       </div>
     </a>
 
-    {# The site itself. Art is the former /lattice hero skyline, scaled + center-cropped to 1200x520. #}
+    {# The site itself. Art is the contour-map set: single-colour linework on the token navy. #}
     <a class="card" href="/code">
       <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-site.webp') }}')"></div>
       <div class="card__body">

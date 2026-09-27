@@ -186,12 +186,13 @@ p:last-child { margin-bottom: 0; }
   background-size: cover;
   background-position: center 42%;
 }
-/* Scrim + inset gold hairline frame, drawn as one layered ::after over the image. */
+/* Inset gold hairline frame. No scrim: the card art is single-colour linework on the token
+   navy, so a teal wash over it only dulls the lines it exists to show. The old painted art
+   needed the scrim to seat text over it; nothing sits over the image band now. */
 .card__img::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--teal) 14%, transparent) 0%, color-mix(in srgb, var(--teal) 36%, transparent) 100%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brass) 60%, transparent);
 }
 /* gold Deco corner brackets on the image band */
