@@ -5,10 +5,11 @@ services:
   - type: web
     name: montelattice-site
     runtime: python
-    # starter, not free: the free tier spins the service down when idle, and the next visitor
-    # waits on Render's cold-start splash while it boots. A paid instance stays up - that is
-    # what eliminates the cold start. No disk on purpose: leads go to the job engine.
-    plan: starter
+    # free: the free tier spins the service down when idle. An external uptime monitor
+    # (UptimeRobot) pings it so a visitor never waits on Render's cold-start splash; the app
+    # itself has no keepalive route or self-ping, on purpose. No disk on purpose either: leads
+    # go to the job engine, which stores them on its persistent disk.
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app --workers 2 --bind 0.0.0.0:$PORT --timeout 30
     healthCheckPath: /
