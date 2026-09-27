@@ -6,7 +6,9 @@
    from jobstats.build_view(), which reads the engine's /public/dashboard at request time. #}
 
 {% set page_name = "Job Engine" %}
-{% set solves = "An AI-screened job-search pipeline with a live CRM, résumé compiler, and outcome tracking. Run daily." %}
+{# The résumé lists this system under its general-purpose name, so a recruiter arriving from
+   there can tell it is the same project. Keep the two names in sync if either one changes. #}
+{% set solves = "An AI-screened job-search pipeline with a live CRM, résumé compiler, and outcome tracking. Run daily. On my résumé this is the Document Automation Pipeline & Custom CRM." %}
 {% include "_product_head.html" %}
 
 {% macro tile(t) %}
