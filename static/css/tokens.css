@@ -8,14 +8,22 @@
      --teal       = the dusk-blue ground (bands: nav, masthead, title bands, footer)
      --brass      = the display champagne (rules, ticks, fills, text on the blue band)
      --brass-text = the darker champagne for words on paper
+     --brass-warm = the same accent muted for LARGER marks (see below)
+     --teal-deep  = a navy below --teal, for blocks that recede rather than protrude
+   The accent has two values on purpose. --brass is correct for a hairline or a small numeral,
+   where it reads as lit. The identical value across a large area reads as glare, so anything
+   bigger than a line or a short phrase takes --brass-warm, which is the same hue pulled down
+   (L 67->57, S 63->41). Neither is ever a field on this site: the largest --brass-warm mark is
+   a drop cap or a 3px cell edge. If a future block wants a solid accent ground, --brass-warm is
+   the value to start from, never --brass.
    Rules: the full light palette lives on bare :root. Dark mode redefines only token values,
    twice (OS preference unless the page forces light, and an explicit data-theme="dark"),
    and sets color-scheme with them. Neutrals lean warm toward the champagne; none is a pure grey.
    Contrast (WCAG), measured 2026-09-26:
      light: ink/paper 15.8, ink/surface 16.6, muted/paper 6.4, brass-text/paper 5.7,
-            on-teal/teal 13.0, brass/teal 7.9
+            on-teal/teal 13.0, brass/teal 7.9, brass-warm/teal 5.6, brass-warm/teal-deep 6.4
      dark:  ink/paper 14.3, ink/surface 12.9, muted/paper 7.0, brass-text/paper 10.7,
-            on-teal/teal 16.1, brass/teal 11.5
+            on-teal/teal 16.1, brass/teal 11.5, brass-warm/teal 6.1
    Plain --brass is 1.69 on light paper, so it is for rules, fills and text on the blue band,
    never body text on paper. Words on paper take --brass-text, which is measured to clear AA. */
 
@@ -25,6 +33,7 @@
   /* core */
   --teal: #18284A;          /* bands: nav, masthead, title bands, footer */
   --brass: #E0B978;         /* rules, hairlines, corner ticks, fills, text on teal */
+  --brass-warm: #BE9A64;    /* the accent for marks larger than a hairline; never a field */
   --paper: #F2F5FA;         /* page ground */
   --ink: #1D1A1F;           /* body text */
 
@@ -33,6 +42,7 @@
   --muted: #5E5760;         /* secondary text */
   --brass-text: #7E5A1C;    /* brass-coloured words on paper */
   --on-teal: #EEF2F9;       /* text on a teal band or over imagery */
+  --teal-deep: #101C36;     /* blocks that recede below the teal ground */
   --rule: color-mix(in srgb, var(--ink) 14%, transparent);
   --rule-strong: color-mix(in srgb, var(--ink) 20%, transparent);
   --scrim: #0A1224;         /* photo scrims; used through color-mix for alpha */
@@ -67,12 +77,14 @@
     color-scheme: dark;
     --teal: #0C1528;
     --brass: #EBC98A;
+    --brass-warm: #CCA670;
     --paper: #121C31;
     --ink: #EEEAF0;
     --surface: #19253D;
     --muted: #ABA4B2;
     --brass-text: #EBC98A;
     --on-teal: #EDF1F8;
+    --teal-deep: #070E1C;
     --ok: #5CC79F;
     --warn: #E0A548;
     --down: #EE8670;
@@ -93,12 +105,14 @@
   color-scheme: dark;
   --teal: #0C1528;
   --brass: #EBC98A;
+  --brass-warm: #CCA670;
   --paper: #121C31;
   --ink: #EEEAF0;
   --surface: #19253D;
   --muted: #ABA4B2;
   --brass-text: #EBC98A;
   --on-teal: #EDF1F8;
+  --teal-deep: #070E1C;
   --ok: #5CC79F;
   --warn: #E0A548;
   --down: #EE8670;

@@ -136,3 +136,17 @@ def test_measure_unions_hours_across_repos_and_names_unreachable_ones(tmp_path):
     assert stats["commit_hours"] == 3  # 09-01 10 (shared), 09-01 11, 09-02 09
     assert stats["tracked_lines"] == 4  # two .py lines per repo; the markdown is not code
     assert stats["unreachable"] == ["absent"]
+
+
+def test_only_the_measured_figures_carry_the_live_marker(client):
+    """The warm edge on the figures block is how a reader tells a measured number from a banked
+    one. It is driven by f.live, so a figure that stops being measured must stop being marked.
+    Drives the real page, not _figures(), because the class is applied in the template."""
+    html = client.get("/").get_data(as_text=True)
+    cells = re.findall(r'<div class="fig(?: fig--live)?">\s*<div class="fig-n">([^<]+)', html)
+    live = re.findall(r'<div class="fig fig--live">\s*<div class="fig-n">([^<]+)', html)
+    assert len(cells) > len(live), "every figure marked live means the marker says nothing"
+    # The client fixture serves a synthetic snapshot (_snapshot defaults), so assert against
+    # those, not data/build_stats.json: the point is that the marker follows the measured
+    # values wherever they come from.
+    assert set(live) == {"159", "44,255"}

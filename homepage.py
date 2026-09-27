@@ -105,10 +105,11 @@ def _live_figure(key: str, build: dict | None) -> dict | None:
         return None
     label, note = LIVE_FIGURES[key]
     if not build:
-        return {"value": None, "label": label.format(repos="my"), "note": "", "empty": LIVE_EMPTY}
+        return {"value": None, "label": label.format(repos="my"), "note": "", "empty": LIVE_EMPTY,
+                "live": True}
     date = f"{build['generated_at']:%b} {build['generated_at'].day}"
     return {"value": f"{build[key]:,}", "label": label.format(repos=build["repo_count"]),
-            "note": note.format(date=date), "empty": ""}
+            "note": note.format(date=date), "empty": "", "live": True}
 
 
 def _figures(site: dict, experience: list, build: dict | None = None) -> list[dict]:
@@ -129,7 +130,8 @@ def _figures(site: dict, experience: list, build: dict | None = None) -> list[di
             if not isinstance(i, int) or not 0 <= i < len(bullets) or str(fig.get("value")) not in bullets[i]:
                 logging.warning("Dropping homepage figure %r: its source bullet no longer supports it", fig.get("value"))
                 continue
-        out.append({"value": fig.get("value", ""), "label": fig.get("label", ""), "note": "", "empty": ""})
+        out.append({"value": fig.get("value", ""), "label": fig.get("label", ""), "note": "",
+                    "empty": "", "live": False})
     return out
 
 

@@ -87,7 +87,7 @@ img { max-width: 100%; }
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 50%;
-  border: 2px solid var(--brass);
+  border: 2px solid var(--brass-warm);
   display: block;
 }
 .eyebrow {
@@ -95,7 +95,7 @@ img { max-width: 100%; }
   font-size: 0.68rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--brass);
+  color: var(--brass-warm);
   margin: 0 0 0.9rem;
 }
 h1 {
@@ -108,7 +108,7 @@ h1 {
   text-wrap: balance;
 }
 .claim { font-size: 1.06rem; line-height: 1.55; margin: 0; opacity: 0.93; }
-.claim strong { font-weight: 600; color: var(--brass); }
+.claim strong { font-weight: 600; color: var(--brass-warm); }
 @media (max-width: 640px) {
   .masthead-inner { grid-template-columns: 1fr; gap: 1.5rem; }
   .portrait { width: 8.5rem; }
@@ -125,6 +125,13 @@ h1 {
   margin-block: 2.75rem;
 }
 .fig { background: var(--surface); padding: 1.15rem 1.1rem; flex: 1 1 11rem; }
+/* The measured figures (buildstats) carry a warm edge, so the 3/2 split reads as "these two are
+   live" rather than as a row that happened to come up short. The mark is deliberately small: an
+   edge, never a filled cell.
+   The edge takes --brass-text, not --brass-warm: these cells sit on --surface (near-white in
+   light mode), where --brass-warm measures 2.5 and washes out. --brass-text is the on-paper
+   value of the same accent and holds at 5.7. */
+.fig--live { box-shadow: inset 3px 0 0 var(--brass-text); }
 .fig-n {
   font-family: var(--font-mono);
   font-size: 1.55rem;

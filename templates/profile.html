@@ -53,7 +53,7 @@
   {% if p.figures %}
   <div class="figures">
     {% for f in p.figures %}
-    <div class="fig">
+    <div class="fig{% if f.live %} fig--live{% endif %}">
       {% if f.value is not none %}
       <div class="fig-n">{{ f.value }}</div>
       <div class="fig-l">{{ f.label }}</div>
