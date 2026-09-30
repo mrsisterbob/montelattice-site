@@ -98,6 +98,37 @@ p:last-child { margin-bottom: 0; }
 .icon-nav a:hover { color: var(--on-teal); }
 .icon-nav a.active { color: var(--brass); border-bottom-color: var(--brass); }
 
+/* Light/dark toggle. The site follows the OS by default; this overrides it per browser and is
+   remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
+   pressing it, which is why the sun shows while dark and the moon while light. */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--on-teal) 26%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--brass); border-color: var(--brass); }
+.theme-toggle svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+/* Default (OS-driven, no data-theme set): light OS shows the moon, dark OS shows the sun. */
+.theme-toggle__sun { display: none; }
+.theme-toggle__moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle__sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle__moon { display: none; }
+}
+/* An explicit choice wins over the OS in both directions. */
+:root[data-theme="dark"] .theme-toggle__sun { display: block; }
+:root[data-theme="dark"] .theme-toggle__moon { display: none; }
+:root[data-theme="light"] .theme-toggle__sun { display: none; }
+:root[data-theme="light"] .theme-toggle__moon { display: block; }
+
 /* --- Layout --- */
 .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
 .section { margin: 48px auto; }

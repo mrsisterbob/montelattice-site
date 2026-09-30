@@ -266,3 +266,32 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 a { color: var(--brass-text); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .contact a { color: var(--on-teal); }
 a:focus-visible, .line-v:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+/* Light/dark toggle. Duplicated from rapture.css because this page loads profile.css alone.
+   The visible icon is the theme you would GET by pressing it: sun while dark, moon while light. */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--on-teal) 26%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--brass); border-color: var(--brass); }
+.theme-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+.theme-toggle__sun { display: none; }
+.theme-toggle__moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle__sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle__moon { display: none; }
+}
+:root[data-theme="dark"] .theme-toggle__sun { display: block; }
+:root[data-theme="dark"] .theme-toggle__moon { display: none; }
+:root[data-theme="light"] .theme-toggle__sun { display: none; }
+:root[data-theme="light"] .theme-toggle__moon { display: block; }

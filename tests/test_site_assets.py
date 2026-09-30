@@ -58,3 +58,39 @@ def test_job_engine_screenshots_exist_and_are_redacted_copies():
     assert shots == {"sys-telegram-card.webp", "sys-telegram-draft.webp", "sys-sheets-crm.webp"}
     for name in shots:
         assert (ROOT / "static" / "img" / name).is_file()
+
+
+# --- Link previews and the light/dark toggle ------------------------------------------------
+
+def test_every_public_page_declares_an_og_image_that_exists(client):
+    """Without og:image, iMessage and Slack pick whichever image they find first in the DOM,
+    which is how a shared link ended up previewing a photo instead of the mark - and why Android
+    (different fallback) showed something else again. The URL must be absolute: a relative one is
+    ignored by every scraper."""
+    for page in ["/", "/lattice", "/job-engine", "/docfiler", "/budget", "/code"]:
+        html = client.get(page).get_data(as_text=True)
+        src = re.search(r'<meta property="og:image" content="([^"]+)"', html)
+        assert src, page
+        url = src.group(1)
+        assert url.startswith("http://") or url.startswith("https://"), (page, url)
+        assert (ROOT / "static" / url.split("/static/", 1)[1]).is_file(), (page, url)
+        assert '<meta name="twitter:card" content="summary_large_image">' in html, page
+
+
+def test_theme_is_applied_before_the_stylesheet_loads(client):
+    """The stored theme must be set on <html> by a synchronous inline script placed ABOVE
+    tokens.css. Deferred, it runs after first paint and the other theme flashes first."""
+    html = client.get("/").get_data(as_text=True)
+    applied = html.index("ml-theme")
+    assert applied < html.index("css/tokens.css")
+    assert "defer" not in html[html.index("<script>", applied - 400):applied]
+
+
+def test_theme_toggle_is_present_and_both_themes_are_defined(client):
+    html = client.get("/").get_data(as_text=True)
+    assert 'id="theme-toggle"' in html
+    tokens = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
+    # Both explicit themes must exist, or the toggle can only move in one direction.
+    assert ':root[data-theme="dark"]' in tokens
+    assert '[data-theme="light"]' in tokens
+    assert "ml-theme" in (ROOT / "static" / "js" / "site.js").read_text(encoding="utf-8")
