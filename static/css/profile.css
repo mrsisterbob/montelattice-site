@@ -255,6 +255,11 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 }
 .line-v { word-break: break-word; min-width: 0; }
 .line-v.resume-note { opacity: 0.8; }
+/* Every line stacks label above value, so short values don't sit beside their label while
+   long ones wrap below it. Kept below the base .line rule, which would otherwise win. */
+@media (max-width: 560px) {
+  .line { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+}
 .footnote {
   margin: 2rem 0 0;
   padding-top: 1.25rem;
