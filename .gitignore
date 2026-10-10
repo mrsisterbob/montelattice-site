@@ -9,3 +9,11 @@ console_heartbeats.db
 
 # Unredacted screenshots: static/ is served publicly, so these must never be committed.
 *-RAW.*
+
+# Task queue: the contract (.queue/README.md) is tracked, the task files are not.
+# In-flight tasks are local state - committing them would put queue churn in every
+# diff you review, and the worker's code changes are what you actually want to see.
+.queue/*/*.md
+
+# Worker worktrees (.worktrees/TASK-n): each task runs in its own checkout.
+.worktrees/

@@ -5,6 +5,7 @@ Run: python -m pytest tests -q
 """
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -153,8 +154,46 @@ def test_lattice_intro_replaces_hero_and_sits_above_live_strip(client):
     assert "What this is" in intro and "hundreds of people go cold" in intro
     assert "harder to find than the actual people" in intro and 'href="/code"' in intro
     assert "mothership" not in html and "internship ended abruptly" not in html  # the generic intro is gone
-    bank = json.loads((ROOT.parent / "job-outreach-engine" / "evidence_bank.json").read_text(encoding="utf-8"))         if (ROOT.parent / "job-outreach-engine" / "evidence_bank.json").exists() else {}
-    for word in bank.get("banned_words", []):
+
+
+def _evidence_bank_path():
+    """Kevin's real bank, beside the main site checkout. None when it is not on this machine.
+
+    ROOT's sibling first (the main checkout). In a .worktrees/TASK-n checkout that sibling is
+    .worktrees/job-outreach-engine, which never exists, so fall back to the main checkout the
+    worktree belongs to: the parent of git's common dir. That fallback is only trusted when
+    ROOT is itself the toplevel of its git tree, so a copy inside some unrelated repo finds nothing.
+    """
+    sibling = ROOT.parent / "job-outreach-engine" / "evidence_bank.json"
+    if sibling.exists():
+        return sibling
+    try:
+        top, common = subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--show-toplevel", "--git-common-dir"],
+            cwd=ROOT, capture_output=True, text=True, timeout=5,
+        ).stdout.splitlines()[:2]
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+    if not top or Path(top).resolve() != ROOT:
+        return None
+    main_bank = Path(common).resolve().parent.parent / "job-outreach-engine" / "evidence_bank.json"
+    return main_bank if main_bank.exists() else None
+
+
+def test_lattice_intro_has_no_banned_words(client, monkeypatch):
+    # Reads the real bank or skips out loud. A missing bank used to become {}, so the loop ran
+    # zero times and every worktree reported green having checked nothing.
+    monkeypatch.setattr(main.jobstats, "fetch", lambda: None)  # no live dashboard call
+    path = _evidence_bank_path()
+    if path is None:
+        pytest.skip(f"evidence bank not found beside {ROOT.parent} or the main checkout - banned words unchecked")
+    words = json.loads(path.read_text(encoding="utf-8")).get("banned_words")
+    assert words, f"{path} has no banned_words - nothing to check"
+    html = _html(client, "/lattice")
+    start = html.index('<section class="wrap intro">')
+    intro = html[start:html.index("</section>", start)]
+    assert "What this is" in intro  # an empty slice would check nothing and pass
+    for word in words:
         assert word.lower() not in intro.lower(), word
 
 
