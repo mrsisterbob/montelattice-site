@@ -9,6 +9,7 @@ touched. Prints one line per case and exits non-zero if any case fails.
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -20,7 +21,9 @@ SITE = os.path.dirname(os.path.dirname(HOOK_DIR))
 PROBE = os.path.join(SITE, ".worktrees", "_hookproof")
 OTHER_REPO = "C:/Users/kjmil/crypto-trading-engine"
 FAILING_TEST = os.path.join("tests", "test_zz_hookproof.py")
-EXPECTED_PASSED = "92 passed"
+# Any count, as long as the whole suite passed: a pinned "92 passed" broke the moment
+# TASK-10 split a test in two. Exit 0 plus this shape on the last line is the check.
+PASSED_LINE = re.compile(r"^\d+ passed")
 
 # A pytest plugin that records every urlopen URL and still makes the call, so the suite
 # behaves exactly as it does without the spy.
@@ -154,8 +157,8 @@ def prove_on_probe():
             cwd=PROBE, env=env, capture_output=True, text=True, timeout=300,
         )
         last = (proc.stdout.strip().splitlines() or [""])[-1]
-        check(f"3. worktree suite: {EXPECTED_PASSED}, no failures",
-              proc.returncode == 0 and last.startswith(EXPECTED_PASSED) and "failed" not in last
+        check(f"3. worktree suite: {last.split(' in ')[0] or 'nothing'}, no failures",
+              proc.returncode == 0 and PASSED_LINE.match(last) and "failed" not in last
               and "error" not in last, f"exit={proc.returncode} last={last!r}")
         with open(log, encoding="utf-8") as fh:
             urls = [u for u in fh.read().splitlines() if u]

@@ -145,7 +145,6 @@ Known gap: inside `.worktrees/`, homepage.py's sibling path
 worktree reads the bank from GitHub main, not your local edits. Start it with
 `EVIDENCE_BANK_SOURCE=../../../job-outreach-engine/evidence_bank.json` to preview the local
 bank. The tests stub the bank (`EVIDENCE_BANK_SOURCE` or a `load_bank` monkeypatch) and make
-no GitHub fetch. The exception is `tests/test_public_console_demo.py:156`, which reads the
-sibling bank directly and silently checks no banned words when it is missing
-(job-outreach-engine's queue has TASK-10 to fix that; drop this note once it merges). For
-that one check, a green worktree run is weaker than a green run on `master`.
+no GitHub fetch. The `/lattice` banned-words test reads the real bank directly: from a
+worktree it finds it beside the main checkout, and when it cannot it skips visibly rather
+than passing against an empty bank.

@@ -57,9 +57,9 @@ without those is the thing this setup exists to prevent.
    does not resolve, so a dev server started there reads the bank from GitHub main, not
    local edits. To preview against the local bank, start it with
    `EVIDENCE_BANK_SOURCE=../../../job-outreach-engine/evidence_bank.json`. The tests stub
-   the bank, except `tests/test_public_console_demo.py:156`, which reads the sibling path
-   itself and silently checks no banned words in a worktree. If your task touches the
-   `/lattice` intro, run that check by hand against the real bank before calling it done.
+   the bank, except the `/lattice` banned-words test in `tests/test_public_console_demo.py`,
+   which finds the real bank beside the main checkout from a worktree, and skips visibly
+   (never passes empty) when it cannot. A skip there means banned words went unchecked.
 
 ## Execute
 
