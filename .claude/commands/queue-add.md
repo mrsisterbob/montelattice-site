@@ -1,6 +1,7 @@
 Turn the request below into task files in `.queue/inbox/`.
 
 Request: $ARGUMENTS
+END REQUEST
 
 You are the **planner**. You write tasks; you do not implement them. Do not edit any file
 outside `.queue/inbox/`.
@@ -14,11 +15,16 @@ plus `identity`, `experience`, `education`, `certificates`, `research`, `athleti
 This site deliberately keeps no copy: a second one drifts the moment a bullet changes, and
 the drifted one is the version strangers see.
 
-So a request that needs bank copy changed - a profile headline, a role bullet, a
-certificate line - queues **nothing** here. Say in one line that it belongs in
-job-outreach-engine: edit the matching section of `evidence_bank.json` there (`site_profile`
-for the page's own text), through that repo's planner. If the request mixes bank copy with
-site code, queue only the site half and name the copy half in that same line.
+So a request that belongs to job-outreach-engine queues **nothing** here. That is bank
+copy (a profile headline, a role bullet, a certificate line: the matching section of
+`evidence_bank.json`, `site_profile` for the page's own text) and anything whose code lives
+in job-outreach-engine: the `/leads/ingest` route itself, the Telegram bot, the pipeline
+counts, `pipeline_utils.py` (`negative_language_hits`). This site's own callers of those and
+copy about them are site work: `leads.py` posting to `/leads/ingest`, the Telegram lines in
+`main.py` and `templates/job_engine.html`. Do not refuse an engine request and leave Kevin
+to re-paste it: forward it to the engine's planner, as "Forward to the engine planner"
+below says. If the request mixes engine work with site code, queue only the site half here
+and forward the request whole.
 
 Text written into this repo's templates or `main.py` (the `/lattice` intro in
 `templates/home.html`, the project blurbs in `main.py`) is site work and queues here as usual.
@@ -103,7 +109,42 @@ Report each task: id, scope, verify, and the failure you observed.
 
 Then, if a `site-worker` session is running, message it that the task is queued - one line,
 the task id and nothing more. The worker reads the task file for everything else; a
-message cannot carry scope or verify, so do not restate the work in it.
+message cannot carry scope or verify, so do not restate the work in it. Only tasks queued
+in this repo go to `site-worker`; a request that was only forwarded sends it nothing.
 
-Do not implement anything yourself. If you queued nothing, say why in one line and send no
-message.
+Do not implement anything yourself. If you queued nothing, say why in one line and send
+`site-worker` no message. A forwarded request adds its outcome to that same report: forwarded
+to `planner`, or **NOT forwarded** (step 3 below).
+
+## Forward to the engine planner
+
+Only for a request that belongs to job-outreach-engine (see the first section). Do this
+last, so a mixed request's site half already has its task id.
+
+1. Run `ListAgents`. The target is the row whose name is exactly `"planner"`. A row marked
+   `offline` is not running. Never substitute `job-outreach-engine-c2` or any other engine
+   session: picking one is a guess at who gets Kevin's words. If ListAgents or SendMessage
+   shows only as a deferred tool name, load it through ToolSearch first. If the session
+   list still cannot be read, treat `planner` as not running.
+2. If it is running, `SendMessage` with `to: "planner"`. The message is one header line,
+   a blank line, then the request verbatim:
+
+   ```
+   Forwarded verbatim from Kevin's /queue-add in montelattice-site. Site queued: <TASK-n, or nothing>. Queue only the job-outreach-engine part under your /queue-add rules; site work and any @site-worker in it are handled in montelattice-site.
+
+   <the request, exactly as written>
+   ```
+
+   Copy everything between `Request: ` and the `END REQUEST` line at the top of this
+   command, every line of it, character for character. Do not trim, summarize or rephrase
+   it, and do not cut a closing "then tell @site-worker it is queued": that sign-off is
+   addressed to you (the Hand off rule decides whether site-worker hears anything), and the
+   header tells the engine planner to leave it alone.
+3. If no running session is named `planner`, say plainly that the request was
+   **NOT forwarded** and why, then print it verbatim in a fenced block (fence it with more
+   backticks than any run inside it) so Kevin can paste it himself. Never call it forwarded
+   or queued. "Forwarded" means sent, not queued: nothing here can see whether the
+   engine planner wrote a task.
+
+The forward is a message, never a file: you never write into job-outreach-engine's files,
+its `.queue/` included. "Do not edit any file outside `.queue/inbox/`" above still holds.
