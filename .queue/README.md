@@ -10,7 +10,9 @@ Profile text from the bank is not in this repo. `homepage.py` loads it at reques
 job-outreach-engine's `evidence_bank.json` - `site_profile`, plus `identity`, `experience`,
 `education`, `certificates`, `research`, `athletics` and `memberships` (`build_profile`,
 homepage.py:186-201; source order at homepage.py:1-16). A change to that copy is queued in
-job-outreach-engine, not here: `/queue-add` here refuses it in one line, and `/queue-run`
+job-outreach-engine, not here: `/queue-add` here forwards the request verbatim to the
+engine's planner session (named `planner`), or says plainly it was NOT forwarded and prints
+it for you to paste when that session is not running, and `/queue-run`
 moves a task that turns out to need one to `blocked/`. Text written into this repo's
 templates or `main.py` is ordinary site work.
 
