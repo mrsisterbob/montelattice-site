@@ -7,6 +7,11 @@
    transform on an SVG element REPLACES its transform attribute, so anything that animates a tool
    animates the inner group and the outer one keeps the position.
 
+   Settle animation (static/js/site.js, rapture.css): the markup is the SETTLED grid; with no JS,
+   or reduced motion, that is all anyone ever sees. Each mark's scatter offset (--sx, --sy, --sr,
+   --i) is set per position in rapture.css by :nth-of-type, so this markup stays identical on every
+   request. The core <g> is the first <g> in the SVG, so tool k is :nth-of-type(k + 2).
+
    Slots: 5 across the top, 2 + the M + 2 in the middle, 4 centred along the bottom = 13 tools. #}
 {% macro tool_grid(tools) %}
 {% set slots = [(56, 50), (168, 50), (280, 50), (392, 50), (504, 50),
