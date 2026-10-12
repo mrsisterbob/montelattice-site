@@ -109,7 +109,7 @@ rules:
    Use it for every pytest run and every task `verify`, except the proof-of-failure run
    below, which is expected to fail and prints in full. A verify may contain single quotes,
    so never wrap it in `bash -c '...'`: put its text in a variable
-   (`V=$(sed -n '2,/^---/s/^verify: //p' <task file> | head -n 1 | tr -d '')`) and run
+   (`V=$(sed -n '2,/^---/s/^verify: //p' <task file> | head -n 1 | tr -d '\r')`) and run
    `bash -c "$V"` as the `<command>`. For the planner that includes the pass-regex proof
    run below. Read the printed `exit=` line, not the tool
    status: the wrapper itself always exits 0. A red run keeps the FAILED names, which sit at
