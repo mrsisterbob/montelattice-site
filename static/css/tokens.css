@@ -21,15 +21,19 @@
    values under an explicit data-theme="dark" (the toggle, or a stored ml-theme=dark), and sets
    color-scheme with them. The OS preference is deliberately NOT followed: every page opens
    light. Neutrals lean warm toward the champagne; none is a pure grey.
-   Contrast (WCAG 2.x relative luminance, computed from the hex values), measured 2026-09-27:
+   Contrast (WCAG 2.x relative luminance, computed from the hex values), measured 2026-10-12:
      light: ink/paper 15.8, ink/surface 16.6, muted/paper 6.4, brass-text/paper 5.7,
-            on-teal/teal 13.1, brass/teal 8.0, brass-warm/teal 5.6, brass-warm/teal-deep 6.4
+            on-teal/teal 13.1, brass/teal 7.9, brass-warm/teal 5.6, brass-warm/teal-deep 6.4
      dark:  ink/paper 14.3, ink/surface 12.9, muted/paper 7.0, brass-text/paper 10.9,
             on-teal/teal 16.1, brass/teal 11.5, brass-warm/teal 8.1, brass-warm/teal-deep 8.6
    (The 2026-09-26 figures overstated two pairs: light brass-warm/teal was 5.55, dark 8.02 - not
    6.1. On-teal text also runs at 55-94% alpha over --teal; at 55% it is 5.0 light, 5.6 dark.)
    Ground warmed 2026-09-27: --teal/--teal-deep hue +7.2deg in OKLCH (toward red) in both modes;
    dark also +0.01 OKLab L, with on-teal/brass/brass-warm lifted just enough that no pair fell.
+   Ground warmed again 2026-10-12: --teal/--teal-deep hue +6.7 / +7.5 deg (light) and +7.8 / +8.6 deg
+   (dark) in OKLCH, toward red, lightness held; --brass and --brass-warm are unchanged and no
+   pair fell by more than 0.02 (the largest fall: light brass/teal 7.97 -> 7.95). On-teal at 55%
+   alpha re-measured the same day: 5.0 light, 5.6 dark.
    Light could not get lighter: at a fixed --paper, a lighter ground needs a lighter --brass to
    hold brass/teal, and that pulls brass/paper below 1.69.
    Plain --brass is 1.69 on light paper, so it is for rules, fills and text on the blue band,
@@ -40,7 +44,7 @@
   color-scheme: light;
 
   /* core */
-  --teal: #1D264A;          /* bands: nav, masthead, title bands, footer */
+  --teal: #22254A;          /* bands: nav, masthead, title bands, footer */
   --brass: #E0B978;         /* rules, hairlines, corner ticks, fills, text on teal */
   --brass-warm: #BE9A64;    /* the accent for marks larger than a hairline; never a field */
   --paper: #F2F5FA;         /* page ground */
@@ -51,7 +55,7 @@
   --muted: #5E5760;         /* secondary text */
   --brass-text: #7E5A1C;    /* brass-coloured words on paper */
   --on-teal: #EEF2F9;       /* text on a teal band or over imagery */
-  --teal-deep: #141B36;     /* blocks that recede below the teal ground */
+  --teal-deep: #181A36;     /* blocks that recede below the teal ground */
   --rule: color-mix(in srgb, var(--ink) 14%, transparent);
   --rule-strong: color-mix(in srgb, var(--ink) 20%, transparent);
   --scrim: #0A1224;         /* photo scrims; used through color-mix for alpha */
@@ -83,7 +87,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --teal: #11162B;
+  --teal: #14152B;
   --brass: #EDCB8C;
   --brass-warm: #CEA872;
   --paper: #121C31;
@@ -92,7 +96,7 @@
   --muted: #ABA4B2;
   --brass-text: #EDCB8C;
   --on-teal: #EFF3FA;
-  --teal-deep: #0B101E;
+  --teal-deep: #0D0F1E;
   --ok: #5CC79F;
   --warn: #E0A548;
   --down: #EE8670;
