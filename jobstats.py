@@ -25,6 +25,11 @@ from datetime import datetime
 
 ENGINE_URL = os.environ.get("JOB_ENGINE_PUBLIC_URL", "https://job-outreach-engine.onrender.com").rstrip("/")
 TTL_SECONDS = int(os.environ.get("JOBSTATS_TTL_SECONDS", "300"))
+# How often the ENGINE recomputes /public/dashboard: PUBLIC_DASHBOARD_TTL_SECONDS, default 900,
+# in job-outreach-engine main.py (~:16010, cache use ~:16157-16170), measured 2026-10-12. The site
+# cannot read the engine's env, so this mirrors that default; it exists only to word the cadence
+# label honestly. Change it here if the engine's default changes.
+ENGINE_FEED_TTL_SECONDS = 900
 _FETCH_TIMEOUT_SECONDS = 6
 
 # Each entry needs a visible, clickable, measured source; render() refuses any that lacks one.
@@ -36,6 +41,32 @@ _cache = {"payload": None, "fetched_at": 0.0}
 
 def public_funnel_stats() -> bool:
     return os.environ.get("PUBLIC_FUNNEL_STATS", "false").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _every(seconds: int) -> str:
+    """90 -> "90 seconds", 300 -> "5 minutes", 3600 -> "1 hour". Whole units only, else seconds."""
+    if seconds >= 3600 and seconds % 3600 == 0:
+        n, unit = seconds // 3600, "hour"
+    elif seconds >= 60 and seconds % 60 == 0:
+        n, unit = seconds // 60, "minute"
+    else:
+        n, unit = seconds, "second"
+    return f"{n} {unit}{'' if n == 1 else 's'}"
+
+
+def cadence_label() -> str:
+    """What the page may honestly say about freshness, built from the two cache lifetimes.
+
+    The pages do not poll: a figure changes on the next page load after both caches expire.
+    """
+    engine = _every(ENGINE_FEED_TTL_SECONDS)
+    if TTL_SECONDS <= 0:  # caching switched off: every load re-reads the engine
+        site, oldest = "on every page load", engine
+    else:
+        site, oldest = f"at most every {_every(TTL_SECONDS)}", _every(ENGINE_FEED_TTL_SECONDS + TTL_SECONDS)
+    # The two caches stack, so the oldest a figure can be is the sum, not the longer one.
+    return (f"These update themselves: the engine recomputes them every {engine}, and this page "
+            f"re-reads them {site}. A figure can be up to {oldest} old.")
 
 
 def feed_url() -> str:
@@ -88,6 +119,13 @@ def build_view(p: dict | None, show_funnel: bool) -> dict | None:
     if not p:
         return None
 
+    view = _build_view(p, show_funnel)
+    # Not while the engine is down: "updates itself" over a frozen last copy would be untrue.
+    view["cadence"] = "" if p.get("stale") else cadence_label()
+    return view
+
+
+def _build_view(p: dict, show_funnel: bool) -> dict:
     screened = p.get("roles_screened")
     discovered = p.get("listings_discovered")
     if screened is None:
@@ -192,11 +230,23 @@ def build_view(p: dict | None, show_funnel: bool) -> dict | None:
     }
 
 
+class Teaser(list):
+    """The strip's figures. A list so the template just loops it; .cadence is the freshness label
+    (the route passes only this object, so it travels with it). Empty when the figures came from a
+    stale copy, so the template shows nothing rather than "updates itself" over frozen numbers."""
+
+    stale = False
+
+    @property
+    def cadence(self) -> str:
+        return "" if self.stale else cadence_label()
+
+
 def teaser(p: dict | None) -> list[dict]:
     """Three figures for the /lattice strip; [] when there is nothing real to show."""
     if not p:
-        return []
-    out = []
+        return Teaser()
+    out = Teaser()
     if p.get("roles_screened"):
         out.append({"value": p["roles_screened"], "label": "Roles Screened", "suffix": ""})
     if p.get("applications_sent"):
@@ -204,4 +254,5 @@ def teaser(p: dict | None) -> list[dict]:
     d = p.get("drafting") or {}
     if d.get("median_ms") is not None:
         out.append({"value": d["median_ms"], "label": "Match to Draft", "suffix": " ms"})
+    out.stale = bool(p.get("stale"))
     return out

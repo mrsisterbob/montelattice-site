@@ -34,6 +34,7 @@
       {% if dash.stale %}<strong>The feed is not answering; showing the last copy received.</strong>{% endif %}
       <a href="{{ dash.feed_url }}" target="_blank" rel="noopener">Raw data &rarr;</a>
     </p>
+    {% if dash.cadence %}<p class="dash-meta">{{ dash.cadence }}</p>{% endif %}
     {% endif %}
   </div>
 
