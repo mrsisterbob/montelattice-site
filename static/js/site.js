@@ -70,18 +70,15 @@
   }
 
   // Light/dark toggle. The inline script in base.html has already applied any stored choice by
-  // the time this runs; this only handles the click. Storing "light" explicitly matters: it is
-  // what lets a light choice override a dark OS, which an absent key cannot express.
+  // the time this runs; this only handles the click. Every page opens light whatever the OS
+  // prefers, so no stored choice means light and the first click goes to dark.
   function armThemeToggle() {
     var btn = document.getElementById("theme-toggle");
     if (!btn) return;
     btn.addEventListener("click", function () {
       var root = document.documentElement;
       var current = root.getAttribute("data-theme");
-      if (!current) {
-        // No explicit choice yet, so the page is showing the OS preference. Flip away from it.
-        current = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      }
+      if (!current) current = "light";
       var next = current === "dark" ? "light" : "dark";
       root.setAttribute("data-theme", next);
       try { localStorage.setItem("ml-theme", next); } catch (e) { /* private mode: this session only */ }

@@ -134,17 +134,15 @@ def test_every_page_loads_tokens_before_its_own_stylesheet(client, monkeypatch, 
     assert own and all(tokens < i for i in own), path
 
 
-def test_dark_blocks_are_identical_and_light_is_complete():
+def test_one_dark_block_and_light_is_complete():
     css = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
-    media = re.search(r':root:not\(\[data-theme="light"\]\) \{(.*?)\}', css, re.S).group(1)
+    assert "prefers-color-scheme" not in css  # dark is opt-in: every page opens light
     forced = re.search(r':root\[data-theme="dark"\] \{(.*?)\}', css, re.S).group(1)
-    norm = lambda b: sorted(l.strip() for l in b.strip().splitlines() if l.strip())
-    assert norm(media) == norm(forced)
-    light = re.search(r"^:root \{(.*?)^\}", css, re.S | re.M).group(1)
+    light = re.search(r':root,\n:root\[data-theme="light"\] \{(.*?)^\}', css, re.S | re.M).group(1)
     light_names = set(re.findall(r"(--[\w-]+):", light))
-    dark_names = set(re.findall(r"(--[\w-]+):", media))
+    dark_names = set(re.findall(r"(--[\w-]+):", forced))
     assert dark_names <= light_names, dark_names - light_names  # never defined only in dark
-    assert "color-scheme: dark" in media and "color-scheme: dark" in forced
+    assert "color-scheme: dark" in forced and "color-scheme: light" in light
 
 
 # --- honest copy: "What I learned" and no sample figures ------------------------------------
