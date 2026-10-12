@@ -1,13 +1,18 @@
 /* Monte Lattice - the site's ONE animation: the numbers in the "Live from the Job Engine"
-   strip count up once when scrolled into view. Everything else on the site is static.
-   Respects prefers-reduced-motion (snaps straight to the final value, no tween). */
+   strip on /lattice and the figures on /job-engine count up once when scrolled into view.
+   Everything else on the site is static. Respects prefers-reduced-motion (snaps straight to the
+   final value, no tween), and the server-rendered text is already the final number with JS off. */
 (function () {
   var REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function formatValue(el, n) {
     var suffix = el.dataset.suffix || "";
     var isFloat = String(el.dataset.target).indexOf(".") !== -1;
-    return (isFloat ? n.toFixed(1) : Math.round(n)) + suffix;
+    if (isFloat) return n.toFixed(1) + suffix;
+    var whole = Math.round(n);
+    // data-group is opt-in: the /job-engine tiles print "1,234", so the animation must end as
+    // "1,234" and not "1234". The /lattice strip does not set it and is unchanged.
+    return (el.hasAttribute("data-group") ? whole.toLocaleString("en-US") : whole) + suffix;
   }
 
   function countUp(el) {
@@ -27,7 +32,7 @@
     requestAnimationFrame(step);
   }
 
-  // Called by home.html once the API fills in each element's data-target.
+  // Called by home.html and job_engine.html once the page is rendered with each element's data-target.
   function armCountUp() {
     var els = Array.prototype.slice.call(document.querySelectorAll("[data-count][data-target]"));
     if (!els.length) return;
