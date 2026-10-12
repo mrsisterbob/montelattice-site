@@ -57,8 +57,8 @@
 {% else %}
 
 <header class="masthead">
-  <div class="masthead-inner">
-    <img class="portrait" src="{{ url_for('static', filename='img/kevin-suit.jpg') }}" alt="{{ p.name }}">
+  <div class="masthead-inner{% if not portrait %} masthead-inner--no-portrait{% endif %}">
+    {% if portrait %}<img class="portrait" src="{{ url_for('static', filename='img/kevin-suit.jpg') }}" alt="{{ p.name }}" width="{{ portrait[0] }}" height="{{ portrait[1] }}" loading="lazy">{% endif %}
     <div>
       <p class="eyebrow">{{ p.eyebrow }}</p>
       <h1>{{ p.name }}</h1>
@@ -159,8 +159,9 @@
   {% if p.offhours %}
   <h2>Off the clock</h2>
   {% for o in p.offhours %}
-  <div class="offhours">
-    <img{% if o.landscape %} class="landscape"{% endif %} src="{{ url_for('static', filename='img/' ~ o.photo) }}" alt="{{ o.alt }}" loading="lazy">
+  {% set size = photo_sizes.get(o.photo) %}
+  <div class="offhours{% if not size %} offhours--no-photo{% endif %}">
+    {% if size %}<img{% if o.landscape %} class="landscape"{% endif %} src="{{ url_for('static', filename='img/' ~ o.photo) }}" alt="{{ o.alt }}" width="{{ size[0] }}" height="{{ size[1] }}" loading="lazy">{% endif %}
     <p>{{ o.text }}</p>
   </div>
   {% endfor %}

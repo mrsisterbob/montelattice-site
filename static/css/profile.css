@@ -84,8 +84,11 @@ img { max-width: 100%; }
   gap: 2.5rem;
   align-items: center;
 }
+.masthead-inner--no-portrait { grid-template-columns: 1fr; }
+/* height: auto because the tag carries height="900", which would otherwise become the CSS height. */
 .portrait {
   width: 100%;
+  height: auto;
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 50%;
@@ -224,8 +227,10 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
   margin-top: 1rem;
 }
 .offhours + .offhours { margin-top: 1px; }
+.offhours--no-photo { grid-template-columns: 1fr; }
 .offhours img {
   width: 100%;
+  height: auto;
   aspect-ratio: 3 / 4;
   object-fit: cover;
   object-position: center 22%;
