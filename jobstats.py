@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import threading
 import time
@@ -106,11 +107,19 @@ def _target(v):
     A number that needs more than one decimal would end as a different figure than it started, so
     it gets no target and renders as plain text.
     """
-    if isinstance(v, bool) or not isinstance(v, (int, float)):
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
         return None
     if float(v).is_integer():
         return int(v)
     return v if round(v, 1) == v else None
+
+
+def _agrees(text, target, suffix="") -> bool:
+    """True when the formatted text and the raw target print the same number once the commas are
+    taken out, so the count-up cannot end on a different figure than the page started on."""
+    # What site.js prints when the animation ends: integers as is, anything else to one decimal.
+    printed = str(target) if isinstance(target, int) else f"{target:.1f}"
+    return str(text).replace(",", "") == printed + suffix
 
 
 def _tile(label, value=None, sub="", empty="", cite=None, target=None, suffix="") -> dict:
@@ -121,8 +130,11 @@ def _tile(label, value=None, sub="", empty="", cite=None, target=None, suffix=""
     """
     if cite is not None and not (cite.get("source") and cite.get("url")):
         raise ValueError(f"benchmark on {label!r} has no visible source")
+    target = _target(target)
+    if target is not None and not _agrees(value, target, suffix):
+        target = None  # the formatting and the raw number disagree: render plain text, never animate
     return {"label": label, "value": value, "sub": sub, "empty": empty, "cite": cite,
-            "target": _target(target), "suffix": suffix}
+            "target": target, "suffix": suffix}
 
 
 def _date(iso: str | None) -> str:
@@ -220,7 +232,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     if d and d.get("median_ms") is not None:
         drafting = {
             "value": f"{d['median_ms']:g} ms",
-            "target": _target(d["median_ms"]),
+            "target": _target(d["median_ms"]) if _agrees(f"{d['median_ms']:g} ms", _target(d["median_ms"]) or 0, " ms") else None,
             "suffix": " ms",
             "detail": f"Median of {_n(d.get('runs', 0))} warm runs on the engine's own server, "
                       f"measured {d.get('measured_at', '').replace('T', ' ').replace('Z', ' UTC')}.",

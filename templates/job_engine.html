@@ -58,7 +58,7 @@
     <h3>Match to sendable draft</h3>
     {% if dash.drafting %}
     <div class="dash-drafting__body">
-      <span class="dash-drafting__value"{% if dash.drafting.target is not none %} data-count data-target="{{ dash.drafting.target }}" data-suffix="{{ dash.drafting.suffix }}" data-group{% endif %}>{{ dash.drafting.value }}</span>
+      <span class="dash-drafting__value"{% if dash.drafting.target is not none %} data-count data-target="{{ dash.drafting.target }}" data-suffix="{{ dash.drafting.suffix }}"{% endif %}>{{ dash.drafting.value }}</span>
       <div>
         <p>{{ dash.drafting.steps }}, compiled for a real cached role. {{ dash.drafting.detail }}</p>
         <p class="dash-note">The Gmail API round-trip that files the draft is network time and is not included.</p>

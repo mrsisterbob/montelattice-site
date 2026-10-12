@@ -87,3 +87,19 @@ def test_countup_lattice_strip_output_is_unchanged(client, monkeypatch):
     html = client.get("/lattice").get_data(as_text=True)
     assert "data-group" not in html
     assert 'data-count data-target="1234"' in html
+
+
+def test_countup_drafting_time_is_not_grouped_because_its_text_has_no_commas(client, monkeypatch):
+    payload = dict(PAYLOAD, drafting=dict(PAYLOAD["drafting"], median_ms=1500))
+    monkeypatch.setattr(jobstats, "fetch", lambda: payload)
+    html = client.get("/job-engine").get_data(as_text=True)
+    m = re.search(r'<span class="dash-drafting__value"([^>]*)>([^<]*)</span>', html)
+    assert m.group(2) == "1500 ms"
+    assert "data-group" not in m.group(1)
+
+
+def test_countup_a_tile_whose_text_and_target_disagree_is_not_animated():
+    t = jobstats._tile("x", "100000", target=100000.5)
+    assert t["target"] is None
+    assert jobstats._tile("x", "1,234", target=1234)["target"] == 1234
+    assert jobstats._target(float("inf")) is None
