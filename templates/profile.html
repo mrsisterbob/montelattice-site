@@ -184,6 +184,10 @@
 </div>
 {% endif %}
 
+{# Outside the p/no-p branch so the 503 page carries it. Hidden once signed in: the owner's login
+   sets a session cookie, so the line would be false for that viewer. #}
+{% if not console_authed %}<p class="privacy-line">This site sets no cookies and loads no trackers.</p>{% endif %}
+
 {# This page loads no other JS, so the 12-line handler is inline rather than pulling in site.js.
    Storing "light" explicitly is what lets a light choice override a dark OS. #}
 <script>
