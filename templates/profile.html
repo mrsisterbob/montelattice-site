@@ -172,6 +172,21 @@
   {% endfor %}
   {% endif %}
 
+  {# Built by homepage._timeline from the bank's dated items only. data-source names the bank item
+     each entry came from. Hidden when the bank holds nothing dated. #}
+  {% if p.timeline %}
+  <h2>Timeline</h2>
+  <ol class="timeline">
+    {% for e in p.timeline %}
+    <li class="timeline__item timeline__item--{{ 'left' if loop.index0 % 2 == 0 else 'right' }}" data-source="{{ e.source }}">
+      <span class="timeline__when">{{ e.when }}</span>
+      <span class="timeline__title">{{ e.title }}</span>
+      {% if e.org %}<span class="timeline__org">{{ e.org }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
 </div>
 
 <div class="contact">

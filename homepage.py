@@ -171,6 +171,78 @@ def _research(bank: dict) -> list[dict]:
     } for r in bank.get("research", [])]
 
 
+_MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+_MM_YYYY = re.compile(r"([0-9]{2})/([0-9]{4})")
+_ONGOING = {"present", "current", "now", "ongoing"}
+_TIMELINE_KEYS = {"experience": "experience", "education": "education",
+                  "certificate": "certificates", "research": "research"}
+
+
+def _month_year(value) -> tuple[int, int] | None:
+    """(year, month) from a bank date written exactly MM/YYYY, else None. Never parses free text
+    ("Expected Q4 2026" is not a date) and never fills one in."""
+    m = _MM_YYYY.fullmatch(str(value or "").strip())
+    if not m:
+        return None
+    month, year = int(m.group(1)), int(m.group(2))
+    return (year, month) if 1 <= month <= 12 and 1900 <= year <= 2100 else None
+
+
+def _fmt(ym: tuple[int, int]) -> str:
+    return f"{_MONTHS[ym[1] - 1]} {ym[0]}"
+
+
+def _timeline(bank: dict) -> list[dict]:
+    """Dated bank items, newest first, for the homepage timeline.
+
+    Only an item that carries a parseable MM/YYYY (start, end or date) is placed. The label uses
+    only what the bank says: both ends -> "May 2026 \u2013 Aug 2026"; a start with the bank's own
+    "Present" -> "May 2026 \u2013 Present" (ranked newest, since the bank says it is ongoing); a
+    lone start or end is labelled "From ..." / "Until ...", never shown as a one-month event. Each
+    entry names the bank item it came from (`source`, e.g. "experience[2]"). Certificates and
+    research appear on their own once the bank gives them a date; the bank's certificates are plain
+    strings today, so none are placed.
+    """
+    entries = []
+
+    def add(kind, index, item, title, org):
+        start, end = _month_year(item.get("start")), _month_year(item.get("end"))
+        single = _month_year(item.get("date"))
+        ongoing = bool(start) and not end and str(item.get("end", "")).strip().casefold() in _ONGOING
+        known = [d for d in (start, end, single) if d]
+        if not known or not title:
+            return
+        if single and not (start or end):
+            when = _fmt(single)
+        elif start and end:
+            when = _fmt(start) if start == end else f"{_fmt(start)} \u2013 {_fmt(end)}"
+        elif ongoing:
+            when = f"{_fmt(start)} \u2013 Present"
+        elif start:
+            when = f"From {_fmt(start)}"
+        else:
+            when = f"Until {_fmt(end)}"
+        entries.append({"when": when, "title": str(title), "org": str(org or ""), "kind": kind,
+                        "source": f"{_TIMELINE_KEYS[kind]}[{index}]",
+                        "_key": (9999, 12) if ongoing else max(known)})
+
+    for kind, field, title_keys, org_keys in (
+            ("experience", "experience", ("title",), ("company",)),
+            ("education", "education", ("degree",), ("school",)),
+            ("certificate", "certificates", ("name", "title"), ("issuer", "org")),
+            ("research", "research", ("title",), ("school", "course"))):
+        for i, item in enumerate(bank.get(field, [])):
+            if not isinstance(item, dict):  # e.g. the bank's plain-string certificates: undated
+                continue
+            title = next((item[k] for k in title_keys if item.get(k)), "")
+            org = next((item[k] for k in org_keys if item.get(k)), "")
+            add(kind, i, item, title, org)
+    entries.sort(key=lambda e: e["_key"], reverse=True)
+    for e in entries:
+        del e["_key"]
+    return entries
+
+
 def _athletics(bank: dict) -> list[str]:
     lines = []
     for a in bank.get("athletics", []):
@@ -200,6 +272,7 @@ def build_profile(bank: dict, build: dict | None = None) -> dict:
         "research": _research(bank),
         "memberships": ", ".join(bank.get("memberships", [])),
         "athletics": _athletics(bank),
+        "timeline": _timeline(bank),
         "offhours": site.get("offhours", []),
         "email": identity.get("site_email") or identity.get("email", ""),
         "phone": identity.get("phone", ""),
