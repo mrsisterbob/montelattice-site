@@ -250,6 +250,20 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 /* ---- contact ---- */
 .contact { margin-top: 3rem; background: var(--teal); color: var(--on-teal); padding: 2.4rem 24px; }
 .contact-inner { max-width: 44rem; margin: 0 auto; }
+/* Section ornament (same glyph as rapture.css's .section-heading::before; this page loads
+   profile.css alone). A mask coloured by --brass-warm (the token for marks larger than a hairline),
+   static, invisible to screen readers. Only the section headings that are direct children of
+   .wrap: not the contact band and not the "temporarily unavailable" notice. */
+.wrap > h2::before {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 18px;
+  margin-bottom: 8px;
+  background-color: var(--brass-warm);
+  -webkit-mask: url("../img/lattice-glyph.svg") no-repeat left center / contain;
+  mask: url("../img/lattice-glyph.svg") no-repeat left center / contain;
+}
 .contact h2 { color: var(--brass); border-color: color-mix(in srgb, var(--brass) 30%, transparent); margin-top: 0; }
 .lines { display: grid; gap: 0.85rem; }
 .line {

@@ -137,6 +137,21 @@ p:last-child { margin-bottom: 0; }
   margin-bottom: 20px;
 }
 
+/* Section ornament: the settled tool grid as a small static glyph above each section heading.
+   A mask, so the colour is the --brass token and follows the theme; a pseudo-element is not read
+   by screen readers. The private Console is excluded below: its headings sit under .console, and
+   the login card's heading is the only .section-heading that is a direct child of a .data-card. */
+.section-heading::before {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 18px;
+  margin-bottom: 8px;
+  background-color: var(--brass-warm);  /* tokens.css: marks larger than a hairline take --brass-warm */
+  -webkit-mask: url("../img/lattice-glyph.svg") no-repeat left center / contain;
+  mask: url("../img/lattice-glyph.svg") no-repeat left center / contain;
+}
+
 /* --- Sunburst / chevron divider (the one decorative motif) --- */
 .deco-divider {
   display: flex;
@@ -669,6 +684,8 @@ canvas { max-width: 100%; }
 .console { background: var(--paper); }
 .console { color: var(--ink); }
 .console .section-heading { color: var(--ink); }
+.console .section-heading::before,
+.data-card > .section-heading::before { display: none; }
 
 /* Section header with a freshness stamp on the right */
 .console .sec-head {
