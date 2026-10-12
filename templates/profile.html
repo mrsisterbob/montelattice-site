@@ -195,7 +195,7 @@
 {% if not console_authed %}<p class="privacy-line">This site sets no cookies and loads no trackers.</p>{% endif %}
 
 {# This page loads no other JS, so the 12-line handler is inline rather than pulling in site.js.
-   Storing "light" explicitly is what lets a light choice override a dark OS. #}
+   Every page opens light, so no stored choice means light and the first click goes to dark. #}
 <script>
   (function () {
     var btn = document.getElementById("theme-toggle");
@@ -203,7 +203,7 @@
     btn.addEventListener("click", function () {
       var root = document.documentElement;
       var current = root.getAttribute("data-theme");
-      if (!current) current = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      if (!current) current = "light";
       var next = current === "dark" ? "light" : "dark";
       root.setAttribute("data-theme", next);
       try { localStorage.setItem("ml-theme", next); } catch (e) { /* private mode: this session only */ }

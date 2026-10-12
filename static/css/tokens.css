@@ -16,9 +16,11 @@
    (L 67->57, S 63->41). Neither is ever a field on this site: the largest --brass-warm mark is
    a drop cap or a 3px cell edge. If a future block wants a solid accent ground, --brass-warm is
    the value to start from, never --brass.
-   Rules: the full light palette lives on bare :root. Dark mode redefines only token values,
-   twice (OS preference unless the page forces light, and an explicit data-theme="dark"),
-   and sets color-scheme with them. Neutrals lean warm toward the champagne; none is a pure grey.
+   Rules: the full light palette lives on bare :root (also written :root[data-theme="light"],
+   so an explicit light choice names itself). Dark mode is opt-in: it redefines only token
+   values under an explicit data-theme="dark" (the toggle, or a stored ml-theme=dark), and sets
+   color-scheme with them. The OS preference is deliberately NOT followed: every page opens
+   light. Neutrals lean warm toward the champagne; none is a pure grey.
    Contrast (WCAG 2.x relative luminance, computed from the hex values), measured 2026-09-27:
      light: ink/paper 15.8, ink/surface 16.6, muted/paper 6.4, brass-text/paper 5.7,
             on-teal/teal 13.1, brass/teal 8.0, brass-warm/teal 5.6, brass-warm/teal-deep 6.4
@@ -33,7 +35,8 @@
    Plain --brass is 1.69 on light paper, so it is for rules, fills and text on the blue band,
    never body text on paper. Words on paper take --brass-text, which is measured to clear AA. */
 
-:root {
+:root,
+:root[data-theme="light"] {
   color-scheme: light;
 
   /* core */
@@ -78,35 +81,6 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --teal: #11162B;
-    --brass: #EDCB8C;
-    --brass-warm: #CEA872;
-    --paper: #121C31;
-    --ink: #EEEAF0;
-    --surface: #19253D;
-    --muted: #ABA4B2;
-    --brass-text: #EDCB8C;
-    --on-teal: #EFF3FA;
-    --teal-deep: #0B101E;
-    --ok: #5CC79F;
-    --warn: #E0A548;
-    --down: #EE8670;
-    --cal1: #2A3D62;
-    --cal2: #3E5E95;
-    --cal3: #6F95D1;
-    --cal4: #A9C4EE;
-    --chart-1: #7FA4DC;
-    --chart-2: #EBC98A;
-    --chart-3: #5FBDB8;
-    --chart-4: #B3C3DD;
-    --chart-5: #D9A273;
-    --chart-6: #A7B77E;
-    --chart-grid: #EEEAF01A;
-  }
-}
 :root[data-theme="dark"] {
   color-scheme: dark;
   --teal: #11162B;
