@@ -214,6 +214,47 @@ p:last-child { margin-bottom: 0; }
   text-anchor: middle;
 }
 
+/* --- Tool grid settle: scattered logos drift into the grid once, when it scrolls into view ---
+   The markup is the settled grid. site.js adds .is-scattered (only when motion is allowed),
+   then swaps it for .is-settling when the grid is on screen. The animation targets the INNER
+   .tool__mark group: a CSS transform on an SVG element replaces its transform attribute, and the
+   outer .tool group's attribute is what holds the grid position. */
+/* Deterministic scatter per grid position (13 tools; the core <g> is the first <g>, so tool k is
+   :nth-of-type(k + 2)). Offsets are in viewBox units and clamped so the START position stays
+   inside the 560x300 picture (24 units of margin): nothing is clipped at the edge. */
+.tool-grid .tool:nth-of-type(2) .tool__mark { --sx: -32px; --sy: -26px; --sr: -34deg; --i: 0; }
+.tool-grid .tool:nth-of-type(3) .tool__mark { --sx: 8px; --sy: -2px; --sr: 19deg; --i: 1; }
+.tool-grid .tool:nth-of-type(4) .tool__mark { --sx: 105px; --sy: 59px; --sr: -19deg; --i: 2; }
+.tool-grid .tool:nth-of-type(5) .tool__mark { --sx: -39px; --sy: -26px; --sr: 34deg; --i: 3; }
+.tool-grid .tool:nth-of-type(6) .tool__mark { --sx: 32px; --sy: 20px; --sr: -4deg; --i: 4; }
+.tool-grid .tool:nth-of-type(7) .tool__mark { --sx: -32px; --sy: -80px; --sr: -42deg; --i: 5; }
+.tool-grid .tool:nth-of-type(8) .tool__mark { --sx: 11px; --sy: -19px; --sr: 11deg; --i: 6; }
+.tool-grid .tool:nth-of-type(9) .tool__mark { --sx: 108px; --sy: 42px; --sr: -27deg; --i: 7; }
+.tool-grid .tool:nth-of-type(10) .tool__mark { --sx: -36px; --sy: -58px; --sr: 26deg; --i: 8; }
+.tool-grid .tool:nth-of-type(11) .tool__mark { --sx: 61px; --sy: 3px; --sr: -12deg; --i: 9; }
+.tool-grid .tool:nth-of-type(12) .tool__mark { --sx: -83px; --sy: 26px; --sr: 41deg; --i: 10; }
+.tool-grid .tool:nth-of-type(13) .tool__mark { --sx: 14px; --sy: -36px; --sr: 3deg; --i: 11; }
+.tool-grid .tool:nth-of-type(14) .tool__mark { --sx: 88px; --sy: 25px; --sr: -35deg; --i: 12; }
+.tool-grid.is-scattered .tool__mark {
+  transform: translate(var(--sx), var(--sy)) rotate(var(--sr));
+  opacity: 0;
+}
+.tool-grid.is-settling .tool__mark {
+  animation: tool-settle 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+@keyframes tool-settle {
+  from { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-grid .tool__mark { animation: none !important; transform: none !important; opacity: 1 !important; }
+}
+/* Printed or exported before it ever scrolled into view: show the finished grid. */
+@media print {
+  .tool-grid .tool__mark { animation: none !important; transform: none !important; opacity: 1 !important; }
+}
+
 /* --- Project card grid (home): 2x2 on desktop --- */
 .card-grid {
   display: grid;

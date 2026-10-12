@@ -1,7 +1,8 @@
-/* Monte Lattice - the site's ONE animation: the numbers in the "Live from the Job Engine"
-   strip on /lattice and the figures on /job-engine count up once when scrolled into view.
-   Everything else on the site is static. Respects prefers-reduced-motion (snaps straight to the
-   final value, no tween), and the server-rendered text is already the final number with JS off. */
+/* Monte Lattice - the site's two animations, both played once when scrolled into view:
+   the figures on /lattice and /job-engine count up, and the tool logos on /lattice settle into
+   their grid around the mark. Everything else on the site is static. Both respect
+   prefers-reduced-motion (the number snaps to its final value; the logos never scatter), and
+   the server-rendered markup is already the finished state with JS off. */
 (function () {
   var REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -54,6 +55,26 @@
     els.forEach(function (el) { observer.observe(el); });
   }
 
+  // Tool logos on /lattice: scattered, then settling into the grid once when it is on screen.
+  // The markup is the settled grid; this only adds the classes, and only when motion is allowed.
+  function armToolSettle() {
+    var grid = document.querySelector(".tool-grid");
+    if (!grid || REDUCE_MOTION || !("IntersectionObserver" in window)) return;
+    grid.classList.add("is-scattered");
+    function settle() {
+      grid.classList.remove("is-scattered");
+      grid.classList.add("is-settling");
+      observer.disconnect();
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { if (entry.isIntersecting) settle(); });
+    }, { threshold: 0.4 });
+    observer.observe(grid);
+    // Failsafe: a grid that never intersects (hidden container, a preview that does not scroll)
+    // must not stay invisible.
+    setTimeout(settle, 6000);
+  }
+
   // Relative-time formatter shared by the Console cockpit (freshness stamps, Today strip).
   function formatRelative(ts) {
     if (!ts) return "never";
@@ -85,10 +106,15 @@
     });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", armThemeToggle);
-  } else {
+  function armAll() {
     armThemeToggle();
+    armToolSettle();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", armAll);
+  } else {
+    armAll();
   }
 
   window.MonteLattice = { armCountUp: armCountUp, formatRelative: formatRelative };
