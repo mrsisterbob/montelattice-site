@@ -259,12 +259,17 @@ def profile():
     photo_sizes = {o.get("photo"): media.image_size(app.static_folder, "img/" + o.get("photo", ""))
                    for o in (p["offhours"] or []) if o.get("photo")}
     return render_template("profile.html", p=p, resume_pdf=_resume_pdf(),
-                           portrait=portrait, photo_sizes=photo_sizes)
+                           portrait=portrait, photo_sizes=photo_sizes,
+                           demo_video=DEMO_VIDEO if media.has_file(app.static_folder, DEMO_VIDEO) else None)
 
 
 # Kevin exports this file by hand; nothing here generates it. Checked per request so the link
 # appears the moment the file is deployed and never points at a 404 before then.
 RESUME_PDF = "kevin-miller-resume.pdf"
+
+
+# Kevin drops this in by hand, like the resume. The profile shows a player only while it exists.
+DEMO_VIDEO = "video/demo.mp4"
 
 
 def _resume_pdf() -> str | None:
