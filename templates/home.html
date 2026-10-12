@@ -33,6 +33,7 @@
       <div class="metric"><span class="value" data-count data-target="{{ t.value }}" data-suffix="{{ t.suffix }}">{{ t.value }}{{ t.suffix }}</span><span class="label">{{ t.label }}</span></div>
       {% endfor %}
     </div>
+    {% if teaser.cadence %}<p class="live-strip__more">{{ teaser.cadence }}</p>{% endif %}
     {% else %}
     <p class="live-strip__more">The engine's live feed is not answering right now, so there is nothing to show rather than a made-up number.</p>
     {% endif %}
