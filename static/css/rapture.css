@@ -551,6 +551,11 @@ canvas { max-width: 100%; }
   border-bottom: 1px solid transparent;
 }
 .site-footer__link:hover { color: var(--on-teal); border-bottom-color: var(--brass); }
+.site-footer__privacy {
+  margin: 10px 0 0;
+  font-size: 0.74rem;
+  color: color-mix(in srgb, var(--on-teal) 55%, transparent);
+}
 
 /* --- /code page: repo cards --- */
 .repo-list { display: grid; gap: 20px; }
