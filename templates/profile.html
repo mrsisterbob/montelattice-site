@@ -155,6 +155,11 @@
       <div class="sys-meta">Python / SQLite</div>
     </div>
   </div>
+  {% if demo_video %}
+  <video class="demo-video" controls playsinline preload="metadata" aria-label="Short demo of the systems running">
+    <source src="{{ url_for('static', filename=demo_video) }}" type="video/mp4">
+  </video>
+  {% endif %}
 
   {% if p.offhours %}
   <h2>Off the clock</h2>

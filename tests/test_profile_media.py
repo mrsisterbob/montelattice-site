@@ -117,3 +117,30 @@ def test_media_slot_null_offhours_still_renders(client, monkeypatch):
     r = client.get("/")
     assert r.status_code == 200
     assert "Off the clock" not in r.get_data(as_text=True)
+
+
+def test_demo_video_absent_has_no_video_and_no_reference(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(main.app, "static_folder", str(tmp_path))
+    html = client.get("/").get_data(as_text=True)
+    assert "<video" not in html
+    assert "demo.mp4" not in html
+
+
+def test_demo_video_present_renders_a_player_whose_source_is_served(client, monkeypatch, tmp_path):
+    (tmp_path / "video").mkdir()
+    (tmp_path / "video" / "demo.mp4").write_bytes(b"\x00\x00\x00\x18ftypmp42 test")
+    monkeypatch.setattr(main.app, "static_folder", str(tmp_path))
+    html = client.get("/").get_data(as_text=True)
+    tag = re.search(r"<video\b[^>]*>", html).group(0)
+    assert "controls" in tag and "autoplay" not in tag and "loop" not in tag
+    assert "aria-label=" in tag
+    src = re.search(r'<source src="([^"]+demo\.mp4)"', html).group(1)
+    r = client.get(src)
+    assert r.status_code == 200 and r.data == b"\x00\x00\x00\x18ftypmp42 test"
+
+
+def test_demo_video_empty_file_is_treated_as_absent(client, monkeypatch, tmp_path):
+    (tmp_path / "video").mkdir()
+    (tmp_path / "video" / "demo.mp4").write_bytes(b"")
+    monkeypatch.setattr(main.app, "static_folder", str(tmp_path))
+    assert "<video" not in client.get("/").get_data(as_text=True)

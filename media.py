@@ -63,6 +63,15 @@ def _webp(head):
     return None
 
 
+def has_file(static_folder, relpath):
+    """True when static_folder/relpath is a non-empty file. Checked per request, so a slot appears
+    the moment the file is deployed and never points at a 404 before then."""
+    try:
+        return os.path.getsize(os.path.join(static_folder, relpath)) > 0             and os.path.isfile(os.path.join(static_folder, relpath))
+    except OSError:
+        return False
+
+
 def image_size(static_folder, relpath):
     """(width, height) of static_folder/relpath, or None if it is missing or not a readable image."""
     path = os.path.join(static_folder, relpath)

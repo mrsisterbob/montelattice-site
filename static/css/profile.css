@@ -215,6 +215,8 @@ ul.plain { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.45rem;
 ul.plain li { font-size: 0.93rem; color: var(--muted); padding-left: 1.1rem; position: relative; }
 ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(--brass-text); }
 
+.demo-video { width: 100%; height: auto; display: block; margin-top: 1rem; border: 1px solid var(--rule); }
+
 /* ---- off hours ---- */
 .offhours {
   display: grid;
