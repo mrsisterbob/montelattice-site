@@ -21,7 +21,7 @@ templates or `main.py` is ordinary site work.
 ```
 inbox/    queued, nobody has claimed it      planner writes here
 active/   a worker is on it right now        worker only
-done/     verify passed                      worker only
+done/     merged into master                 worker only
 blocked/  verify failed 3x, or scope clash   worker only
 ```
 
@@ -120,7 +120,7 @@ its own work. It only accepts this repo's trees: a shell that has wandered into 
 repo with its own `tests/` gets this site's suite run, never the other repo's.
 `.claude/hooks/prove_stop_hook.py` proves all of that against a throwaway worktree.
 
-## The worker works in its own worktree, and you merge
+## The worker works in its own worktree, then merges it
 
 Each claimed task gets its own checkout: `.worktrees/TASK-n/` on branch `task/TASK-n`,
 started from `master`. The worker edits, tests and commits there, never on `master`.
@@ -128,19 +128,33 @@ started from `master`. The worker edits, tests and commits there, never on `mast
 Why: with one shared folder, every agent's Stop hook would test every other agent's
 half-finished edits, and one session's mid-save file turns another session's turn red.
 
-Your review step is the merge, from the main folder:
+Once verify, the full suite and `/code-review` are green, the worker merges the branch into
+`master` itself, from the main folder, and goes back for the next task:
 
-```bash
-git diff master...task/TASK-n          # read it
-git merge task/TASK-n && git worktree remove .worktrees/TASK-n && git branch -d task/TASK-n
-```
+1. **Lock.** `mkdir .queue/merge.lock` (atomic) so only one worker merges at a time. An empty
+   directory is invisible to git. If a crashed worker leaves it behind, clear it with
+   `rmdir .queue/merge.lock`.
+2. **Baseline.** `git status --porcelain` must be empty, the branch must be `master`, and the
+   suite must be green. Otherwise the task is **held** in `blocked/` with the reason in its
+   Log and the loop stops: a merge on top of your unreviewed work, or onto a red `master`,
+   would be blamed on the wrong change.
+3. **Merge** with `git merge --no-ff task/TASK-n`. A conflict is aborted (`git merge --abort`),
+   the paths go in the Log, and the task moves to `blocked/`.
+4. **Re-run the suite on `master`.** If the merge turned it red, the worker undoes it with
+   `git revert -m 1` (a new commit, never a reset), logs the revert's sha, and moves the task
+   to `blocked/`.
+5. **Green:** worktree and branch are removed, the task moves to `done/`, the lock is
+   released. `done/` therefore means merged into `master`.
+
+You still review after the fact: `git log --first-parent master` shows one merge commit per
+task, and `git revert -m 1 <merge-sha>` takes any of them back out.
 
 Two consequences to know:
-- **A task can only build on merged work.** The worktree starts from `master`, so if
-  TASK-4 needs TASK-3, merge TASK-3 first - the worker checks and waits rather than
-  starting blind.
-- **The worker never touches `master`** - no commit, merge, push, reset or stash there.
-  Your uncommitted work in the main folder is never in its reach.
+- **A task can only build on merged work.** The worktree starts from `master`, and the worker
+  only picks a task whose dependencies are already in `done/`.
+- **The worker's only writes on `master` are the `--no-ff` merge and a revert** - no direct
+  commit, push, reset or stash. A dirty main folder stops it before it merges, so your
+  uncommitted work is never mixed in.
 
 Known gap: inside `.worktrees/`, homepage.py's sibling path
 (`../job-outreach-engine/evidence_bank.json`) does not resolve, so a dev server started in a
