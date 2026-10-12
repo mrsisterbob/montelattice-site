@@ -19,9 +19,6 @@
 <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/card-site.webp', _external=True) }}{% endblock %}">
 <meta property="og:url" content="{{ request.url }}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 {# Applied BEFORE the stylesheet so a chosen theme never flashes the other one first. Inline and
    synchronous on purpose: a deferred script runs after first paint, which is the flash. #}
 <script>
@@ -30,6 +27,7 @@
     if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
   } catch (e) { /* private mode: fall through to the OS preference, which is the default anyway */ }
 </script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/rapture.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
