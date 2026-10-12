@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Monte Lattice{% endblock %}
+{% from "_tools.html" import tool_grid %}
 {% block content %}
 
 {# The skyline that used to fill this spot became the fourth card; that card is now a map too. #}
 <section class="wrap intro">
   <h1 class="intro__wordmark wordmark">Monte Lattice</h1>
   <p class="intro__line">Working systems for job search, document filing, {{ 'market monitoring, ' if public_crypto else '' }}and personal finance.</p>
+  <div class="tool-grid-wrap">{{ tool_grid(tools) }}</div>
   <div class="intro__body">
     <h2>What this is</h2>
     <p>This year I let hundreds of people go cold because I could not follow up with all of them. When I went back to the job search, I could not easily go back to my warm contacts, if at all. That is where this started.</p>

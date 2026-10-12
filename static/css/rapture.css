@@ -185,6 +185,35 @@ p:last-child { margin-bottom: 0; }
 .intro__body a { color: var(--brass-text); font-weight: 600; }
 .intro__body a:hover { text-decoration: underline; }
 
+/* --- Tool grid (/lattice intro): the M in the middle, the engine's tools around it ---
+   One inline SVG built from tools.py. Colours are tokens only, so light and dark just work. The
+   SVG scales by its viewBox, so it never causes horizontal scroll at 375px. */
+.tool-grid-wrap { max-width: 560px; margin: 28px auto 0; }
+.tool-grid {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* The hairline keeps the tile's silhouette in dark mode, where --teal is close to the page ground. */
+.tool-grid__core rect { fill: var(--teal); stroke: var(--brass-warm); stroke-width: 1.5; }
+.tool-grid__core path { fill: var(--brass); }
+.tool { color: var(--muted); }
+.tool__mark svg path { fill: currentColor; }
+.tool__name {
+  fill: var(--muted);
+  font-family: var(--font-body);
+  font-size: 14px;  /* viewBox units: ~8.5px at 375px, the smallest it is allowed to get */
+  letter-spacing: 0.02em;
+  text-anchor: middle;
+}
+.tool__wordmark {
+  fill: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
 /* --- Project card grid (home): 2x2 on desktop --- */
 .card-grid {
   display: grid;

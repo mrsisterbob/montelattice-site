@@ -26,6 +26,7 @@ import homepage
 import jobstats
 import leads
 import media
+import tools
 import visits
 
 
@@ -279,7 +280,8 @@ def _resume_pdf() -> str | None:
 
 @app.route("/lattice")
 def home():
-    return render_template("home.html", active_page="home", teaser=jobstats.teaser(jobstats.fetch()))
+    return render_template("home.html", active_page="home", teaser=jobstats.teaser(jobstats.fetch()),
+                           tools=tools.TOOLS)
 
 
 @app.route("/code")
