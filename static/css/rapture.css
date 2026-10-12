@@ -175,6 +175,24 @@ p:last-child { margin-bottom: 0; }
 .intro {
   text-align: center;
   padding-top: 36px;
+  position: relative;
+  isolation: isolate;  /* the constellation sits behind the text, inside this box */
+}
+/* Faint constellation behind the top of the hero: a mask (static/img/constellation.svg) coloured by
+   a token, so light and dark both work. Static: no motion to cancel. Decorative: no pointer events,
+   behind the content. Anchored to the top at a bounded height, so on a tall hero (375px wide) it
+   keeps its scale instead of `cover`-ing the whole section into a few huge blobs. */
+.intro::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: min(100%, 340px);
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--brass-warm);
+  opacity: 0.12;
+  -webkit-mask: url("../img/constellation.svg") no-repeat center top / cover;
+  mask: url("../img/constellation.svg") no-repeat center top / cover;
 }
 .intro__wordmark {
   font-size: clamp(2rem, 5vw, 3.1rem);
