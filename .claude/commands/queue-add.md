@@ -88,12 +88,48 @@ and forward the request whole.
 Text written into this repo's templates or `main.py` (the `/lattice` intro in
 `templates/home.html`, the project blurbs in `main.py`) is site work and queues here as usual.
 
+## Keep context small
+
+Kevin is on Pro and this command burns his usage when it pulls too much into context. Three
+rules:
+
+1. **Grep first, read line ranges.** `grep -n <symbol>` (or Grep with `-n`) finds the lines,
+   then Read with `offset` and `limit` around them. Never Read `main.py` (1,115 lines),
+   `static/css/rapture.css` (917) or `templates/console.html` (609) whole; everything else in
+   the repo is under 500 lines (largest: `.claude/commands/queue-run.md`, 449). Short files
+   (queue command files, task files, small modules and templates) can be read whole.
+   (`wc -l` on 2026-10-12 at 0b89869. Re-measure with `wc -l` before changing these numbers.)
+2. **A passing command shows only its last line; a failing one shows its last 60.** Capture
+   to a temp file and print based on the exit code:
+   ```bash
+   out=$(mktemp); <command> >"$out" 2>&1; rc=$?
+   if [ $rc -eq 0 ]; then tail -n 1 "$out"; else tail -n 60 "$out"; fi
+   rm -f "$out"; echo "exit=$rc"
+   ```
+   Use it for every pytest run and every task `verify`, except the proof-of-failure run
+   below, which is expected to fail and prints in full. A verify may contain single quotes,
+   so never wrap it in `bash -c '...'`: put its text in a variable
+   (`V=$(sed -n '2,/^---/s/^verify: //p' <task file> | head -n 1 | tr -d '')`) and run
+   `bash -c "$V"` as the `<command>`. For the planner that includes the pass-regex proof
+   run below. Read the printed `exit=` line, not the tool
+   status: the wrapper itself always exits 0. A red run keeps the FAILED names, which sit at
+   the end, so the Log gets the real failure output. Don't use `exit $rc`: it ends the shell.
+3. **Never re-read an unchanged file.** If a file, or that line range, was already read this
+   task and nothing has edited it since, use what you have. After your own Edit, the tool
+   already holds the file's state, so don't read it back to check. Re-read only what changed
+   (a file another session or agent edited, or a range you haven't seen) or what is no longer
+   in your context (after a resume, a compaction, or a SendMessage retry).
+
+Only *passing* output shrinks. The observed failure still goes in `## Proof it is needed`, and
+a proof-of-failure run is *expected* to fail, so it prints in full.
+
 ## Then read what already exists
 
 1. `grep -rn -i <key noun> --include=*.py --include=*.html --exclude-dir=.worktrees .` for
    each main noun in the request (`.worktrees/` holds unmerged work, not what exists). The failure this guards against is rebuilding something that already exists -
    a duplicate never fails a test. If it is already there, say so and write no task.
-2. Read the actual code you intend to change. A task written from a guess about what a
+2. Read the actual code you intend to change - grep for the lines, then read that range (see
+   "Keep context small"). A task written from a guess about what a
    function does sends the worker into a file that does not look like the plan.
 3. `ls .queue/inbox .queue/active` - do not queue something already queued or in flight.
 
@@ -160,7 +196,8 @@ same shape as a test that loads an empty bank and quietly skips its own assertio
 - If you cannot make it fail, the task is not ready. Say so and queue nothing.
 
 Put the observed failure in the task's `## Proof it is needed` section so the worker knows
-what red looks like before it starts.
+what red looks like before it starts. The proof run is expected to fail, so it prints in full;
+the run that proves the pass-regex can PASS should show one line (see "Keep context small").
 
 ## Hand off
 
