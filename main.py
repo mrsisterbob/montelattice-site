@@ -25,6 +25,7 @@ import buildstats
 import homepage
 import jobstats
 import leads
+import media
 import visits
 
 
@@ -252,8 +253,13 @@ def profile():
     bank = homepage.load_bank()
     if bank is None:
         return render_template("profile.html", p=None), 503
-    return render_template("profile.html", p=homepage.build_profile(bank, buildstats.load()),
-                           resume_pdf=_resume_pdf())
+    p = homepage.build_profile(bank, buildstats.load())
+    # Checked per request, like the résumé: a photo that is not deployed is not rendered.
+    portrait = media.image_size(app.static_folder, "img/kevin-suit.jpg")
+    photo_sizes = {o.get("photo"): media.image_size(app.static_folder, "img/" + o.get("photo", ""))
+                   for o in (p["offhours"] or []) if o.get("photo")}
+    return render_template("profile.html", p=p, resume_pdf=_resume_pdf(),
+                           portrait=portrait, photo_sizes=photo_sizes)
 
 
 # Kevin exports this file by hand; nothing here generates it. Checked per request so the link

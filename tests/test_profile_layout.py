@@ -111,3 +111,64 @@ def test_contact_lines_sit_beside_their_labels_at_1100px(monkeypatch, tmp_path):
     assert_values_share_a_left_edge(out)
     for line in out["lines"]:
         assert line["vLeft"] > line["kRight"], line
+
+
+# ---- image boxes ----------------------------------------------------------------------------
+
+IMAGE_PROBE = r"""<script>
+window.addEventListener("load", function () {
+  var out = {portrait: null, offhours: []};
+  var p = document.querySelector(".portrait");
+  if (p) { var r = p.getBoundingClientRect(); out.portrait = {w: r.width, h: r.height,
+    rem: parseFloat(getComputedStyle(document.documentElement).fontSize)}; }
+  document.querySelectorAll(".offhours img").forEach(function (img) {
+    var r = img.getBoundingClientRect(); out.offhours.push({w: r.width, h: r.height});
+  });
+  parent.document.getElementById("OUT").textContent = JSON.stringify(out);
+});
+</script>
+"""
+
+IMAGE_BANK = {
+    "identity": {"name": "K"},
+    "site_profile": {"offhours": [
+        {"photo": "kevin-dog.jpg", "alt": "dog", "text": "t"},
+        {"photo": "kevin-beach.jpg", "alt": "beach", "text": "t", "landscape": True},
+    ]},
+}
+
+
+def measure_images(width, monkeypatch, tmp_path):
+    browser = _browser()
+    if not browser:
+        pytest.skip("no Chrome or Edge found to measure layout")
+    monkeypatch.setenv("ANALYTICS_ENABLED", "false")
+    monkeypatch.setattr(homepage, "load_bank", lambda: IMAGE_BANK)
+    page = main.app.test_client().get("/").get_data(as_text=True)
+    page = page.replace('"/static/', '"' + (ROOT / "static").as_uri() + "/")
+    page = page.replace("</body>", IMAGE_PROBE + "</body>")
+    (tmp_path / "page.html").write_text(page, encoding="utf-8")
+    (tmp_path / "wrapper.html").write_text(
+        '<!doctype html><html><body style="margin:0"><pre id="OUT"></pre>'
+        f'<iframe src="page.html" scrolling="no" style="width:{width}px;height:800px;border:0"></iframe>'
+        "</body></html>", encoding="utf-8")
+    result = subprocess.run(
+        [browser, "--headless=new", "--disable-gpu", "--no-first-run", "--window-size=1200,900",
+         f"--user-data-dir={tmp_path / 'profile'}", "--allow-file-access-from-files",
+         "--virtual-time-budget=8000", "--dump-dom", (tmp_path / "wrapper.html").as_uri()],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
+    found = re.search(r'<pre id="OUT">(.*?)</pre>', result.stdout, re.S)
+    assert found and found.group(1), f"probe reported nothing:\n{result.stdout[-2000:]}\n{result.stderr[-2000:]}"
+    return json.loads(html.unescape(found.group(1)))
+
+
+def test_image_box_portrait_is_square_and_photos_are_not_stretched(monkeypatch, tmp_path):
+    # The tags carry height="900"; without height:auto in the CSS that becomes the rendered height.
+    out = measure_images(1100, monkeypatch, tmp_path)
+    box = out["portrait"]
+    assert box, out
+    assert abs(box["w"] - box["h"]) <= 1, box
+    assert box["w"] <= 9.5 * box["rem"] + 1, box
+    assert len(out["offhours"]) == 2
+    for img in out["offhours"]:
+        assert 0 < img["h"] < 600, img
