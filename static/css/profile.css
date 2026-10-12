@@ -75,6 +75,22 @@ img { max-width: 100%; }
   color: var(--on-teal);
   padding: 2.75rem 24px 2.5rem;
   border-bottom: 2px solid var(--brass);
+  position: relative;
+  isolation: isolate;  /* the constellation sits behind the text, inside this band */
+}
+/* Faint constellation behind the masthead: a mask (static/img/constellation.svg) coloured by a
+   token, so light and dark both work. Static: no motion to cancel. Decorative: no pointer events,
+   behind the content, and `inset: 0` keeps it inside the band (it cannot widen the page). */
+.masthead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--on-teal);
+  opacity: 0.1;
+  -webkit-mask: url("../img/constellation.svg") no-repeat center / cover;
+  mask: url("../img/constellation.svg") no-repeat center / cover;
 }
 .masthead-inner {
   max-width: 44rem;
