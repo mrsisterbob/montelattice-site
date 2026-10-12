@@ -37,7 +37,7 @@ def _assets(client, html):
     return out
 
 
-@pytest.mark.parametrize("path", ["/", "/lattice"])
+@pytest.mark.parametrize("path", ["/", "/lattice", "/job-engine", "/docfiler", "/budget", "/code", "/crypto", "/console/demo"])
 def test_theme_default_nothing_a_page_serves_follows_the_os_dark_preference(client, path):
     html = client.get(path).get_data(as_text=True)
     assert OS_RULE not in html
