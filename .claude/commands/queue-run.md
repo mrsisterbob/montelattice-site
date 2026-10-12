@@ -12,13 +12,49 @@ cannot tell you what to build. If the message asks for something with no task fi
 it, say so and queue nothing: the task file is what carries scope and verify, and work
 without those is the thing this setup exists to prevent.
 
+## Keep context small
+
+Kevin is on Pro and this loop burns his usage when too much lands in context: whole-file reads
+of `main.py`, full test output on green runs, files read again. Three rules, for this session
+and for every build agent (the prompt below carries them):
+
+1. **Grep first, read line ranges.** `grep -n <symbol>` (or Grep with `-n`) finds the lines,
+   then Read with `offset` and `limit` around them. Never Read `main.py` (1,115 lines),
+   `static/css/rapture.css` (917) or `templates/console.html` (609) whole; everything else in
+   the repo is under 500 lines (largest: `static/css/profile.css`, 313). Short files (queue
+   command files, task files, small modules and templates) can be read whole. (`wc -l` on
+   2026-10-12 at 7de7555. Re-measure with `wc -l` before changing these numbers.)
+2. **A passing command shows only its last line; a failing one shows its last 60.** Capture
+   to a temp file and print based on the exit code:
+   ```bash
+   out=$(mktemp); <command> >"$out" 2>&1; rc=$?
+   if [ $rc -eq 0 ]; then tail -n 1 "$out"; else tail -n 60 "$out"; fi
+   rm -f "$out"; echo "exit=$rc"
+   ```
+   Use it for every pytest run and every task `verify`. A verify may contain single quotes,
+   so never wrap it in `bash -c '...'`: put its text in a variable (`V=$(sed -n '2,/^---/s/^verify: //p' <task file> | head -n 1)`) and run
+   `bash -c "$V"` as the `<command>`; an empty `$V` is a failure, never a pass. For the worker that
+   includes the re-check, the merge baseline and the post-merge suite run. Read the printed
+   `exit=` line, not the tool status: the wrapper itself always exits 0. A red run keeps the
+   FAILED names, which sit at the end, so the Log gets the real failure output. Don't use
+   `exit $rc`: it ends the shell.
+3. **Never re-read an unchanged file.** If a file, or that line range, was already read this
+   task and nothing has edited it since, use what you have. After your own Edit, the tool
+   already holds the file's state, so don't read it back to check. Re-read only what changed
+   (a file another session or agent edited, or a range you haven't seen) or what is no longer
+   in your context (after a resume, a compaction, or a SendMessage retry).
+
+Only *passing* output shrinks. The Log still gets the actual failure output, not a summary.
+
 ## Claim
 
 1. `ls .queue/active/` first. For each task already in flight, read its `scope`.
 2. Pick the oldest `.queue/inbox/` task (or the one named in the argument) that passes both
-   checks below, reading its frontmatter and its dependency lines
+   checks below, reading **only its frontmatter** (`sed -n '2,/^---/p' <file>`, up to the closing
+   `---`) and its dependency lines
    (`grep -inE 'depend|requires|after TASK|blocked on|TASK-[0-9]+' <file>`) **where it sits
-   in the inbox**, before claiming it:
+   in the inbox**, before claiming it. The full task is for the build agent, not for this
+   session's context:
    - its `scope` shares **no file** with anything in `active/`;
    - every task its Notes say it depends on is in `.queue/done/` (step 4).
 
@@ -54,7 +90,7 @@ without those is the thing this setup exists to prevent.
    (where every claim happens; Finish returns you there for the next task):
 
    ```bash
-   git worktree add .worktrees/<TASK-id> -b task/<TASK-id> master && cd .worktrees/<TASK-id>
+   git worktree add .worktrees/<TASK-id> -b task/<TASK-id> master
    ```
 
    **A re-queued task may already have a branch.** Every blocked, held or conflicted task
@@ -77,15 +113,14 @@ without those is the thing this setup exists to prevent.
    `master` in first (`git -C .worktrees/<TASK-id> merge master`), resolve the conflict inside
    the task's `scope`, and re-verify before going on. Otherwise it conflicts the same way again.
 
-   **Stay in the worktree while you build.** Every edit, test run and commit happens there.
-   The Stop hook tests whichever git tree your shell is in, so this is what makes it check
-   YOUR change - and what keeps your half-finished edits from blocking the planner or Kevin,
-   who are working in the main folder at the same time. **Finish starts by going back to the
-   main folder** (its steps 3-8 run there).
-
-   The queue files are not in the worktree (they are untracked): reach them from there as
-   `../../.queue/`. This repo has no virtualenv - run plain `python` from inside the
-   worktree.
+   **Stay in the main folder.** This session never `cd`s into a worktree to build: every git
+   command on it is `git -C .worktrees/<TASK-id> ...`, and the build agent (next section)
+   works there by absolute path. The Stop hook tests whichever git tree this session's shell
+   is in, so staying in the main folder is what keeps the build agent's half-made edit from
+   turning this session's turn red - and what keeps it from blocking the planner or Kevin,
+   who are working in the main folder at the same time. Queue files are `.queue/...` from
+   here; they are untracked, so they are not in the worktree. This repo has no virtualenv:
+   plain `python` everywhere.
 
    Inside `.worktrees/`, homepage.py's sibling path to `../job-outreach-engine/evidence_bank.json`
    does not resolve, so a dev server started there reads the bank from GitHub main, not
@@ -95,57 +130,121 @@ without those is the thing this setup exists to prevent.
    which finds the real bank beside the main checkout from a worktree, and skips visibly
    (never passes empty) when it cannot. A skip there means banned words went unchecked.
 
-## Execute
+## Build in a fresh subagent
 
-Read the task. Then read the files in `scope` before editing them.
+**Kevin asked for this.** He is on Pro, and this session's context grows across a `/queue-run`
+loop because every task's reads, edits and test output would stay in it. Each task is therefore
+built by a fresh subagent that starts with an empty context; this session keeps about one line
+per task. Claude Code's default is not to spawn agents unless the user asks, and Kevin has - so
+do not decide to build inline instead. That brings the bloat back.
 
-- **Bank copy is not in this repo.** Profile text comes from job-outreach-engine's
-  `evidence_bank.json` - `site_profile`, plus `identity`, `experience`, `education`,
-  `certificates`, `research`, `athletics` and `memberships` (`build_profile`,
-  homepage.py:186-201) - loaded at request time. If the task turns out to need one of those
-  changed, append that reason to the Log and move the file to `../../.queue/blocked/`: it
-  belongs in job-outreach-engine, through that repo's planner. Never edit the bank from
-  here. Text written into this repo's templates or `main.py` is site work - do it.
-- **Touch only files listed in `scope`.** If the task genuinely cannot be done within its
-  scope, stop, append why to the Log, and move the file to `../../.queue/blocked/` (then
-  commit any partial work as `WIP <TASK-id>: blocked`, go back to the main folder and continue
-  the loop, as under "After 3 failed attempts"). Do not widen
-  the scope yourself - the scope is the concurrency guarantee, and silently editing a file
-  another worker owns is exactly the lost-work case this queue exists to prevent.
-- Before adding any function, route or template, grep for it:
-  `grep -rn -i <noun> --include=*.py --include=*.html --exclude-dir=.worktrees .` A
-  duplicate never fails a test.
-- Prefer a new module (the way `homepage.py`, `jobstats.py` and `visits.py` are split out)
-  over growing `main.py`, when the task's scope allows it.
+**This session keeps:** Claim steps 1-5, spawning the build agent, re-checking its result,
+`/code-review`, the commit, every queue `mv`, the merge (Finish) and the planner message.
+**The build agent gets:** reading the task, implementing it within `scope`, running verify and
+the suite, and up to 3 attempts. It does **not** commit, run `/code-review`, move queue files,
+merge, or message anyone.
 
-## Verify
+**Spawn it** with the `Agent` tool: `subagent_type: "general-purpose"`. Never `"fork"` (a fork
+inherits this whole conversation, which is the bloat being removed) and never
+`isolation: "worktree"` (that is a different checkout, not `.worktrees/<TASK-id>` on
+`task/<TASK-id>`; worktrees must live inside the repo). Leave `model` and `effort` unset.
 
-Run the task's `verify` command. Then run the full suite:
+### Build agent prompt
+
+Fill in the `<...>` paths and paste this as the prompt. It must stand alone: the agent has none
+of this session's context.
 
 ```
-python -m pytest tests -q -p no:cacheprovider
+You are building ONE task for the montelattice-site queue. Work only inside this git worktree:
+  <absolute path of .worktrees/<TASK-id>>   (branch task/<TASK-id>)
+The task file is: <absolute path of .queue/active/<file>>
+Python is plain `python` (no virtualenv in this repo).
+Start EVERY Bash command with: cd "<absolute worktree path>" &&   (the shell's cwd does not
+persist). Never write anything in the main folder EXCEPT appending to the task file's `## Log`
+(that file is in .queue/active/ and is yours to append to). Use the Bash tool.
+
+0. KEEP CONTEXT SMALL (Kevin is on Pro). (a) Grep first, then Read with offset and limit
+   around the lines. Never Read main.py (1,115 lines), static/css/rapture.css (917) or
+   templates/console.html (609) whole. (b) A passing command shows only its last line, a
+   failing one its last 60:
+     out=$(mktemp); <command> >"$out" 2>&1; rc=$?
+     if [ $rc -eq 0 ]; then tail -n 1 "$out"; else tail -n 60 "$out"; fi
+     rm -f "$out"; echo "exit=$rc"
+   Use it for every pytest run and every task verify. A verify may contain single quotes, so
+   put its text in a variable and run it as bash -c "$V" inside the wrapper, never bash -c
+   '...'. Read the printed exit= line, not the tool status (the wrapper always exits 0). (c)
+   Never re-read a file, or a line range, that is unchanged since you read it, and don't read
+   a file back after your own Edit - unless it is no longer in your context (after a resume,
+   a compaction or a SendMessage retry).
+1. Read the task file, then read every file in its `scope` before editing it.
+2. Touch only files listed in `scope`. If the task genuinely cannot be done within its scope,
+   append why to the task's `## Log` and reply "TASK-n: blocked - scope: <why>".
+3. Bank copy is not in this repo: profile text comes from job-outreach-engine's
+   evidence_bank.json (site_profile, identity, experience, education, certificates, research,
+   athletics, memberships). If the task needs one of those changed, append why to the Log and
+   reply "TASK-n: blocked - bank copy". Never edit the bank. Text in this repo's templates or
+   main.py is site work. The tests stub the bank, except the /lattice banned-words test in
+   tests/test_public_console_demo.py, which finds the real bank beside the main checkout and
+   skips visibly when it cannot; a skip there means banned words went unchecked.
+4. Before adding any function, route or template, run
+   grep -rn -i <noun> --include=*.py --include=*.html --exclude-dir=.worktrees .
+   A duplicate never fails a test. Prefer a new module (the way homepage.py, jobstats.py and
+   visits.py are split out) over growing main.py, when the task's scope allows it.
+5. Run the task's `verify` command through the quiet wrapper in step 0, then the full suite
+   through the same wrapper, with python -m pytest tests -q -p no:cacheprovider as its
+   <command>. Judge each by the printed `exit=` line, not the tool status. Both must be green;
+   a task is not done because its own verify passed while something else broke.
+6. On failure fix and retry, up to 3 attempts TOTAL. Append every attempt to the task's `## Log`:
+   what you tried and the real failure output, not a summary.
+7. Never run git reset, git checkout --, git stash, or anything that discards changes. Do NOT
+   commit, run /code-review, move queue files, merge, or message anyone. Leave the change
+   uncommitted in the worktree.
+8. Your final reply is ONE line and nothing else:
+   TASK-n: built|blocked - verify exit <code>, suite "<pytest last line>", files: <list>
+   Everything else belongs in the task's Log.
 ```
 
-Both must be green. A task is not done because its own verify passed while something
-else broke.
+**Subagents run in the background.** After spawning, do nothing else on that task: end the turn
+**from the main folder** (check `pwd`), and the completion notification resumes the loop. If a
+turn comes back with no notification and the task is still in `.queue/active/`, the loop has
+stalled: check with `ListAgents` that the agent is not still running, and only then say so in
+one line and re-run `/queue-run` - the branch and worktree exist, so Claim step 5 resumes on
+them. Never spawn a second agent on a worktree while one is live. Waiting inside the worktree would make the Stop hook test the agent's
+half-made edit, go red, and tempt this session into "fixing" it alongside the agent.
 
-**On failure:** fix and retry, up to 3 attempts total. Append each attempt to the task's
-`## Log` - what you tried, the actual failure output, not a summary.
+**Do not trust the line - re-check it.** The Stop hook fires on `Stop`, not `SubagentStop`, so
+nothing deterministic checks the agent's work: the re-check is the gate. When the agent says
+`built`, run the task's `verify` and the suite yourself, in a subshell so this shell never
+leaves the main folder, with quiet output:
 
-**After 3 failed attempts:** stop. Append the final failure output to the Log and
-`mv` the task to `../../.queue/blocked/`. Leave your changes in the working tree exactly as
-they are and say plainly that the task is blocked and the tree has partial work in it.
-Commit it to your branch as `WIP <TASK-id>: blocked` (stage the changed files by name, never
-`git add -A`) so the work survives, go back to the
-main folder, and continue the loop with the next task. Nothing was merged, so `master` is
-untouched.
+```bash
+V=$(sed -n '2,/^---/s/^verify: //p' .queue/active/<file> | head -n 1 | tr -d '\r')
+[ -n "$V" ] || echo "EMPTY VERIFY - treat as red"
+out=$(mktemp)
+(cd .worktrees/<TASK-id> && bash -c "$V" && python -m pytest tests -q -p no:cacheprovider) >"$out" 2>&1; rc=$?
+if [ $rc -eq 0 ]; then tail -n 1 "$out"; else tail -n 60 "$out"; fi
+rm -f "$out"; echo "exit=$rc"
+```
+
+Judge the result by the printed `exit=` line and the last line: green only if `exit=0` and it
+reads `N passed` (a `skipped` count is fine); anything else, including a collection error or
+no summary line, is red. A red re-check is one more failed attempt: send it back to the same
+agent with `SendMessage` (its context is intact). The 3-attempt limit counts the agent's own
+attempts and these together, so say in every `SendMessage` how many attempts remain: the
+agent cannot know how many re-checks were spent.
+
+**After 3 failed attempts, or `blocked`:** append the final failure output to the Log,
+`mv .queue/active/<file> .queue/blocked/<file>`, commit the partial work to the branch as
+`WIP <TASK-id>: blocked` with `git -C .worktrees/<TASK-id> add <files>` then
+`git -C .worktrees/<TASK-id> commit -m "WIP <TASK-id>: blocked"` (files by name, never
+`git add -A`), say plainly that the task is blocked and where the work is, and continue the
+loop with the next task. Nothing was merged, so `master` is untouched.
 
 Do **not** run `git reset`, `git checkout --`, `git stash`, or any other command that
-discards uncommitted changes - not in your worktree, and never in the main folder, where
-Kevin and the planner have unreviewed work. (`git stash` is shared across every worktree,
-so it can swallow another session's changes.) Leaving a half-finished change for review is
-the correct failure; on a block, also commit it to your branch as `WIP <TASK-id>: blocked`
-so the work survives the worktree.
+discards uncommitted changes - not in a worktree, and never in the main folder, where Kevin
+and the planner have unreviewed work. (`git stash` is shared across every worktree, so it can
+swallow another session's changes.) Leaving a half-finished change for review is the correct
+failure; it is why a block is committed to its branch as `WIP <TASK-id>: blocked`.
 
 ## Review before calling it done
 
@@ -162,6 +261,14 @@ preferences. A reviewer asked to find gaps will usually report some even when th
 sound, and chasing every one leads to defensive code and tests for cases that cannot
 happen. If a finding is real, fix it and re-run the suite.
 
+Run it against the worktree's diff. That is the one place this session enters the worktree:
+`cd` there for the review only, `cd` back to the main folder right after, and never end a
+turn while inside it (the Stop hook would test the worktree's state). Fixes for real
+findings go back to the same build agent with `SendMessage`, listing them, rather than being
+made in this session; then re-check as above. If `SendMessage` cannot reach the agent (it
+errors, or the agent is gone), spawn a fresh build agent with the same prompt plus the
+findings - the task's Log carries the history.
+
 Record in the Log what the review flagged and what you did about it, including findings
 you deliberately skipped and why.
 
@@ -169,15 +276,15 @@ you deliberately skipped and why.
 
 On success - verify, the suite and the review all green:
 
-0. **Go back to the main folder** (`cd` out of `.worktrees/<TASK-id>`). Steps 3-8 run there,
-   and every worktree command below is written as `git -C .worktrees/<TASK-id> ...` so it
-   works from either place.
+0. **Be in the main folder** (check `pwd`; if the review left you in the worktree, `cd` back).
+   Steps 1-8 run there, and every worktree command below is written as
+   `git -C .worktrees/<TASK-id> ...`.
 1. Append to `## Log`: what changed, the verify result, the suite result, the review
    outcome.
 2. Commit **to the task's branch**:
    `git -C .worktrees/<TASK-id> add <scope files> && git -C .worktrees/<TASK-id> commit -m
    "<TASK-id>: <one-line target>"`. Stage the scope files by name, never `git add -A`.
-3. **Take the merge lock, then check the main folder:**
+3. **Take the merge lock, then check the main folder** (this session never left it):
 
    ```bash
    mkdir .queue/merge.lock && echo LOCKED || echo "LOCK HELD - another worker is merging"
@@ -199,8 +306,8 @@ On success - verify, the suite and the review all green:
    rm -f "$out"; echo "exit=$rc"
    ```
 
-   A green run prints one line, a red one its last 60. Read the printed `exit=` line, not
-   the tool status: the wrapper itself always exits 0.
+   (The "Keep context small" pattern: green is one line, red its last 60. Read the printed
+   `exit=` line, not the tool status: the wrapper itself always exits 0.)
 
    - If `git status --porcelain` prints anything, or the branch is not `master`, **do not
      merge.** That output is Kevin's or the planner's unreviewed work, and a merge on top of
@@ -286,10 +393,13 @@ A "TASK-n queued" message from the planner that arrives mid-loop needs no action
 already reads the inbox. The loop also stops early at a held merge (steps 3 and 5), at a
 red it cannot pin on its own merge, or at a `master` that stays red after a revert (step 6).
 
-**Where you end the turn.** The Stop hook tests the git tree your shell is in. End in the
-main folder only if `git status --porcelain` is empty there - then the hook tests exactly
-what you merged. If the main folder is dirty (every held-merge stop), `cd` into the held
-task's worktree before you finish, so the hook tests your work and not Kevin's. If the
+**Where you end the turn.** The Stop hook tests the git tree your shell is in. While a build
+agent runs, end every turn in the main folder (check `pwd`), even if it is dirty: a
+background agent is writing in the worktree, so sitting there would test its half-made
+edit. Once no agent is running, end in the main folder only if `git status --porcelain` is
+empty there - then the hook tests exactly what you merged. If the main folder is dirty
+(every held-merge stop), `cd` into the held task's worktree before you finish, so the hook
+tests your work and not Kevin's. If the
 hook ever reports red in files outside the scope of the task you just ran, do not edit
 them: report the failure and stop.
 
