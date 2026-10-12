@@ -53,7 +53,7 @@ def _page(client, path="/job-engine"):
 
 
 def _values(html):
-    return re.findall(r'<span class="kpi-value">([^<]*)</span>', html)
+    return re.findall(r'<span class="kpi-value"[^>]*>([^<]*)</span>', html)
 
 
 def test_empty_dataset_renders_honest_empty_states_not_numbers(client, monkeypatch):

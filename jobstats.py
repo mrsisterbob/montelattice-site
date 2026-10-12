@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import threading
 import time
@@ -98,11 +99,42 @@ def _n(v) -> str:
     return f"{int(v):,}" if isinstance(v, (int, float)) and float(v).is_integer() else f"{v:,}"
 
 
-def _tile(label, value=None, sub="", empty="", cite=None) -> dict:
-    """One tile. value None means 'show the empty sentence instead of a number'."""
+def _target(v):
+    """The raw number a count-up may animate to, or None when it must not animate.
+
+    The page's own text is the formatted string, and the animation ends by printing the target, so
+    the two have to agree: whole numbers print as integers, anything else prints with one decimal.
+    A number that needs more than one decimal would end as a different figure than it started, so
+    it gets no target and renders as plain text.
+    """
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
+        return None
+    if float(v).is_integer():
+        return int(v)
+    return v if round(v, 1) == v else None
+
+
+def _agrees(text, target, suffix="") -> bool:
+    """True when the formatted text and the raw target print the same number once the commas are
+    taken out, so the count-up cannot end on a different figure than the page started on."""
+    # What site.js prints when the animation ends: integers as is, anything else to one decimal.
+    printed = str(target) if isinstance(target, int) else f"{target:.1f}"
+    return str(text).replace(",", "") == printed + suffix
+
+
+def _tile(label, value=None, sub="", empty="", cite=None, target=None, suffix="") -> dict:
+    """One tile. value None means 'show the empty sentence instead of a number'.
+
+    target/suffix are the raw number and unit behind a value that is a single number (see
+    _target); the template prints them as data-count attributes. Left unset, the tile is plain text.
+    """
     if cite is not None and not (cite.get("source") and cite.get("url")):
         raise ValueError(f"benchmark on {label!r} has no visible source")
-    return {"label": label, "value": value, "sub": sub, "empty": empty, "cite": cite}
+    target = _target(target)
+    if target is not None and not _agrees(value, target, suffix):
+        target = None  # the formatting and the raw number disagree: render plain text, never animate
+    return {"label": label, "value": value, "sub": sub, "empty": empty, "cite": cite,
+            "target": target, "suffix": suffix}
 
 
 def _date(iso: str | None) -> str:
@@ -134,7 +166,8 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
         t_screened = _tile("Roles screened", empty="No roles screened yet.")
     else:
         t_screened = _tile("Roles screened", _n(screened),
-                           f"AI-evaluated, from {_n(discovered)} listings discovered" if discovered else "AI-evaluated")
+                           f"AI-evaluated, from {_n(discovered)} listings discovered" if discovered else "AI-evaluated",
+                           target=screened)
 
     apps = p.get("applications_sent")
     days = p.get("days_running")
@@ -143,7 +176,8 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     elif apps == 0:
         t_apps = _tile("Applications sent", empty="No applications logged yet.")
     else:
-        t_apps = _tile("Applications sent", _n(apps), f"logged in the CRM over {_n(days)} days" if days else "logged in the CRM")
+        t_apps = _tile("Applications sent", _n(apps), f"logged in the CRM over {_n(days)} days" if days else "logged in the CRM",
+                       target=apps)
 
     live = p.get("live_conversations")
     if live is None:
@@ -151,7 +185,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     elif live == 0:
         t_live = _tile("Live conversations", empty="No open recruiter threads right now.")
     else:
-        t_live = _tile("Live conversations", _n(live), "open recruiter threads")
+        t_live = _tile("Live conversations", _n(live), "open recruiter threads", target=live)
 
     dead = p.get("dead_links")
     if dead is None:
@@ -162,7 +196,8 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
         week = dead.get("this_week") or 0
         t_dead = _tile("Dead links retired", _n(dead.get("retired", 0)),
                        f"of {_n(dead['detected'])} detected · "
-                       + (f"{_n(week)} this week" if week else "none this week"))
+                       + (f"{_n(week)} this week" if week else "none this week"),
+                       target=dead.get("retired", 0))
 
     fit = p.get("median_fit_score")
     if fit is None:
@@ -170,13 +205,15 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     else:
         scored = p.get("scored_roles") or 0
         t_fit = _tile("Median fit score", f"{fit:g}",
-                      f"out of 100, across {_n(scored)} role{'' if scored == 1 else 's'} that cleared the screen")
+                      f"out of 100, across {_n(scored)} role{'' if scored == 1 else 's'} that cleared the screen",
+                      target=fit)
 
     total, used = p.get("tracks_total"), p.get("tracks_used")
     if not total:
         t_tracks = _tile("Résumé tracks", empty="Track registry unavailable right now.")
     elif used is None:
-        t_tracks = _tile("Résumé tracks", _n(total), "tailored résumé tracks the router chooses between")
+        t_tracks = _tile("Résumé tracks", _n(total), "tailored résumé tracks the router chooses between",
+                         target=total)
     else:
         t_tracks = _tile("Résumé tracks", f"{_n(used)} of {_n(total)}", "tracks routed to so far")
 
@@ -187,13 +224,16 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     elif docs == 0:
         t_docs = _tile("Documents compiled", empty="None since counting began.")
     else:
-        t_docs = _tile("Documents compiled", _n(docs), f"résumés and cover letters since {since}")
+        t_docs = _tile("Documents compiled", _n(docs), f"résumés and cover letters since {since}",
+                       target=docs)
 
     d = p.get("drafting")
     drafting = None
     if d and d.get("median_ms") is not None:
         drafting = {
             "value": f"{d['median_ms']:g} ms",
+            "target": _target(d["median_ms"]) if _agrees(f"{d['median_ms']:g} ms", _target(d["median_ms"]) or 0, " ms") else None,
+            "suffix": " ms",
             "detail": f"Median of {_n(d.get('runs', 0))} warm runs on the engine's own server, "
                       f"measured {d.get('measured_at', '').replace('T', ' ').replace('Z', ' UTC')}.",
             "steps": " + ".join(d.get("steps") or []),
@@ -213,9 +253,12 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
         def rate(r):
             return f"{r:g}% of applications" if r is not None else "no applications to rate against yet"
         funnel = {"tiles": [
-            _tile("Replies", _n(f.get("replies") or 0), rate(f.get("reply_rate_pct"))),
-            _tile("Interviews", _n(f.get("interviews") or 0), rate(f.get("interview_rate_pct"))),
-            _tile("Offers", _n(f.get("offers") or 0), rate(f.get("offer_rate_pct"))),
+            _tile("Replies", _n(f.get("replies") or 0), rate(f.get("reply_rate_pct")),
+                  target=f.get("replies") or 0),
+            _tile("Interviews", _n(f.get("interviews") or 0), rate(f.get("interview_rate_pct")),
+                  target=f.get("interviews") or 0),
+            _tile("Offers", _n(f.get("offers") or 0), rate(f.get("offer_rate_pct")),
+                  target=f.get("offers") or 0),
         ], "empty": ""}
 
     return {

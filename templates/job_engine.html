@@ -14,7 +14,9 @@
 {% macro tile(t) %}
 <div class="kpi-tile">
   {% if t.value is not none %}
-  <span class="kpi-value">{{ t.value }}</span>
+  {# The text is the real, formatted number (no-JS and reduced-motion show it as is); the
+     data-* attributes only let site.js animate up to it. data-group keeps the thousands commas. #}
+  <span class="kpi-value"{% if t.target is not none %} data-count data-target="{{ t.target }}"{% if t.suffix %} data-suffix="{{ t.suffix }}"{% endif %} data-group{% endif %}>{{ t.value }}</span>
   <span class="kpi-label">{{ t.label }}</span>
   {% if t.sub %}<span class="kpi-sub">{{ t.sub }}</span>{% endif %}
   {% if t.cite %}<span class="kpi-cite">vs {{ t.cite.value }} &middot; <a href="{{ t.cite.url }}" target="_blank" rel="noopener">{{ t.cite.source }}</a></span>{% endif %}
@@ -56,7 +58,7 @@
     <h3>Match to sendable draft</h3>
     {% if dash.drafting %}
     <div class="dash-drafting__body">
-      <span class="dash-drafting__value">{{ dash.drafting.value }}</span>
+      <span class="dash-drafting__value"{% if dash.drafting.target is not none %} data-count data-target="{{ dash.drafting.target }}" data-suffix="{{ dash.drafting.suffix }}"{% endif %}>{{ dash.drafting.value }}</span>
       <div>
         <p>{{ dash.drafting.steps }}, compiled for a real cached role. {{ dash.drafting.detail }}</p>
         <p class="dash-note">The Gmail API round-trip that files the draft is network time and is not included.</p>
@@ -142,6 +144,16 @@
 </div>
 
 {% include "_repo_link.html" %}
+
+{% if dash %}
+<script>
+  // Values are server-rendered from the engine's public feed; this only arms the count-up.
+  if (window.MonteLattice && window.MonteLattice.armCountUp) window.MonteLattice.armCountUp();
+  else document.addEventListener('DOMContentLoaded', function () {
+    if (window.MonteLattice) window.MonteLattice.armCountUp();
+  });
+</script>
+{% endif %}
 
 {% if dash and dash.timeline %}
 <script>
