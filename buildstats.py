@@ -36,6 +36,26 @@ _lock = threading.Lock()
 _cache = {"stats": None, "loaded_at": None}
 
 
+_REPO_FIGURES = ("tracked_lines", "test_functions")
+
+
+def _repo_figures(repos) -> dict:
+    """{repo: {"tracked_lines": int, "test_functions": int}}, keeping only ints >= 0 under those two
+    keys. A malformed figure is dropped and the rest of the repo's figures stay; a repo with
+    none left is omitted. Never a fallback number."""
+    if not isinstance(repos, dict):
+        return {}
+    out = {}
+    for name, figs in repos.items():
+        if not isinstance(figs, dict):
+            continue
+        kept = {k: figs[k] for k in _REPO_FIGURES
+                if type(figs.get(k)) is int and figs[k] >= 0}
+        if kept:
+            out[name] = kept
+    return out
+
+
 def _parse(snap: dict) -> dict | None:
     """The one validity rule for a snapshot, whichever source it came from."""
     try:
@@ -53,7 +73,8 @@ def _parse(snap: dict) -> dict | None:
         logging.warning("Build stats snapshot is dated in the future: %s", generated)
         return None
     return {"commit_hours": hours, "tracked_lines": lines, "generated_at": generated,
-            "repo_count": len(snap.get("repos", {})), "unreachable": list(snap.get("unreachable", []))}
+            "repo_count": len(snap.get("repos", {})), "unreachable": list(snap.get("unreachable", [])),
+            "repos": _repo_figures(snap.get("repos"))}
 
 
 def _read(path: str) -> dict | None:
@@ -96,7 +117,10 @@ def load(path: str | None = None, now: float | None = None) -> dict | None:
     if stats is None:
         return None
     age_days = (now - stats["generated_at"].timestamp()) / 86400
-    return None if age_days > MAX_AGE_DAYS else stats
+    if age_days > MAX_AGE_DAYS:
+        return None
+    # A copy of the nested dict, so a caller cannot mutate the process-wide cache.
+    return dict(stats, repos={n: dict(f) for n, f in stats["repos"].items()})
 
 
 def reset_cache() -> None:

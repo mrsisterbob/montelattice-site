@@ -1,38 +1,42 @@
 {
-  "generated_at": "2026-09-26T23:08:43+00:00",
-  "commit_hours": 159,
-  "tracked_lines": 44290,
+  "generated_at": "2026-10-13T15:18:09+00:00",
+  "commit_hours": 193,
+  "tracked_lines": 56123,
   "first_commit_hour": "2026-07-31 16",
-  "last_commit_hour": "2026-09-26 17",
+  "last_commit_hour": "2026-10-13 11",
   "repos": {
     "job-outreach-engine": {
-      "commit_hours": 144,
-      "tracked_lines": 32543,
+      "commit_hours": 170,
+      "tracked_lines": 38459,
+      "test_functions": 1007,
       "by_extension": {
-        ".gs": 1199,
-        ".py": 31344
+        ".py": 37235,
+        ".gs": 1224
       }
     },
     "crypto-trading-engine": {
       "commit_hours": 3,
       "tracked_lines": 3674,
+      "test_functions": 15,
       "by_extension": {
         ".py": 3674
       }
     },
     "montelattice-site": {
-      "commit_hours": 14,
-      "tracked_lines": 4865,
+      "commit_hours": 29,
+      "tracked_lines": 10782,
+      "test_functions": 299,
       "by_extension": {
-        ".py": 2213,
-        ".css": 1209,
-        ".js": 68,
-        ".html": 1375
+        ".py": 7062,
+        ".css": 1804,
+        ".js": 134,
+        ".html": 1782
       }
     },
     "docfiler": {
       "commit_hours": 1,
       "tracked_lines": 1515,
+      "test_functions": 42,
       "by_extension": {
         ".py": 1515
       }
@@ -40,6 +44,7 @@
     "budget-tracker": {
       "commit_hours": 3,
       "tracked_lines": 1693,
+      "test_functions": 23,
       "by_extension": {
         ".py": 1186,
         ".html": 507
