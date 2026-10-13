@@ -46,7 +46,8 @@ task or opening a worktree - find out which session you are in.
 
 You are the **worker**. You implement one task at a time, verify it, merge it into `master`,
 and go back for the next one, until the inbox is empty or nothing left in it can run (see
-"When the loop ends" at the bottom). Never push.
+"When the loop ends" at the bottom). Push `master` only where step 7 of Finish says, after a
+green merge, with a plain `git push origin master`.
 
 If a message from the `site-planner` session started this turn, the queue is still the
 source of truth - read the task file, not the message. A message can say a task is ready; it
@@ -399,20 +400,46 @@ On success - verify, the suite and the review all green:
    sha goes in the Log: Claim step 5 uses it to re-land the work. If `master` is **still**
    red after the revert, stop the loop and tell Kevin with the output - do not attempt a
    second fix.
-7. **Green on `master`:** only now remove the worktree and branch, mark the task done, and
-   release the lock. If the worktree has uncommitted changes, keep it and tell Kevin - never
+7. **Green on `master`:** only now remove the worktree and branch, mark the task done, push
+   `master`, and release the lock. If the worktree has uncommitted changes, keep it and tell Kevin - never
    `--force`.
 
    ```bash
    git -C .worktrees/<TASK-id> status --porcelain
    git worktree remove .worktrees/<TASK-id> && git branch -d task/<TASK-id>
    mv .queue/active/<file> .queue/done/<file>
-   rmdir .queue/merge.lock
    ```
 
    Removal waits until `master` is proven green, so a reverted merge still has its branch.
    `done/` therefore means merged into `master`; dependency checks (Claim, step 4) rely on it.
-8. Report one line - task id, merged / blocked / held, test counts, review findings - and if
+
+   Then push, still holding the lock (2026-10-13: Kevin asked for the worker to push; the Render
+   deploy is his). Holding it means no other worker is mid-merge, so the push never carries
+   someone else's half-tested merge. It is one plain command and nothing else:
+
+   ```bash
+   if git push origin master; then echo "PUSHED $(git rev-parse HEAD)"; else echo "PUSH REJECTED - not retried"; fi
+   ```
+
+   - **Never push** on a held merge (step 3: dirty folder, wrong branch, red baseline, lock
+     timeout), on a conflict or a refused merge (step 5), when the merge said "Already up to
+     date" (no merge commit), or on any red in step 6, including a red that a revert fixed. A
+     reverted merge leaves local-only commits on `master`; the next green merge's push carries
+     them, which is fine.
+   - **On `PUSH REJECTED`** (any non-zero exit: the remote is ahead, auth, network): do nothing
+     to make it go through. The remote is Kevin's to reconcile, so `master` is never forced,
+     rebased, reset or pulled through. Leave `master` exactly as it is, merged and green
+     locally, and keep the task in `done/` (it IS merged). Append the push output and "push
+     rejected" to the task's Log, release the lock, **stop the loop**, and tell Kevin in the
+     same shape as the other guards. Every later push would hit the same wall.
+
+   Release the lock last:
+
+   ```bash
+   rmdir .queue/merge.lock
+   ```
+8. Report one line - task id, merged / blocked / held, test counts, review findings, and for a
+   merge "merged <merge-sha>, pushed <hash>" or "merged <merge-sha>, push rejected" - and if
    a `site-planner` session is running, message it the same line plus anything it got wrong
    about the code. If the task was blocked, that message is how the plan gets fixed - say
    what you actually found, not that it failed. Then go back to **Claim** from the main folder.
@@ -421,8 +448,10 @@ On success - verify, the suite and the review all green:
 The same shape for every guard: what happened, the task id, and where the work is (branch
 `task/<TASK-id>`).
 
-**The only git writes on `master` are two: a `--no-ff` merge and a `git revert`.** Never push.
-Never commit there directly, never reset, never stash.
+**The only git writes on `master` are three: a `--no-ff` merge, a `git revert`, and a plain
+`git push origin master` after a green merge (step 7).** Never push on a held, conflicted,
+reverted or red path. Never commit there directly, never reset, never stash, and never push
+in any other form.
 
 ## When the loop ends
 
@@ -433,7 +462,8 @@ them in the final report.
 
 A "TASK-n queued" message from the planner that arrives mid-loop needs no action - the loop
 already reads the inbox. The loop also stops early at a held merge (steps 3 and 5), at a
-red it cannot pin on its own merge, or at a `master` that stays red after a revert (step 6).
+red it cannot pin on its own merge, at a `master` that stays red after a revert (step 6), or at a
+rejected push (step 7).
 
 **Where you end the turn.** The Stop hook tests the git tree your shell is in. While a build
 agent runs, end every turn in the main folder (check `pwd`), even if it is dirty: a
