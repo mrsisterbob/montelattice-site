@@ -25,7 +25,7 @@
   try {
     var t = localStorage.getItem("ml-theme");
     if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { /* private mode: fall through to the OS preference, which is the default anyway */ }
+  } catch (e) { /* private mode: storage unreadable, so the page stays on the light default */ }
 </script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
