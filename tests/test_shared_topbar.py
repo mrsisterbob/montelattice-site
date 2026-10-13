@@ -128,18 +128,48 @@ def _measure(path, width, monkeypatch, tmp_path):
     return json.loads(htmllib.unescape(found.group(1)))
 
 
+def _rows(out):
+    """Link count per visual row, from the probe's link tops."""
+    rows = {}
+    for link in out["links"]:
+        rows[link["t"]] = rows.get(link["t"], 0) + 1
+    return [rows[t] for t in sorted(rows)]
+
+
+def _assert_clean(out, label):
+    assert all(n >= 2 for n in _rows(out)), (label, "a link sits alone on a row", out["links"])
+    nav = out["nav"]
+    assert nav["t"] <= out["toggleCentre"] <= nav["b"], (label, "toggle is not beside the nav", out)
+    assert out["scrollWidth"] <= out["clientWidth"], (label, out)
+
+
 @pytest.mark.parametrize("path", ["/", "/job-engine"])
 def test_homepage_nav_lays_out_like_the_product_pages_at_375px(path, monkeypatch, tmp_path):
     monkeypatch.setenv("ANALYTICS_ENABLED", "false")
     monkeypatch.setattr(homepage, "load_bank", lambda: BANK)
     monkeypatch.setattr(jobstats, "fetch", lambda *a, **k: None)
     out = _measure(path, 375, monkeypatch, tmp_path)
-    n = len(out["links"])
-    assert n >= 4, out
-    lefts = sorted({l["l"] for l in out["links"]})
-    tops = sorted({l["t"] for l in out["links"]})
-    assert len(lefts) == 2, ("icon nav is not two columns", out["links"])
-    assert len(tops) == (n + 1) // 2, ("icon nav rows", out["links"])
-    nav = out["nav"]
-    assert nav["t"] <= out["toggleCentre"] <= nav["b"], ("toggle is not beside the nav", out)
-    assert out["scrollWidth"] <= out["clientWidth"], out
+    assert len(out["links"]) >= 5, out
+    _assert_clean(out, path)
+
+
+@pytest.mark.parametrize("width", [320, 375])
+@pytest.mark.parametrize("crypto,console,expected", [(False, False, 5), (True, False, 6), (False, True, 6), (True, True, 7)])
+def test_topbar_lays_out_cleanly_with_five_to_seven_links(crypto, console, expected, width, monkeypatch, tmp_path):
+    monkeypatch.setenv("ANALYTICS_ENABLED", "false")
+    monkeypatch.setattr(homepage, "load_bank", lambda: BANK)
+    monkeypatch.setattr(jobstats, "fetch", lambda *a, **k: None)
+    monkeypatch.setenv("PUBLIC_CRYPTO", "true" if crypto else "false")
+    monkeypatch.setenv("PUBLIC_CONSOLE_DEMO", "true" if console else "false")
+    out = _measure("/", width, monkeypatch, tmp_path)
+    assert len(out["links"]) == expected, out
+    _assert_clean(out, f"{expected} links at {width}px")
+
+
+def test_the_lattice_link_is_first_and_active_only_on_lattice(client):
+    def nav_links(path):
+        bar = re.search(r'<header class="topbar">.*?</header>', client.get(path).get_data(as_text=True), re.S).group(0)
+        return re.findall(r'<a href="(/[^"]*)" class="([^"]*)">', bar)
+    assert nav_links("/")[0] == ("/lattice", "")
+    assert nav_links("/lattice")[0] == ("/lattice", "active")
+    assert nav_links("/job-engine")[0] == ("/lattice", "")

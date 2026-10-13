@@ -82,15 +82,28 @@
 
 @media (max-width: 720px) {
   .topbar__inner { --gutter: 24px; justify-content: center; gap: 14px; }
-  /* Brand on its own row, then the 2x2 icon grid with the theme toggle beside it. The grid's flex
-     basis is small enough that grid + gap + toggle fits a 320px viewport on one row. */
+  /* Brand on its own row, then the icon grid with the theme toggle beside it. The column count
+     follows the link count (icon-nav--n5/6/7, set in _topbar.html) so the last row is never a
+     single link: 5 -> 3+2, 6 -> 3+3, 7 -> 4+3. Rows are centred. Each item's width comes from
+     the column count, so grid + gap + toggle fits a 320px viewport on one row. */
   .topbar__brand { flex-basis: 100%; text-align: center; }
   .icon-nav {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px 28px;
-    flex: 1 1 200px;
+    --cols: 3;
+    --col-gap: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px var(--col-gap);
+    flex: 1 1 0;
     min-width: 0;
-    max-width: 260px;
+    max-width: 300px;
   }
+  .icon-nav a {
+    flex: 0 0 calc((100% - (var(--cols) - 1) * var(--col-gap)) / var(--cols));
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .icon-nav--n7 { --cols: 4; --col-gap: 6px; }
+  .icon-nav--n7 a { letter-spacing: 0.04em; font-size: 0.62rem; }
 }
