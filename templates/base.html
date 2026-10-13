@@ -35,6 +35,8 @@
 {% block head_extra %}{% endblock %}
 </head>
 <body>
+  {# Not on the private Console, which extends this template with active_page == 'console'. #}
+  {% if active_page != 'console' %}{% include "_availability.html" %}{% endif %}
   <header class="topbar">
     <div class="topbar__inner">
       <a class="topbar__brand" href="/">Monte&nbsp;Lattice</a>
