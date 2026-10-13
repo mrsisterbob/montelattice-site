@@ -32,6 +32,12 @@
 {# The availability banner: the same partial and the same siteflags switch as the base.html pages.
    Outside the p / no-p branch, so the 503 page shows it too. #}
 {% include "_availability.html" %}
+{# A system card's measured figures (homepage.system_figures, keyed by the card's slug). Nothing
+   renders for a slug with no figures. #}
+{% macro sys_figures(slug) %}{% set figs = (p.system_figures or {}).get(slug) %}{% if figs %}
+      <ul class="sys-figs">
+        {% for f in figs %}<li><span class="sys-fig-n">{{ f.value }}</span> {{ f.label }}</li>{% endfor %}
+      </ul>{% endif %}{% endmacro %}
 {# Status pill for a system card, from siteflags.PROJECT_STATUS (the same source as the /lattice
    cards), looked up by the card's path slug. Never typed into this template. #}
 {% macro status_tag(slug) %}{% set st = (project_status or {}).get(slug) %}{% if st %}<span class="status-tag status-tag--{{ st | lower | replace(' ', '-') }}">{{ st }}</span>{% endif %}{% endmacro %}
@@ -160,6 +166,7 @@
         tailored one-page PDFs on demand, and outcome tracking. The model routes and
         scores. Every line that ships comes from banked copy, never generated text.
       </p>
+      {{ sys_figures("job-engine") }}
       <div class="sys-meta">Python / Flask / SQLite / Gemini / Typst</div>
     </div>
     <div class="sys">
@@ -170,19 +177,23 @@
         WebSocket reconciliation feed, and a backtester that replays the same logic
         over historical data.
       </p>
+      {{ sys_figures("crypto") }}
       <div class="sys-meta">Python / WebSockets / SQLite WAL</div>
     </div>
     <div class="sys">
       <div class="sys-name"><a href="/docfiler">DocFiler</a>{{ status_tag("docfiler") }}</div>
       <p class="sys-desc">Automated document intake and filing, built for small law firms and RIAs.</p>
+      {{ sys_figures("docfiler") }}
       <div class="sys-meta">Python / Document automation</div>
     </div>
     <div class="sys">
       <div class="sys-name"><a href="/budget">Budget Tracker</a>{{ status_tag("budget") }}</div>
       <p class="sys-desc">A personal income and spending tracker with monthly rollups and a category breakdown.</p>
+      {{ sys_figures("budget") }}
       <div class="sys-meta">Python / SQLite</div>
     </div>
   </div>
+  {% if p.system_figures_note %}<p class="sys-note">{{ p.system_figures_note }}</p>{% endif %}
   {% if demo_video %}
   <video class="demo-video" controls playsinline preload="metadata" aria-label="Short demo of the systems running">
     <source src="{{ url_for('static', filename=demo_video) }}" type="video/mp4">
