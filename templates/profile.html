@@ -29,6 +29,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
 <body>
+{# Status pill for a system card, from siteflags.PROJECT_STATUS (the same source as the /lattice
+   cards), looked up by the card's path slug. Never typed into this template. #}
+{% macro status_tag(slug) %}{% set st = (project_status or {}).get(slug) %}{% if st %}<span class="status-tag status-tag--{{ st | lower | replace(' ', '-') }}">{{ st }}</span>{% endif %}{% endmacro %}
 
 <nav class="sitenav" aria-label="Site">
   <div class="sitenav-inner">
@@ -126,7 +129,7 @@
   </p>
   <div class="systems">
     <div class="sys">
-      <div class="sys-name"><a href="/job-engine">Job Outreach Engine</a></div>
+      <div class="sys-name"><a href="/job-engine">Job Outreach Engine</a>{{ status_tag("job-engine") }}</div>
       <p class="sys-desc">
         An AI-screened job pipeline with a live CRM, a Typst compiler that assembles
         tailored one-page PDFs on demand, and outcome tracking. The model routes and
@@ -136,7 +139,7 @@
     </div>
     <div class="sys">
       {# Described while hidden (it is real engineering evidence), but no dashboard link. #}
-      <div class="sys-name">{% if public_crypto %}<a href="/crypto">Crypto Trading Engine</a>{% else %}Crypto Trading Engine{% endif %}</div>
+      <div class="sys-name">{% if public_crypto %}<a href="/crypto">Crypto Trading Engine</a>{% else %}Crypto Trading Engine{% endif %}{% if public_crypto %}{{ status_tag("crypto") }}{% endif %}</div>
       <p class="sys-desc">
         A concurrent backend on SQLite in WAL mode with explicit write locks, a live
         WebSocket reconciliation feed, and a backtester that replays the same logic
@@ -145,12 +148,12 @@
       <div class="sys-meta">Python / WebSockets / SQLite WAL</div>
     </div>
     <div class="sys">
-      <div class="sys-name"><a href="/docfiler">DocFiler</a></div>
+      <div class="sys-name"><a href="/docfiler">DocFiler</a>{{ status_tag("docfiler") }}</div>
       <p class="sys-desc">Automated document intake and filing, built for small law firms and RIAs.</p>
       <div class="sys-meta">Python / Document automation</div>
     </div>
     <div class="sys">
-      <div class="sys-name"><a href="/budget">Budget Tracker</a></div>
+      <div class="sys-name"><a href="/budget">Budget Tracker</a>{{ status_tag("budget") }}</div>
       <p class="sys-desc">A personal income and spending tracker with monthly rollups and a category breakdown.</p>
       <div class="sys-meta">Python / SQLite</div>
     </div>
