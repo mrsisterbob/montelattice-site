@@ -191,7 +191,11 @@ p:last-child { margin-bottom: 0; }
   isolation: isolate;  /* the constellation sits behind the text, inside this box */
 }
 /* Faint constellation behind the top of the hero: a mask (static/img/constellation.svg) coloured by
-   a token, so light and dark both work. Static: no motion to cancel. Decorative: no pointer events,
+   a token, so light and dark both work. It drifts: `cover` always overflows the box on one axis, and
+   the mask position slides across that overflow, so nothing is transformed and the page cannot gain
+   a horizontal scroll. The first frame is the old static layout (centred, top edge), and it drifts
+   from there. TASK-20 removed an earlier twinkle; slow motion is back because Kevin asked
+   for it, and it is cancelled under prefers-reduced-motion below. Decorative: no pointer events,
    behind the content. Anchored to the top at a bounded height, so on a tall hero (375px wide) it
    keeps its scale instead of `cover`-ing the whole section into a few huge blobs. */
 .intro::before {
@@ -202,9 +206,17 @@ p:last-child { margin-bottom: 0; }
   z-index: -1;
   pointer-events: none;
   background-color: var(--brass-warm);
-  opacity: 0.12;
+  opacity: 0.2;
   -webkit-mask: url("../img/constellation.svg") no-repeat center top / cover;
   mask: url("../img/constellation.svg") no-repeat center top / cover;
+  animation: constellation-drift 60s ease-in-out infinite alternate;
+}
+@keyframes constellation-drift {
+  from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
+  to { -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro::before { animation: none; }
 }
 .intro__wordmark {
   font-size: clamp(2rem, 5vw, 3.1rem);
