@@ -63,6 +63,7 @@ def test_title_band_layer_is_a_masked_token_behind_the_text(client):
     css = _rapture(client)
     body = _rule(css, ".title-band::before")
     assert "constellation.svg" in body and "constellation-drift" in body
+    assert re.search(r"mask:[^;]*/\s*cover", body), "the motion model below assumes `cover` sizing"
     assert "pointer-events: none" in body and re.search(r"z-index:\s*-1", body)
     assert "background-color: var(--on-teal)" in body
     assert "-webkit-mask:" in body and re.search(r"(?<!-)mask:", body)
@@ -195,15 +196,11 @@ def _measure(path, width, tmp_path, monkeypatch):
     return json.loads(htmllib.unescape(found.group(1)))
 
 
-def _offsets(rec, by_width):
-    """Pixel offset of the art's top-left at each probed time. `cover` unless the CSS sizes the art
-    by width (`max(100%, Npx) auto`), as the title band does only if cover cannot travel."""
-    if by_width:
-        art_w = max(rec["w"], by_width)
-        art_h = art_w / 2.0
-    else:
-        scale = max(rec["w"] / ART_W, rec["h"] / ART_H)
-        art_w, art_h = ART_W * scale, ART_H * scale
+def _offsets(rec):
+    """Pixel offset of the art's top-left at each probed time. The band uses `cover` (asserted by
+    test_title_band_layer_is_a_masked_token_behind_the_text), so the scale follows the band's box."""
+    scale = max(rec["w"] / ART_W, rec["h"] / ART_H)
+    art_w, art_h = ART_W * scale, ART_H * scale
     ox, oy = max(0.0, art_w - rec["w"]), max(0.0, art_h - rec["h"])
     points = []
     for pos in rec["pos"]:
@@ -212,18 +209,13 @@ def _offsets(rec, by_width):
     return points
 
 
-def _by_width(client):
-    m = re.search(r"mask:[^;]*/\s*max\(100%,\s*(\d+)px\)\s*auto", _rule(_rapture(client), ".title-band::before"))
-    return float(m.group(1)) if m else None
-
-
 @pytest.mark.parametrize("width", [1280, 375])
 @pytest.mark.parametrize("path", PAGES)
 def test_title_band_lines_drift_from_the_first_second_and_change_nothing_else(path, width, tmp_path, monkeypatch, client):
     out = _measure(path, width, tmp_path, monkeypatch)
     assert "constellation.svg" in out["mask"], out
     assert out["count"] == 1, out
-    p = _offsets(out, _by_width(client))
+    p = _offsets(out)
     first = math.hypot(p[1][0] - p[0][0], p[1][1] - p[0][1])
     later = math.hypot(p[3][0] - p[2][0], p[3][1] - p[2][1])
     assert first >= MIN_FIRST_SECOND_PX, (path, width, "px in the first second", round(first, 2), out)
