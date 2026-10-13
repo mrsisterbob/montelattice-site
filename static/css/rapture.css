@@ -255,19 +255,21 @@ p:last-child { margin-bottom: 0; }
 .tool-grid__core rect { fill: var(--teal); stroke: var(--brass-warm); stroke-width: 1.5; }
 .tool-grid__core path { fill: var(--brass); }
 .tool { color: var(--muted); }
+/* Every tool is the same 48x48 tile; the mark or monogram sits inside it, the name under it. */
+.tool__tile { fill: var(--surface); stroke: var(--rule-strong); stroke-width: 1; }
 .tool__mark svg path { fill: currentColor; }
+.tool__monogram {
+  fill: var(--muted);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  text-anchor: middle;
+}
 .tool__name {
   fill: var(--muted);
   font-family: var(--font-body);
   font-size: 14px;  /* viewBox units: ~8.5px at 375px, the smallest it is allowed to get */
   letter-spacing: 0.02em;
-  text-anchor: middle;
-}
-.tool__wordmark {
-  fill: var(--ink);
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
   text-anchor: middle;
 }
 

@@ -12,6 +12,11 @@
    --i) is set per position in rapture.css by :nth-of-type, so this markup stays identical on every
    request. The core <g> is the first <g> in the SVG, so tool k is :nth-of-type(k + 2).
 
+   Every tool is the same unit: a 48x48 tile holding the licensed mark (sized per tool by
+   tools.py's mark_size, so none reads as oversized) or, when there is no licensed mark, the first
+   letter of its name as a neutral monogram, with the name as a label under the tile. The tile is
+   inside tool__mark so it scatters and settles with the mark.
+
    Slots: 5 across the top, 2 + the M + 2 in the middle, 4 centred along the bottom = 13 tools. #}
 {% macro tool_grid(tools) %}
 {% set slots = [(56, 50), (168, 50), (280, 50), (392, 50), (504, 50),
@@ -28,12 +33,13 @@
   {% set x, y = slots[loop.index0] %}
   <g class="tool" data-tool="{{ t.name }}" transform="translate({{ x }} {{ y }})">
     <g class="tool__mark">
+      <rect class="tool__tile" x="-24" y="-36" width="48" height="48" rx="9"/>
       {% if t.svg_path %}
-      <svg x="-18" y="-30" width="36" height="36" viewBox="{{ t.svg_viewbox }}" aria-hidden="true"><path d="{{ t.svg_path }}"/></svg>
-      <text class="tool__name" y="28">{{ t.name }}</text>
+      <svg x="{{ -(t.mark_size // 2) }}" y="{{ -12 - t.mark_size // 2 }}" width="{{ t.mark_size }}" height="{{ t.mark_size }}" viewBox="{{ t.svg_viewbox }}" aria-hidden="true"><path d="{{ t.svg_path }}"/></svg>
       {% else %}
-      <text class="tool__wordmark" y="6">{{ t.name }}</text>
+      <text class="tool__monogram" y="-12" dy="0.35em" aria-hidden="true">{{ t.name[0] }}</text>
       {% endif %}
+      <text class="tool__name" y="28">{{ t.name }}</text>
     </g>
   </g>
   {% endif %}{% endfor %}
