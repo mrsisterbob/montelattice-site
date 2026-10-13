@@ -152,9 +152,12 @@ task, and `git revert -m 1 <merge-sha>` takes any of them back out.
 Two consequences to know:
 - **A task can only build on merged work.** The worktree starts from `master`, and the worker
   only picks a task whose dependencies are already in `done/`.
-- **The worker's only writes on `master` are the `--no-ff` merge and a revert** - no direct
-  commit, push, reset or stash. A dirty main folder stops it before it merges, so your
-  uncommitted work is never mixed in.
+- **The worker's only writes on `master` are the `--no-ff` merge, a revert, and a plain
+  `git push origin master` after a green merge** - no direct commit, reset or stash, and it
+  never forces anything. A rejected push is reported and stops the loop; it is never retried,
+  pulled or rebased through. (2026-10-13: Kevin asked for the worker to push; the Render
+  deploy is his.) A dirty main folder stops it before it merges, so your uncommitted work is
+  never mixed in.
 
 Known gap: inside `.worktrees/`, homepage.py's sibling path
 (`../job-outreach-engine/evidence_bank.json`) does not resolve, so a dev server started in a
