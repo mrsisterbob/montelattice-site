@@ -11,7 +11,9 @@
   function armToolSettle(grid) {
     if (REDUCE_MOTION || !("IntersectionObserver" in window)) return;
     grid.classList.add("is-scattered");
+    var failsafe;
     function settle() {
+      clearTimeout(failsafe);
       grid.classList.remove("is-scattered");
       grid.classList.add("is-settling");
       observer.disconnect();
@@ -22,7 +24,7 @@
     observer.observe(grid);
     // Failsafe: a grid that never intersects (hidden container, a preview that does not scroll)
     // must not stay invisible.
-    setTimeout(settle, 6000);
+    failsafe = setTimeout(settle, 6000);
   }
 
   function armAll() {

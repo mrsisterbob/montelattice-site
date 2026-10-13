@@ -71,6 +71,7 @@ def _without_tool_web(html):
         pos = start + m.end()
         if depth == 0:
             break
+    assert depth == 0, "the tool web's <svg> never balanced; the cut would take the rest of the page"
     return html[:start] + html[pos:]
 
 
