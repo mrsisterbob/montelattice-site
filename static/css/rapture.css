@@ -501,17 +501,7 @@ input, button, select, textarea { font-family: inherit; font-size: 1rem; }
 
 canvas { max-width: 100%; }
 
-/* --- Footer --- */
-.site-footer {
-  background: var(--teal);
-  color: color-mix(in srgb, var(--on-teal) 80%, transparent);
-  text-align: center;
-  padding: 26px;
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
-  margin-top: 32px;
-  border-top: 2px solid var(--brass);
-}
+/* The site footer lives in topbar.css (shared with the homepage). */
 
 /* --- Mobile: 375px, no horizontal scroll --- */
 @media (max-width: 720px) {
@@ -528,19 +518,6 @@ canvas { max-width: 100%; }
 /* =========================================================================
    Console cockpit  (scoped to .console - the public site is untouched)
    ========================================================================= */
-
-.site-footer__link {
-  display: inline-block;
-  margin-left: 14px;
-  color: color-mix(in srgb, var(--on-teal) 55%, transparent);
-  border-bottom: 1px solid transparent;
-}
-.site-footer__link:hover { color: var(--on-teal); border-bottom-color: var(--brass); }
-.site-footer__privacy {
-  margin: 10px 0 0;
-  font-size: 0.74rem;
-  color: color-mix(in srgb, var(--on-teal) 55%, transparent);
-}
 
 /* --- /code page: repo cards --- */
 .repo-list { display: grid; gap: 20px; }

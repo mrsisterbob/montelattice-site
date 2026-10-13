@@ -1,0 +1,11 @@
+{# The site footer bar, shared by base.html (every product page) and profile.html (the homepage), so
+   the two cannot drift. Styled in topbar.css. The privacy line is hidden once signed in: the
+   owner's login sets a Flask session cookie, so the line would be false for that viewer. #}
+<footer class="site-footer">
+  Monte Lattice &middot; Kevin Miller
+  <a class="site-footer__link" href="/code">Code</a>
+  <a class="site-footer__link" href="https://github.com/mrsisterbob" target="_blank" rel="noopener">GitHub</a>
+  <a class="site-footer__link" href="{{ '/console' if public_console_demo or console_authed else '/console/login' }}">Console</a>
+  {# Hidden once signed in: the owner's login sets a Flask session cookie, so the line would be false. #}
+  {% if not console_authed %}<p class="site-footer__privacy">This site sets no cookies and loads no trackers.</p>{% endif %}
+</footer>

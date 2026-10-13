@@ -4,51 +4,21 @@
    same value as its fallback. */
 
 /* --- The drifting constellation: ONE @keyframes for the whole site ---
-   The masthead, the contact band, the top bar, the site footer and the tool-web backdrop
-   (.web-backdrop, toolweb.css: /lattice and the homepage) point at this. It lives here because
+   The masthead, the contact band and the tool-web backdrop (.web-backdrop, toolweb.css: /lattice
+   and the homepage) point at this. It lives here because
    topbar.css reaches every page (base.html and profile.html link it, rapture.css imports it). */
 @keyframes constellation-drift {
   from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
   to { -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
 }
 
-/* --- Top bar: solid teal, wordmark left, icon nav right --- */
+/* --- Top bar: solid teal, wordmark left, icon nav right ---
+   Plain on purpose (2026-10-13: Kevin reverted the constellation layers on the bars; the lines
+   live in the masthead, the contact band and the tool webs only). */
 .topbar {
   background: var(--teal);
   color: var(--on-teal);
   border-bottom: 2px solid var(--brass);
-  position: relative;
-  isolation: isolate;  /* the constellation sits behind the content, inside the bar */
-}
-/* The same faint constellation as the masthead, behind the top bar and the site footer (the
-   homepage has no site footer: its bottom band is .contact). `cover` would leave almost no travel
-   on a bar this short, so the art is sized by width instead: at least 800px, or the bar's full
-   width, which is the masthead's scale (800-1280px wide art at the same viewport). It then
-   overflows on y at desktop and on both axes on a phone, and the position drifts across that
-   overflow. Starts half-way through its cycle (negative delay), so it moves from the first frame.
-   Decorative: no pointer events, behind the content, inside the bar (inset 0) so it cannot widen
-   the page. Opacity is the contrast budget: the footer's 55% links and privacy line are the
-   limit (4.5:1 needs 0.06 or less), the top bar's 72% labels leave room to 0.10; the test
-   recomputes both from tokens.css. */
-.topbar::before, .site-footer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-color: var(--on-teal);
-  -webkit-mask: url("../img/constellation.svg") no-repeat 50% 0 / max(100%, 800px) auto;
-  mask: url("../img/constellation.svg") no-repeat 50% 0 / max(100%, 800px) auto;
-  animation: constellation-drift 60s ease-in-out -30s infinite alternate;
-}
-.topbar::before { opacity: 0.10; }
-.site-footer { position: relative; isolation: isolate; }
-.site-footer::before { opacity: 0.06; }
-@media (prefers-reduced-motion: reduce) {
-  .topbar::before { animation: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .site-footer::before { animation: none; }
 }
 .topbar__inner {
   max-width: var(--wrap, 1180px);
@@ -157,4 +127,33 @@
   }
   .icon-nav--n7 { --cols: 4; --col-gap: 6px; }
   .icon-nav--n7 a { letter-spacing: 0.04em; font-size: 0.62rem; }
+}
+
+/* --- Site footer: a plain teal bar, shared by base.html and profile.html (templates/_footer.html) ---
+   Moved here from rapture.css so the homepage, which does not load rapture.css, draws the same bar.
+   Its top border is the 2px brass rule above it. On the homepage it follows the contact band, and
+   then that border IS the one rule between the band and the footer, so the margin goes. */
+.site-footer {
+  background: var(--teal);
+  color: color-mix(in srgb, var(--on-teal) 80%, transparent);
+  text-align: center;
+  padding: 26px;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  margin-top: 32px;
+  border-top: 2px solid var(--brass);
+}
+.contact + .site-footer { margin-top: 0; }
+.site-footer__link {
+  display: inline-block;
+  margin-left: 14px;
+  color: color-mix(in srgb, var(--on-teal) 55%, transparent);
+  border-bottom: 1px solid transparent;
+}
+.site-footer__link:hover { color: var(--on-teal); border-bottom-color: var(--brass); }
+.site-footer__privacy {
+  margin: 10px 0 0;
+  max-width: none;  /* the homepage sheet gives every <p> a 36rem measure, which would left-align this */
+  font-size: 0.74rem;
+  color: color-mix(in srgb, var(--on-teal) 55%, transparent);
 }
