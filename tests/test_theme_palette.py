@@ -113,26 +113,6 @@ def test_palette_documented_figures_match_the_measured_ones(palettes):
             assert abs(float(listed[label]) - measured) <= 0.051, (mode, label, listed[label], round(measured, 3))
 
 
-def test_palette_light_cards_are_blue_and_separate_from_the_page(palettes):
-    """White-on-white was the defect: the surface was lighter than paper and nearly neutral."""
-    import math
-    lin = lambda c: c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-    def oklch(h):
-        r, g, b = (lin(int(h[i:i + 2], 16) / 255) for i in (1, 3, 5))
-        l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
-        m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
-        s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
-        a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
-        bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
-        return math.hypot(a, bb), math.degrees(math.atan2(bb, a)) % 360
-    p = palettes["light"]
-    chroma, hue = oklch(p["--surface"])
-    assert chroma >= 0.015 and 240 <= hue <= 290, (p["--surface"], round(chroma, 4), round(hue, 1))
-    assert contrast(p["--surface"], p["--paper"]) >= 1.08, round(contrast(p["--surface"], p["--paper"]), 3)
-    # Chart marks drawn inside cards (non-text, 3:1), and the heatmap ramp's first step must still
-    # read as a step off the card (it was 1.42 on the old surface).
-    for name in ("--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5", "--chart-6"):
-        assert contrast(p[name], p["--surface"]) >= LARGE_FLOOR, name
-    assert contrast(p["--cal1"], p["--surface"]) >= 1.4
-    # --warn is a fill or border on cards, never text: the 3:1 non-text floor applies.
-    assert contrast(p["--warn"], p["--surface"]) >= LARGE_FLOOR
+# test_palette_light_cards_are_blue_and_separate_from_the_page was removed 2026-10-13 (TASK-55): the
+# light surface is no longer a blue. Its successor, which also keeps the chart, heatmap and warn
+# floors against the new surface, is tests/test_light_palette.py.
