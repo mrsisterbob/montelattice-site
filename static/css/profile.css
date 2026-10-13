@@ -264,6 +264,9 @@ p { margin: 0 0 1.05rem; max-width: 36rem; }
 .status-tag--live { color: var(--ok); }
 .status-tag--beta { color: var(--brass-text); }
 .sys-desc { font-size: 0.92rem; color: var(--muted); margin: 0 0 0.6rem; }
+.sys-figs { list-style: none; margin: 0 0 0.6rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; font-size: 0.85rem; color: var(--muted); }
+.sys-fig-n { font-family: var(--font-mono); font-weight: 600; color: var(--ink); }
+.sys-note { font-size: 0.8rem; color: var(--muted); margin: 0.6rem 0 0; }
 .sys-meta {
   font-family: var(--font-mono);
   font-size: 0.72rem;

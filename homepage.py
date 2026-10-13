@@ -112,6 +112,34 @@ def _live_figure(key: str, build: dict | None) -> dict | None:
             "note": note.format(date=date), "empty": "", "live": True}
 
 
+# Proof-card slug (the status_tag slugs in profile.html) -> repo name in the build snapshot.
+SYSTEM_REPOS = {"job-engine": "job-outreach-engine", "crypto": "crypto-trading-engine",
+                "docfiler": "docfiler", "budget": "budget-tracker"}
+_SYSTEM_FIGURES = (("tracked_lines", "lines of code"), ("test_functions", "test functions"))
+
+
+def _system_figures(build: dict | None) -> dict[str, list[dict]]:
+    """Each Proof card's own measured figures, from the build snapshot, keyed by card slug.
+    A figure the snapshot lacks is left out, and with no usable snapshot there are none."""
+    repos = (build or {}).get("repos") or {}
+    out = {}
+    for slug, repo in SYSTEM_REPOS.items():
+        figs = repos.get(repo, {})
+        shown = [{"value": f"{figs[key]:,}", "label": label} for key, label in _SYSTEM_FIGURES if key in figs]
+        if shown:
+            out[slug] = shown
+    return out
+
+
+def _system_figures_note(build: dict | None, figures: dict) -> str:
+    if not build or not figures:
+        return ""
+    date = f"{build['generated_at']:%b} {build['generated_at'].day}"
+    return (f"Measured {date} from each repo's tracked files. Lines of code are git-tracked code files "
+            "only (.py, .gs, .js, .html, .css). Test functions is a static count of def test_ lines, "
+            "not of test cases run. The headline total above also counts this site's own repo.")
+
+
 def _figures(site: dict, experience: list, build: dict | None = None) -> list[dict]:
     """A figure citing a bullet is shown only while that bullet still contains its value, so a
     headline number can't outlive the bullet it came from."""
@@ -261,6 +289,7 @@ def build_profile(bank: dict, build: dict | None = None) -> dict:
     linkedin_url = identity.get("linkedin_url") or (
         f"https://{identity['linkedin']}" if identity.get("linkedin") else "")
     github = identity.get("github", "")
+    system_figures = _system_figures(build)
     return {
         "name": identity.get("name", ""),
         "eyebrow": site.get("eyebrow", identity.get("location", "")),
@@ -268,6 +297,8 @@ def build_profile(bank: dict, build: dict | None = None) -> dict:
         # Plain text under the claim; absent or blank renders nothing. The copy is the bank's.
         "subline": site["subline"].strip() if isinstance(site.get("subline"), str) else "",
         "figures": _figures(site, experience, build),
+        "system_figures": system_figures,
+        "system_figures_note": _system_figures_note(build, system_figures),
         "story": [{"text": s.get("text", ""), "pull": bool(s.get("pull"))} for s in site.get("story", [])],
         "roles": _roles(site, experience),
         "credentials": _credentials(bank),
