@@ -93,8 +93,8 @@
 .icon-nav a:hover { color: var(--on-teal); }
 .icon-nav a.active { color: var(--brass); border-bottom-color: var(--brass); }
 
-/* Light/dark toggle. The site opens dark and never follows the OS (2026-10-13: Kevin chose dark as
-   the default); this switches it per browser and is remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
+/* Light/dark toggle. The site opens dark and never follows the OS (2026-10-13: Kevin chose dark
+   as the default); this switches it per browser and is remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
    pressing it, which is why the sun shows while dark and the moon while light. */
 .theme-toggle {
   display: flex;

@@ -62,9 +62,9 @@ def test_head_script_stays_synchronous_above_tokens_and_takes_light_or_dark(clie
     script = html.index('localStorage.getItem("ml-theme")')
     assert script < html.index("css/tokens.css")
     assert 't === "dark" || t === "light"' in html
-    before = html[:script]
-    assert before.rstrip().endswith("<script>") or "<script>" in before[-120:]
-    assert " defer" not in html[html.rindex("<script", 0, script):script]
+    # a plain inline <script>: no src, defer, async or type=module, so it runs before first paint
+    opening = html[html.rindex("<script", 0, script):script]
+    assert opening.startswith("<script>"), opening[:60]
 
 
 # --- measured in Chrome --------------------------------------------------------------------------
@@ -141,14 +141,40 @@ def test_the_toggle_goes_light_then_dark_and_persists_each_choice(path, tmp_path
     assert out["second"]["theme"] == "dark" and out["second"]["stored"] == "dark", out
 
 
-def test_the_page_body_is_dark_before_any_script_runs(client):
-    """JS off: nothing here depends on a script. The attribute is in the served HTML and tokens.css
-    keys the dark palette on it, so the computed ground is the dark --paper."""
-    html = client.get("/").get_data(as_text=True)
-    assert re.search(r'<html\b[^>]*\bdata-theme="dark"', html)
-    css = client.get("/static/css/tokens.css").get_data(as_text=True)
-    assert re.search(r'html, body \{ background: var\(--paper\)', css)
-    assert ":root[data-theme=\"dark\"]" in css and _dark_tokens(client)["--paper"]
+@pytest.mark.parametrize("path", ["/", "/job-engine"])
+def test_the_body_is_dark_with_javascript_off(path, tmp_path, monkeypatch, client):
+    """The page is framed in a sandboxed iframe WITHOUT allow-scripts (allow-same-origin only, so
+    the wrapper can read its computed style): no script in it runs, not even the head script."""
+    browser = next((p for p in BROWSERS if Path(p).is_file()), None) or shutil.which("chrome") or shutil.which("msedge")
+    if not browser:
+        pytest.skip("no Chrome or Edge found to measure the theme")
+    monkeypatch.setenv("ANALYTICS_ENABLED", "false")
+    monkeypatch.setattr(homepage, "load_bank", lambda: BANK)
+    monkeypatch.setattr(jobstats, "fetch", lambda *a, **k: None)
+    page = main.app.test_client().get(path).get_data(as_text=True)
+    (tmp_path / "page.html").write_text(page.replace('"/static/', '"' + (ROOT / "static").as_uri() + "/"), encoding="utf-8")
+    (tmp_path / "wrapper.html").write_text(
+        '<!doctype html><html><body><iframe id="f" src="page.html" sandbox="allow-same-origin" '
+        'style="width:900px;height:600px"></iframe><pre id="RESULT"></pre><script>'
+        'window.addEventListener("load",function(){var f=document.getElementById("f");var n=0;'
+        'var go=function(){try{var d=f.contentDocument;var cs=getComputedStyle(d.body);'
+        'var ready=d.readyState==="complete"&&d.styleSheets.length>0;'
+        'if(ready||n>60){document.getElementById("RESULT").textContent=JSON.stringify('
+        '{bg:cs.backgroundColor,theme:d.documentElement.getAttribute("data-theme"),sheets:d.styleSheets.length});return;}}'
+        'catch(e){document.getElementById("RESULT").textContent=JSON.stringify({error:String(e)});return;}'
+        'n++;setTimeout(go,100);};go();});</script></body></html>', encoding="utf-8")
+    result = subprocess.run(
+        [browser, "--headless=new", "--disable-gpu", "--no-first-run", "--window-size=1200,900",
+         f"--user-data-dir={tmp_path / 'profile'}", "--allow-file-access-from-files",
+         "--virtual-time-budget=6000", "--dump-dom", (tmp_path / "wrapper.html").as_uri()],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
+    found = re.search(r'<pre id="RESULT">(.*?)</pre>', result.stdout, re.S)
+    assert found and found.group(1), f"probe reported nothing: {result.stdout[-1500:]} {result.stderr[-800:]}"
+    out = json.loads(htmllib.unescape(found.group(1)))
+    assert "error" not in out, out
+    paper = _dark_tokens(client)["--paper"].lstrip("#")
+    expected = "rgb(%d, %d, %d)" % tuple(int(paper[i:i + 2], 16) for i in (0, 2, 4))
+    assert out["theme"] == "dark" and out["sheets"] > 0 and out["bg"] == expected, out
 
 
 def test_charts_open_in_the_dark_ink_on_a_fresh_load(tmp_path, monkeypatch, client):
