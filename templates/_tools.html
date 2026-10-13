@@ -18,14 +18,19 @@
    inside tool__mark so it scatters and settles with the mark.
 
    Slots: 5 across the top, 2 + the M + 2 in the middle, 4 centred along the bottom = 13 tools. #}
-{% macro tool_grid(tools) %}
-{% set slots = [(56, 50), (168, 50), (280, 50), (392, 50), (504, 50),
-                (56, 150), (168, 150), (392, 150), (504, 150),
-                (112, 250), (224, 250), (336, 250), (448, 250)] %}
-<svg class="tool-grid" viewBox="0 0 560 300" role="img"
-     aria-label="The Monte Lattice mark in the centre, surrounded by the tools the Job Outreach Engine uses: {% for t in tools %}{{ t.name }}{{ ', ' if not loop.last else '' }}{% endfor %}.">
-  <title>The Monte Lattice mark surrounded by the tools the Job Outreach Engine uses</title>
-  <g class="tool-grid__core" transform="translate(280 150)">
+{#- The macro draws any list of items the same way. Defaults are the tool web's own (13 slots,
+   560x300, the Job Outreach Engine's tools), so /lattice and the homepage are unchanged. An item is
+   anything with a `name`; `svg_path` / `svg_viewbox` / `mark_size` give it a licensed mark, else it
+   gets a monogram; an optional `sub` list is drawn as one small line each under the name. The repo
+   web on /code passes its own slots, view_h, title, label and web (a data-web hook for CSS). -#}
+{% macro tool_grid(tools, slots=None, view_h=300, title=None, label=None, web=None) %}
+{% set slots = slots or [(56, 50), (168, 50), (280, 50), (392, 50), (504, 50),
+                         (56, 150), (168, 150), (392, 150), (504, 150),
+                         (112, 250), (224, 250), (336, 250), (448, 250)] %}
+<svg class="tool-grid" viewBox="0 0 560 {{ view_h }}" {% if web %}data-web="{{ web }}" {% endif %}role="img"
+     aria-label="{% if label %}{{ label }}{% else %}The Monte Lattice mark in the centre, surrounded by the tools the Job Outreach Engine uses: {% for t in tools %}{{ t.name }}{{ ', ' if not loop.last else '' }}{% endfor %}.{% endif %}">
+  <title>{{ title or "The Monte Lattice mark surrounded by the tools the Job Outreach Engine uses" }}</title>
+  <g class="tool-grid__core" transform="translate(280 {{ view_h // 2 }})">
     <rect x="-44" y="-44" width="88" height="88" rx="10"/>
     <path transform="translate(-33 -33) scale(2.0625)" d="M6 24V9h3l7 9 7-9h3v15h-3.2V14.2L16 22.4 9.2 14.2V24Z"/>
   </g>
@@ -39,7 +44,8 @@
       {% else %}
       <text class="tool__monogram" y="-12" dy="0.35em" aria-hidden="true">{{ t.name[0] }}</text>
       {% endif %}
-      <text class="tool__name" y="28">{{ t.name }}</text>
+      <text class="tool__name" y="28">{{ t.name }}</text>{% for line in t.sub or [] %}
+      <text class="tool__sub" y="{{ 46 + 18 * loop.index0 }}">{{ line }}</text>{% endfor %}
     </g>
   </g>
   {% endif %}{% endfor %}

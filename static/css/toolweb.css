@@ -74,3 +74,20 @@
 @media print {
   .tool-grid .tool__mark { animation: none !important; transform: none !important; opacity: 1 !important; }
 }
+
+/* --- Repo web (/code): the same macro, one tile per public repo with its stack under the name ---
+   The sub-lines use the name's size so the smallest text stays above the 8px floor at 375px. The
+   scatter starts are re-set for these slots: the tool web's offsets would start the first tile
+   past the left edge. Tokens only. */
+.tool__sub {
+  fill: var(--muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-anchor: middle;
+}
+.tool-grid[data-web="repos"] .tool:nth-of-type(2) .tool__mark { --sx: 30px; --sy: -10px; --sr: -34deg; --i: 0; }
+.tool-grid[data-web="repos"] .tool:nth-of-type(3) .tool__mark { --sx: -30px; --sy: 20px; --sr: 19deg; --i: 1; }
+.tool-grid[data-web="repos"] .tool:nth-of-type(4) .tool__mark { --sx: 35px; --sy: -20px; --sr: -19deg; --i: 2; }
+.tool-grid[data-web="repos"] .tool:nth-of-type(5) .tool__mark { --sx: -30px; --sy: -30px; --sr: 34deg; --i: 3; }
+.tool-grid[data-web="repos"] .tool:nth-of-type(6) .tool__mark { --sx: 30px; --sy: -30px; --sr: -4deg; --i: 4; }
