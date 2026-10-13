@@ -1,12 +1,15 @@
 """Measure the build figures on the profile page and write them to data/build_stats.json.
 
-Run on Kevin's machine, where every repo is checked out side by side under the same parent:
+It runs in two places, and both need every repo checked out side by side under one parent:
 
-    python build_stats.py
+    python build_stats.py            # by hand, on Kevin's machine
 
-Render has only this repo, so production never measures anything. It reads the committed
-snapshot (see buildstats.py), which is why the figures refresh when this script is re-run and
-the JSON is committed and deployed, and not otherwise.
+and daily in .github/workflows/build-stats.yml, which publishes the JSON to the orphan branch
+`build-stats` (never to master). It measures pushed history only.
+
+Render has only this repo, so production never measures anything. buildstats.py reads the
+`build-stats` branch and the committed snapshot and keeps the newer valid one (the committed
+file also covers a failed fetch), so the figures stay current without a commit to master.
 
 Two figures, both measured, neither estimated, plus a per-repo test-function count:
   commit_hours   Distinct clock-hours ("%Y-%m-%d %H" of the author date) containing at least one

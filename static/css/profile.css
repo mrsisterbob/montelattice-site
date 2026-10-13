@@ -175,9 +175,9 @@ h1 {
 /* The measured figures (buildstats) carry a warm edge, so the 3/2 split reads as "these two are
    live" rather than as a row that happened to come up short. The mark is deliberately small: an
    edge, never a filled cell.
-   The edge takes --brass-text, not --brass-warm: these cells sit on --surface (near-white in
-   light mode), where --brass-warm measures 2.5 and washes out. --brass-text is the on-paper
-   value of the same accent and holds at 5.7. */
+   The edge takes --brass-text, not --brass-warm: these cells sit on --surface (a pale blue in
+   light mode), where --brass-warm measures 2.19 and washes out. --brass-text is the on-paper
+   value of the same accent and holds at 5.21 (both measured 2026-10-13, tokens.css). */
 .fig--live { box-shadow: inset 3px 0 0 var(--brass-text); }
 .fig-n {
   font-family: var(--font-mono);
