@@ -69,6 +69,7 @@
       <p class="eyebrow">{{ p.eyebrow }}</p>
       <h1>{{ p.name }}</h1>
       <p class="claim">{{ p.claim_html | safe }}</p>
+      {% if p.subline %}<p class="subline">{{ p.subline }}</p>{% endif %}
     </div>
   </div>
 </header>

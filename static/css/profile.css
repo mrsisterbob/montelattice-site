@@ -154,6 +154,8 @@ h1 {
 }
 .claim { font-size: 1.06rem; line-height: 1.55; margin: 0; opacity: 0.93; }
 .claim strong { font-weight: 600; color: var(--brass-warm); }
+/* One quiet line under the claim, at full --on-teal (contrast listed in the tokens.css header), so it needs no opacity to be read. */
+.subline { font-size: 0.95rem; line-height: 1.5; margin: 0.6rem 0 0; color: var(--on-teal); }
 @media (max-width: 640px) {
   .masthead-inner { grid-template-columns: 1fr; gap: 1.5rem; }
   .portrait { width: 8.5rem; }

@@ -265,6 +265,8 @@ def build_profile(bank: dict, build: dict | None = None) -> dict:
         "name": identity.get("name", ""),
         "eyebrow": site.get("eyebrow", identity.get("location", "")),
         "claim_html": _emphasis(site.get("claim", "")),
+        # Plain text under the claim; absent or blank renders nothing. The copy is the bank's.
+        "subline": site["subline"].strip() if isinstance(site.get("subline"), str) else "",
         "figures": _figures(site, experience, build),
         "story": [{"text": s.get("text", ""), "pull": bool(s.get("pull"))} for s in site.get("story", [])],
         "roles": _roles(site, experience),
