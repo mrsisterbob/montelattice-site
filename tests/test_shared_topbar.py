@@ -173,3 +173,18 @@ def test_the_lattice_link_is_first_and_active_only_on_lattice(client):
     assert nav_links("/")[0] == ("/lattice", "")
     assert nav_links("/lattice")[0] == ("/lattice", "active")
     assert nav_links("/job-engine")[0] == ("/lattice", "")
+
+
+@pytest.mark.parametrize("width", [721, 800, 1280])
+def test_seven_link_topbar_stays_on_one_row_above_the_phone_breakpoint(width, monkeypatch, tmp_path):
+    monkeypatch.setenv("ANALYTICS_ENABLED", "false")
+    monkeypatch.setattr(homepage, "load_bank", lambda: BANK)
+    monkeypatch.setattr(jobstats, "fetch", lambda *a, **k: None)
+    monkeypatch.setenv("PUBLIC_CRYPTO", "true")
+    monkeypatch.setenv("PUBLIC_CONSOLE_DEMO", "true")
+    out = _measure("/", width, monkeypatch, tmp_path)
+    assert len(out["links"]) == 7 and _rows(out) == [7], out["links"]
+    brand, nav = out["brand"], out["nav"]
+    assert brand["t"] < nav["b"] and nav["t"] < brand["b"], ("brand is on its own row", out)
+    assert nav["t"] <= out["toggleCentre"] <= nav["b"], ("toggle is not beside the nav", out)
+    assert out["scrollWidth"] <= out["clientWidth"], out

@@ -80,6 +80,16 @@
 :root[data-theme="light"] .theme-toggle__sun { display: none; }
 :root[data-theme="light"] .theme-toggle__moon { display: block; }
 
+/* Narrow desktop and tablet: seven links (crypto and console both on) plus the wordmark and
+   toggle need about 910px at full spacing, so the bar would wrap to a second row between 721 and
+   about 900px. Tighter gaps, tracking and gutter keep it on one row down to 721px. */
+@media (min-width: 721px) and (max-width: 960px) {
+  .topbar__inner { --gutter: 20px; gap: 14px; }
+  .topbar__brand { letter-spacing: 0.14em; }
+  .icon-nav { gap: 10px; }
+  .icon-nav a { letter-spacing: 0.06em; }
+}
+
 @media (max-width: 720px) {
   .topbar__inner { --gutter: 24px; justify-content: center; gap: 14px; }
   /* Brand on its own row, then the icon grid with the theme toggle beside it. The column count
