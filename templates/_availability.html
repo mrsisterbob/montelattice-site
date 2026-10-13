@@ -1,0 +1,6 @@
+{# The availability banner: one slim line, from siteflags.AVAILABILITY_TEXT, shown only while
+   siteflags.SHOW_AVAILABILITY_BANNER is on. An <aside>, not a <section>: tests/test_public_console_demo.py
+   takes the first </section> on /lattice to be the intro's. #}
+{% if availability %}
+<aside class="availability" aria-label="Availability">{{ availability }}</aside>
+{% endif %}

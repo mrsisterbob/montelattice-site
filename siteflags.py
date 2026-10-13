@@ -16,7 +16,16 @@ PROJECT_STATUS: dict[str, str] = {
 }
 
 
+# The availability banner (templates/_availability.html), shown above the top bar of every page that
+# extends base.html except the private Console. One switch: False hides it everywhere.
+SHOW_AVAILABILITY_BANNER = True
+AVAILABILITY_TEXT = "Open to operations and finance roles in Detroit · Taking on a few build projects"
+
+
 def template_context() -> dict:
     """Read at call time (not import time), so a test or a later edit to the module attributes
     is what the next request renders."""
-    return {"project_status": dict(PROJECT_STATUS)}
+    return {
+        "project_status": dict(PROJECT_STATUS),
+        "availability": (AVAILABILITY_TEXT.strip() or None) if SHOW_AVAILABILITY_BANNER else None,
+    }

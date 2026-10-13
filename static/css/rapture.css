@@ -50,6 +50,18 @@ p:last-child { margin-bottom: 0; }
   text-transform: uppercase;
 }
 
+/* --- Availability banner: one slim line above the top bar (siteflags.py turns it off) --- */
+.availability {
+  background: var(--teal-deep);
+  color: var(--on-teal);
+  border-bottom: 1px solid var(--brass);
+  padding: 7px var(--gutter);
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+}
+
 /* --- Top bar: solid teal, wordmark left, icon nav right --- */
 .topbar {
   background: var(--teal);
