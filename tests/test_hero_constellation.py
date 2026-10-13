@@ -34,6 +34,14 @@ def _rule(css, selector):
     return "\n".join(bodies)
 
 
+def _rule_or_none(css, selector):
+    """Like _rule, but yields nothing instead of failing when no rule names `selector`."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    for m in re.finditer(r"(?:^|\n)([^\s{}@][^{}]*?)\s*\{([^}]*)\}", css):
+        if selector in [x.strip() for x in m.group(1).split(",")]:
+            yield m.group(2)
+
+
 def test_constellation_svg_is_a_small_black_mask_of_points_and_lines(client):
     r = client.get("/static/img/constellation.svg")
     assert r.status_code == 200
@@ -46,7 +54,7 @@ def test_constellation_svg_is_a_small_black_mask_of_points_and_lines(client):
 
 
 @pytest.mark.parametrize("sheet,selector,token", [
-    ("rapture.css", ".intro::before", "var(--brass-warm)"),
+    ("toolweb.css", ".web-backdrop::before", "var(--brass-warm)"),
     ("profile.css", ".masthead::before", "var(--on-teal)"),
     ("profile.css", ".contact::before", "var(--on-teal)"),
 ])
@@ -63,7 +71,7 @@ def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, 
     assert 0.05 <= opacity <= 0.24, opacity
 
 
-@pytest.mark.parametrize("sheet,selector", [("rapture.css", ".intro::before"), ("profile.css", ".masthead::before"),
+@pytest.mark.parametrize("sheet,selector", [("toolweb.css", ".web-backdrop::before"), ("profile.css", ".masthead::before"),
                                             ("profile.css", ".contact::before")])
 def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet, selector):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
@@ -75,7 +83,7 @@ def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet
 
 
 @pytest.mark.parametrize("sheet,selector,low,high", [
-    ("rapture.css", ".intro::before", 0.16, 0.24),
+    ("toolweb.css", ".web-backdrop::before", 0.16, 0.24),
     # Brighter than 0.14 over on-teal text drops it under 4.5:1 (measured 2026-10-13).
     ("profile.css", ".masthead::before", 0.10, 0.14),
     # The contact band's 60%-opacity footnote is the limit (test_constellation_motion.py recomputes it).
@@ -107,12 +115,15 @@ def test_constellation_drifts_slowly_inside_its_opacity_range(client, sheet, sel
 
 def test_constellation_keeps_its_scale_on_a_tall_hero_and_stays_inside_the_band(client):
     rapture = client.get("/static/css/rapture.css").get_data(as_text=True)
+    toolweb = client.get("/static/css/toolweb.css").get_data(as_text=True)
     profile = client.get("/static/css/profile.css").get_data(as_text=True)
-    intro = _rule(rapture, ".intro::before")
-    # The .intro section is very tall on a phone; `cover` over all of it would blow the 2:1 art up.
-    assert "inset: 0 0 auto 0" in intro and re.search(r"height:\s*min\(100%,\s*\d+px\)", intro)
-    assert "center top / cover" in intro
-    assert "isolation: isolate" in _rule(rapture, ".intro")
+    # The hero's layer is the shared .web-backdrop, sized to its own box (a wrapper around the
+    # wordmark, the line and the web), so `cover` cannot blow the art up over a tall section; its
+    # coverage of the labels is measured in tests/test_web_backdrop.py. The old capped layer is gone.
+    assert not list(_rule_or_none(rapture, ".intro::before"))
+    backdrop = _rule(toolweb, ".web-backdrop")
+    assert "isolation: isolate" in backdrop and "position: relative" in backdrop
+    assert "inset: 0" in _rule(toolweb, ".web-backdrop::before")
     masthead = _rule(profile, ".masthead")
     assert "isolation: isolate" in masthead and "position: relative" in masthead
     assert "inset: 0" in _rule(profile, ".masthead::before")

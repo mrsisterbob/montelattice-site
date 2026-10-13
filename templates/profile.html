@@ -111,7 +111,7 @@
 
   {# The same tool web as /lattice, drawn by the same macro from tools.py. No heading or prose of
      its own: the wrapper holds only the SVG, so the page's word count is unchanged. #}
-  {% if tools %}<div class="tool-grid-wrap">{{ tool_grid(tools) }}</div>{% endif %}
+  {% if tools %}<div class="web-backdrop"><div class="tool-grid-wrap">{{ tool_grid(tools) }}</div></div>{% endif %}
 
   {% if p.story %}
   <h2>How I got here</h2>

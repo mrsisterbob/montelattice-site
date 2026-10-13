@@ -121,33 +121,8 @@ p:last-child { margin-bottom: 0; }
   position: relative;
   isolation: isolate;  /* the constellation sits behind the text, inside this box */
 }
-/* Faint constellation behind the top of the hero: a mask (static/img/constellation.svg) coloured by
-   a token, so light and dark both work. It drifts: `cover` always overflows the box on one axis, and
-   the mask position slides across that overflow, so nothing is transformed and the page cannot gain
-   a horizontal scroll. It is already at cruising speed on the first frame, so the first paint is
-   mid-travel, not the centred top edge. TASK-20 removed an earlier twinkle; slow motion is back because Kevin asked
-   for it, and it is cancelled under prefers-reduced-motion below. Decorative: no pointer events,
-   behind the content. Anchored to the top at a bounded height, so on a tall hero (375px wide) it
-   keeps its scale instead of `cover`-ing the whole section into a few huge blobs. */
-.intro::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: min(100%, 340px);
-  z-index: -1;
-  pointer-events: none;
-  background-color: var(--brass-warm);
-  opacity: 0.2;
-  -webkit-mask: url("../img/constellation.svg") no-repeat center top / cover;
-  mask: url("../img/constellation.svg") no-repeat center top / cover;
-  /* Starts half-way through the cycle (negative delay = half the duration), where the eased
-     speed peaks, so it moves from the first frame instead of creeping off rest. */
-  animation: constellation-drift 40s ease-in-out -20s infinite alternate;
-}
-/* The drift keyframes live in topbar.css (imported at the top of this sheet). */
-@media (prefers-reduced-motion: reduce) {
-  .intro::before { animation: none; }
-}
+/* The constellation behind the hero is the shared .web-backdrop (toolweb.css): one layer behind the
+   wordmark, the line and the whole tool web, instead of a capped layer on the section's top. */
 .intro__wordmark {
   font-size: clamp(2rem, 5vw, 3.1rem);
   margin: 0 0 10px;

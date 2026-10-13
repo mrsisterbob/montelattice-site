@@ -75,6 +75,37 @@
   .tool-grid .tool__mark { animation: none !important; transform: none !important; opacity: 1 !important; }
 }
 
+/* --- Web backdrop: the drifting constellation behind a whole tool web ---
+   One class for /lattice (around the wordmark, the line and the web) and the homepage (around the
+   web). The layer fills the box and the box carries bottom padding, so it runs from above the web
+   to past the last row of labels (they hang below the SVG's own box); nothing sticks out sideways,
+   so it cannot add a horizontal scroll. The art is sized by HEIGHT (120% of the box): these boxes
+   are close to the art's own 2:1, so `cover` would leave almost no overflow to drift across and
+   the lines would sit still. At 120% it always overflows by 20% of the height, and the box is
+   covered while its width is at most 2.4 times its height (a test pins that). Same svg, same keyframes (topbar.css) and the same
+   mid-cycle start as the other bands. Opacity 0.2 is the most that keeps the muted tile names at
+   4.5:1 (tests recompute it). Decorative: no pointer events, behind the content. */
+.web-backdrop {
+  position: relative;
+  isolation: isolate;
+  padding-bottom: 40px;
+}
+.web-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--brass-warm);
+  opacity: 0.2;
+  -webkit-mask: url("../img/constellation.svg") no-repeat center top / auto 120%;
+  mask: url("../img/constellation.svg") no-repeat center top / auto 120%;
+  animation: constellation-drift 30s ease-in-out -15s infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .web-backdrop::before { animation: none; }
+}
+
 /* --- Repo web (/code): the same macro, one tile per public repo with its stack under the name ---
    The sub-lines use the name's size so the smallest text stays above the 8px floor at 375px. The
    scatter starts are re-set for these slots: the tool web's offsets would start the first tile
