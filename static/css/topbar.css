@@ -146,6 +146,7 @@
 .contact + .site-footer { margin-top: 0; }
 .site-footer__link {
   display: inline-block;
+  text-decoration: none;  /* the homepage sheet underlines every link; the bar never does */
   margin-left: 14px;
   color: color-mix(in srgb, var(--on-teal) 55%, transparent);
   border-bottom: 1px solid transparent;

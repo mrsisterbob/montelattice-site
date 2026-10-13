@@ -301,6 +301,7 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
   border: 1px solid var(--rule-strong);
   border-radius: 4px;
   padding: 0.9rem 1.1rem;
+  max-width: none;  /* the page-wide <p> measure would stop the box short of the column */
 }
 .next-steps__label {
   font-family: var(--font-mono);
@@ -458,7 +459,7 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 .footnote {
   margin: 2.75rem 0 0;
   padding-top: 1.5rem;
-  border-top: 1px solid color-mix(in srgb, var(--brass) 60%, transparent);
+  border-top: 1px solid var(--brass);  /* the 0.6 opacity below makes it a 60% rule */
   font-size: 0.88rem;
   opacity: 0.6;
   max-width: 34rem;
