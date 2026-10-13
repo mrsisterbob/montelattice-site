@@ -79,6 +79,14 @@
     {% endif %}
   </div>
 
+  {% if dash.flow %}
+  <div class="data-card">
+    <h3>Where the pipeline stands</h3>
+    {% include "_pipeline_flow.html" %}
+    <p class="kpi-sub">Each band is that stage's own running total, not a conversion from the one above: the counters cover different periods.</p>
+  </div>
+  {% endif %}
+
   {% if dash.funnel %}
   <h2 class="section-heading dash-funnel-head">Conversion</h2>
   {% if dash.funnel.tiles %}
