@@ -180,7 +180,7 @@
   var rows = JSON.parse(document.getElementById('volume-data').textContent);
   var css = getComputedStyle(document.documentElement);
   function tok(n) { return css.getPropertyValue(n).trim(); }
-  new Chart(el, {
+  var chart = new Chart(el, {
     type: 'bar',
     data: {
       labels: rows.map(function (r) { return r.week; }),
@@ -200,6 +200,21 @@
       plugins: { legend: { labels: { color: tok('--ink'), boxWidth: 12 } } }
     }
   });
+  // The colours above are read once, so a light/dark toggle after load would leave them stale
+  // (dark-mode ink on the light card). site.js's toggle sets data-theme on <html>; watch it and
+  // re-read every token the chart uses. `css` is a live computed style, so tok() is current.
+  function recolour() {
+    var o = chart.options;
+    o.plugins.legend.labels.color = tok('--ink');
+    o.scales.x.ticks.color = tok('--muted');
+    o.scales.y.ticks.color = tok('--muted');
+    o.scales.y.grid.color = tok('--chart-grid');
+    chart.data.datasets[0].backgroundColor = tok('--chart-2');
+    chart.data.datasets[1].backgroundColor = tok('--chart-1');
+    chart.update('none');
+  }
+  new MutationObserver(recolour).observe(document.documentElement,
+    { attributes: true, attributeFilter: ['data-theme'] });
 })();
 </script>
 {% endif %}
