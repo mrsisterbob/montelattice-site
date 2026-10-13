@@ -87,8 +87,8 @@ def test_constellation_drifts_slowly_inside_its_opacity_range(client, sheet, sel
     assert re.search(r"animation:[^;]*constellation-drift", body), f"{selector} does not move"
     assert re.search(r"animation:[^;]*\balternate\b", body)
     # How fast it moves is measured in Chrome (test_constellation_motion.py). This floor only keeps
-    # the cycle slow enough to read as drift: every band runs 40s (phones) or 60s (721px up) one
-    # way, and a cycle under 12s would read as scrolling.
+    # the cycle slow enough to read as drift: every band runs 40s one way at every width
+    # (one value, so a resize never jumps phase), and a cycle under 12s would read as scrolling.
     seconds = [float(x) for x in re.findall(r"constellation-drift\s+([\d.]+)s", body)]
     assert seconds and min(seconds) >= 12, seconds
     # Each sheet carries its own copy (profile.css and rapture.css are separate pages), but within
