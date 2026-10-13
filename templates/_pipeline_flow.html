@@ -1,0 +1,18 @@
+{# The pipeline as one inline SVG: each band's width is that stage's own live total from the engine
+   payload (jobstats.flow_stages), with the real count printed on it. Server-rendered, no script.
+   It shows no conversion between stages: the counters run over different windows. Geometry lives
+   here, not in job_engine.html, which holds no digits (tests/test_job_dashboard.py). #}
+{% set row = 62 %}
+{% set colors = {'discovered': '--chart-1', 'screened': '--chart-4', 'documents': '--chart-3', 'applications': '--chart-2', 'replies': '--chart-5', 'interviews': '--chart-6', 'offers': '--ok'} %}
+{% set full = 560 %}
+{% set n = dash.flow | length %}
+<svg class="pipeline-flow" viewBox="0 0 {{ full }} {{ n * row }}" role="img"
+     aria-label="Pipeline totals from the engine: {% for s in dash.flow %}{{ s.label }} {{ s.count_text }}{{ ' ' ~ s.note if s.note else '' }}{{ '; ' if not loop.last else '.' }}{% endfor %}">
+  {% for s in dash.flow %}
+  <g transform="translate(0 {{ loop.index0 * row }})">
+    <text x="0" y="20" style="fill: var(--ink)" font-size="19">{{ s.label }}{% if s.note %}<tspan style="fill: var(--muted)" font-size="15" dx="4"> {{ s.note }}</tspan>{% endif %}</text>
+    <text x="{{ full }}" y="20" text-anchor="end" style="fill: var(--ink)" font-size="19" font-weight="600">{{ s.count_text }}</text>
+    <rect x="0" y="30" rx="3" height="24" width="{{ (s.width * full) | round(1) }}" style="fill: var({{ colors[s.key] }})"/>
+  </g>
+  {% endfor %}
+</svg>

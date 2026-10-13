@@ -137,6 +137,54 @@ def _tile(label, value=None, sub="", empty="", cite=None, target=None, suffix=""
             "target": target, "suffix": suffix}
 
 
+_MIN_BAND = 0.04  # a small stage keeps a visible sliver rather than disappearing
+
+
+def _is_count(v) -> bool:
+    """A count is a whole, non-negative number: 1234.5 listings is not a thing to chart."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0:
+        return False
+    return float(v).is_integer()
+
+
+def flow_stages(p: dict | None, show_funnel: bool = False) -> list[dict]:
+    """The pipeline as ordered stages for the flow chart, from the engine's own totals.
+
+    discovered -> screened -> documents compiled -> applications sent, then (only when the payload
+    carries a funnel dict AND the site's funnel switch is on) replies -> interviews -> offers. A
+    stage is included only when its count is a real number. `width` is 0-1, proportional to the
+    largest stage with a visible minimum; the real count is printed on every band.
+
+    No stage-to-stage percentage is computed: the counters run over different windows (documents
+    only count since `documents_since`, applications come from the CRM), so a ratio between them
+    would imply a conversion the data does not support.
+    """
+    if not p:
+        return []
+    since = _date(p.get("documents_since"))
+    wanted = [
+        ("discovered", "Listings discovered", p.get("listings_discovered"), ""),
+        ("screened", "Roles screened", p.get("roles_screened"), ""),
+        ("documents", "Documents compiled", p.get("documents_compiled"), f"since {since}" if since else ""),
+        ("applications", "Applications sent", p.get("applications_sent"), ""),
+    ]
+    f = p.get("funnel")
+    if show_funnel and isinstance(f, dict) and f:
+        # Missing is 0 here exactly as it is on the Conversion tiles, so the two never disagree.
+        wanted += [
+            ("replies", "Replies", f.get("replies") or 0, ""),
+            ("interviews", "Interviews", f.get("interviews") or 0, ""),
+            ("offers", "Offers", f.get("offers") or 0, ""),
+        ]
+    stages = [{"key": k, "label": label, "count": n, "count_text": _n(n), "note": note}
+              for k, label, n, note in wanted if _is_count(n)]
+    top = max((s["count"] for s in stages), default=0)
+    for s in stages:
+        # A real zero is drawn as nothing; only a non-zero stage gets the visible minimum.
+        s["width"] = max(s["count"] / top, _MIN_BAND) if s["count"] else 0
+    return stages
+
+
 def _date(iso: str | None) -> str:
     if not iso:
         return ""
@@ -261,12 +309,14 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
                   target=f.get("offers") or 0),
         ], "empty": ""}
 
+    flow = flow_stages(p, show_funnel)
     return {
         "primary": [t_screened, t_apps, t_live, t_dead],
         "secondary": [t_fit, t_tracks, t_docs],
         "drafting": drafting,
         "timeline": timeline,
         "funnel": funnel,
+        "flow": flow if len(flow) >= 2 else [],
         "as_of": _date(p.get("as_of")),
         "stale": bool(p.get("stale")),
         "feed_url": feed_url(),
