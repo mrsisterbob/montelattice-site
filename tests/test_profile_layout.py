@@ -174,6 +174,16 @@ def test_image_box_portrait_is_square_and_photos_are_not_stretched(monkeypatch, 
         assert 0 < img["h"] < 600, img
 
 
+@pytest.mark.parametrize("width", [1100, 375])
+def test_offhours_photos_share_one_box(width, monkeypatch, tmp_path):
+    out = measure_images(width, monkeypatch, tmp_path)
+    assert len(out["offhours"]) == 2, out
+    a, b = out["offhours"]
+    assert a["w"] > 0 and a["h"] > 0, a
+    assert abs(a["w"] - b["w"]) <= 1 and abs(a["h"] - b["h"]) <= 1, (a, b)
+    assert abs(a["w"] - a["h"]) <= 1, a  # the shared box is square (aspect-ratio: 1 / 1)
+
+
 # ---- shared page edges ----------------------------------------------------------------------
 
 EDGE_PROBE = r"""<script>

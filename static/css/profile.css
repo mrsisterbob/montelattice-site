@@ -416,21 +416,25 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 }
 .offhours + .offhours { margin-top: 1px; }
 .offhours--no-photo { grid-template-columns: 1fr; }
+/* Both photos render in the same square box. Their sources differ (kevin-dog.jpg 900x1189,
+   kevin-beach.jpg 900x638, two people), so each is cropped by object-position: the dog photo
+   keeps the head and the dog from the top, the landscape one slides left so both faces stay in
+   (checked by eye in Chrome, 2026-10-13). The bank's `landscape` flag now only selects that crop;
+   the box is the same for every photo, and a new photo may need its own object-position. */
 .offhours img {
   width: 100%;
   height: auto;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  object-position: center 22%;
+  object-position: center 15%;
   display: block;
 }
-.offhours img.landscape { aspect-ratio: 4 / 3; object-position: center 18%; }
+.offhours img.landscape { object-position: 25% center; }
 .offhours p { margin: 0; font-size: 0.95rem; color: var(--muted); }
 @media (max-width: 560px) {
   .offhours { grid-template-columns: 1fr; gap: 1.6rem; }
   .lines { gap: 0.7rem; }
   .offhours img { max-width: 11rem; }
-  .offhours img.landscape { max-width: 100%; }
 }
 
 /* ---- contact ---- */
