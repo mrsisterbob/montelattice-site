@@ -5,8 +5,24 @@
 {% set page_name = "Code" %}
 {% set solves = "The public source behind these projects. Each repo is a working system, run daily, not a demo." %}
 {% include "_product_head.html" %}
+{% from "_tools.html" import tool_grid %}
+
+{# The repo web: the same macro as the tool web on /lattice, one tile per public repo with its
+   stack as the small lines under the name. Everything comes from `repos` (main.REPOS filtered by
+   the crypto flag), so no repo or tool is named here. Slots: 2 + 2, and a fifth centred below; five is all it draws, and the label names only
+   those. The M sits between the first two rows. #}
+{% set ns = namespace(items=[], parts=[]) %}
+{% for r in repos[:5] %}
+  {% set stack = r.stack.split(" · ") %}
+  {% set ns.items = ns.items + [{"name": r.name, "sub": stack}] %}
+  {% set ns.parts = ns.parts + [r.name ~ " (" ~ stack|join(", ") ~ ")"] %}
+{% endfor %}
+{% set repo_slots = [(95, 50), (465, 50), (95, 227), (465, 227), (280, 400)] %}
 
 <div class="wrap section">
+  <div class="tool-grid-wrap">{{ tool_grid(ns.items, slots=repo_slots, view_h=(530 if ns.items|length > 4 else 362), web="repos", core_y=181,
+      title="The Monte Lattice mark surrounded by Kevin's public repositories and the tools in each stack",
+      label="The Monte Lattice mark in the centre, surrounded by Kevin's public repositories and the tools in each one's stack: " ~ ns.parts|join("; ") ~ ".") }}</div>
   <div class="repo-list">
     {% for r in repos %}
     <a class="repo-card" href="{{ r.url }}" target="_blank" rel="noopener">
