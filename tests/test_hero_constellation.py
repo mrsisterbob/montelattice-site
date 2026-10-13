@@ -91,10 +91,14 @@ def test_constellation_drifts_slowly_inside_its_opacity_range(client, sheet, sel
     # (one value, so a resize never jumps phase), and a cycle under 12s would read as scrolling.
     seconds = [float(x) for x in re.findall(r"constellation-drift\s+([\d.]+)s", body)]
     assert seconds and min(seconds) >= 12, seconds
-    # Each sheet carries its own copy (profile.css and rapture.css are separate pages), but within
-    # one sheet there is exactly one.
-    assert len(re.findall(r"@keyframes constellation-drift", css)) == 1
-    frames = re.search(r"@keyframes constellation-drift\s*\{(.*?)\}\s*\}", css, re.S).group(1)
+    # One @keyframes for the whole site, in topbar.css (every page loads or imports it); the
+    # heroes' sheets carry none of their own.
+    assert "@keyframes constellation-drift" not in css
+    sheets = {p.name: p.read_text(encoding="utf-8") for p in (ROOT / "static" / "css").glob("*.css")}
+    holders = [n for n, text in sheets.items() if "@keyframes constellation-drift" in text]
+    assert holders == ["topbar.css"], holders
+    assert len(re.findall(r"@keyframes constellation-drift", sheets["topbar.css"])) == 1
+    frames = re.search(r"@keyframes constellation-drift\s*\{(.*?)\}\s*\}", sheets["topbar.css"], re.S).group(1)
     assert "-webkit-mask-position" in frames and re.search(r"(?<!-)mask-position", frames)
     assert "transform" not in frames  # a transform widens the page
     opacity = float(re.search(r"opacity:\s*([\d.]+)", body).group(1))
