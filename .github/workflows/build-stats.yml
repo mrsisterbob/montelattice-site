@@ -1,0 +1,112 @@
+name: Build stats
+
+# Re-measures the build figures shown on the profile and publishes them to the orphan branch
+# `build-stats` (one file, build_stats.json, at its root). The site reads that file from
+# raw.githubusercontent.com (buildstats.SNAPSHOT_URL) and falls back to data/build_stats.json.
+#
+# Nothing is ever pushed to master or main: Render deploys master, and a bot commit there would
+# get a hand push rejected. The branch triggers no deploy.
+#
+# CI measures PUSHED history only. A commit that has not been pushed is not counted until it is.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-stats
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+
+    steps:
+      # build_stats.py measures os.path.dirname(HERE)/<name> for each name in REPOS, so this repo
+      # and the four others sit side by side under the workspace root. fetch-depth: 0 on every
+      # checkout: commit_hours reads the full git log, and a shallow clone would report a handful.
+      - name: Checkout montelattice-site
+        uses: actions/checkout@v4
+        with:
+          path: montelattice-site
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout job-outreach-engine
+        uses: actions/checkout@v4
+        with:
+          repository: mrsisterbob/job-outreach-engine
+          path: job-outreach-engine
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout crypto-trading-engine
+        uses: actions/checkout@v4
+        with:
+          repository: mrsisterbob/crypto-trading-engine
+          path: crypto-trading-engine
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout docfiler
+        uses: actions/checkout@v4
+        with:
+          repository: mrsisterbob/docfiler
+          path: docfiler
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout budget-tracker
+        uses: actions/checkout@v4
+        with:
+          repository: mrsisterbob/budget-tracker
+          path: budget-tracker
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Measure
+        run: python montelattice-site/build_stats.py
+
+      # A partial measurement must never replace a full one. If any repo is unreachable or a
+      # figure is 0, fail here and publish nothing; the site's 30-day age gate then blanks the
+      # figures honestly if the failure persists.
+      - name: Guard against a partial measurement
+        run: |
+          python - <<'PY'
+          import json, sys
+          s = json.load(open("montelattice-site/data/build_stats.json", encoding="utf-8"))
+          problems = []
+          if s["unreachable"]:
+              problems.append("unreachable repos: %s" % s["unreachable"])
+          if not s["commit_hours"] > 0 or not s["tracked_lines"] > 0:
+              problems.append("zero figure: %r / %r" % (s["commit_hours"], s["tracked_lines"]))
+          if problems:
+              sys.exit("Not publishing a partial measurement: " + "; ".join(problems))
+          PY
+
+      # The branch holds exactly one file and no history worth keeping, so each run builds a
+      # fresh orphan commit and force-pushes it to build-stats (and only to build-stats).
+      - name: Publish to build-stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir publish
+          cp montelattice-site/data/build_stats.json publish/build_stats.json
+          cd publish
+          git init -q
+          git checkout -q --orphan build-stats
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build_stats.json
+          git commit -q -m "Build stats $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git" HEAD:refs/heads/build-stats
