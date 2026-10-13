@@ -84,7 +84,8 @@ def test_palette_the_gold_accents_are_unchanged(palettes, mode):
 def test_palette_text_pairs_clear_4_5_and_large_marks_clear_3(palettes, mode):
     p = palettes[mode]
     text_pairs = [("--ink", "--paper"), ("--ink", "--surface"), ("--muted", "--paper"),
-                  ("--brass-text", "--paper"), ("--on-teal", "--teal"), ("--brass", "--teal")]
+                  ("--muted", "--surface"), ("--brass-text", "--paper"), ("--brass-text", "--surface"),
+                  ("--ok", "--surface"), ("--down", "--surface"), ("--on-teal", "--teal"), ("--brass", "--teal")]
     large_pairs = [("--brass-warm", "--teal"), ("--brass-warm", "--teal-deep")]
     for fg, bg in text_pairs:
         assert contrast(p[fg], p[bg]) >= TEXT_FLOOR, (mode, fg, bg, round(contrast(p[fg], p[bg]), 2))
@@ -97,7 +98,9 @@ def test_palette_documented_figures_match_the_measured_ones(palettes):
     css = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
     header = css[:css.index(":root,")]
     names = {"ink/paper": ("--ink", "--paper"), "ink/surface": ("--ink", "--surface"),
-             "muted/paper": ("--muted", "--paper"), "brass-text/paper": ("--brass-text", "--paper"),
+             "muted/paper": ("--muted", "--paper"), "muted/surface": ("--muted", "--surface"),
+             "brass-text/paper": ("--brass-text", "--paper"), "brass-text/surface": ("--brass-text", "--surface"),
+             "ok/surface": ("--ok", "--surface"), "down/surface": ("--down", "--surface"),
              "on-teal/teal": ("--on-teal", "--teal"), "brass/teal": ("--brass", "--teal"),
              "brass-warm/teal": ("--brass-warm", "--teal"), "brass-warm/teal-deep": ("--brass-warm", "--teal-deep")}
     for mode in ("light", "dark"):
@@ -108,3 +111,28 @@ def test_palette_documented_figures_match_the_measured_ones(palettes):
             measured = contrast(palettes[mode][fg], palettes[mode][bg])
             # One decimal as printed; a value on a .x5 boundary may round either way.
             assert abs(float(listed[label]) - measured) <= 0.051, (mode, label, listed[label], round(measured, 3))
+
+
+def test_palette_light_cards_are_blue_and_separate_from_the_page(palettes):
+    """White-on-white was the defect: the surface was lighter than paper and nearly neutral."""
+    import math
+    lin = lambda c: c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    def oklch(h):
+        r, g, b = (lin(int(h[i:i + 2], 16) / 255) for i in (1, 3, 5))
+        l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+        m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+        s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+        a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
+        bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
+        return math.hypot(a, bb), math.degrees(math.atan2(bb, a)) % 360
+    p = palettes["light"]
+    chroma, hue = oklch(p["--surface"])
+    assert chroma >= 0.015 and 240 <= hue <= 290, (p["--surface"], round(chroma, 4), round(hue, 1))
+    assert contrast(p["--surface"], p["--paper"]) >= 1.08, round(contrast(p["--surface"], p["--paper"]), 3)
+    # Chart marks drawn inside cards (non-text, 3:1), and the heatmap ramp's first step must still
+    # read as a step off the card (it was 1.42 on the old surface).
+    for name in ("--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5", "--chart-6"):
+        assert contrast(p[name], p["--surface"]) >= LARGE_FLOOR, name
+    assert contrast(p["--cal1"], p["--surface"]) >= 1.4
+    # --warn is a fill or border on cards, never text: the 3:1 non-text floor applies.
+    assert contrast(p["--warn"], p["--surface"]) >= LARGE_FLOOR
