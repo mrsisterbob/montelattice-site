@@ -56,8 +56,35 @@ def test_paths_closing_row_comes_after_the_timeline_and_before_get_in_touch(clie
     row = html[html.index('<p class="next-steps">'):]
     row = row[:row.index("</p>")]
     assert "You might want to:" in row
-    assert 'href="/lattice"' in row and f'href="{LINKEDIN}"' in row and main.RESUME_PDF in row
+    # The hero paths already hold LinkedIn and the résumé; the closing row does not repeat them.
+    assert 'href="/lattice"' in row
+    assert "linkedin" not in row.lower() and main.RESUME_PDF not in row and "download" not in row
     assert html.index('<p class="next-steps">') < html.index("Get in touch")
+
+
+def test_paths_one_primary_action_the_resume_download_and_nothing_else(client):
+    html = client.get("/").get_data(as_text=True)
+    paths = html[html.index('<div class="paths">'):html.index('<div class="wrap">')]
+    primary = re.findall(r'<a [^>]*class="path__primary"[^>]*>.*?</a>', paths, re.S)
+    assert len(primary) == 1, primary
+    assert main.RESUME_PDF in primary[0] and " download" in primary[0]
+    assert "Download my r&eacute;sum&eacute;" in primary[0]
+    # LinkedIn and the DocFiler link stay plain links
+    assert f'<a href="{LINKEDIN}">LinkedIn</a>' in paths
+    assert '<a href="/docfiler#contact-form">' in paths
+
+
+def test_paths_primary_is_a_filled_token_button_with_a_focus_ring(client):
+    css = client.get("/static/css/profile.css").get_data(as_text=True)
+    rule = re.search(r"\.path__primary\s*\{([^}]*)\}", css).group(1)
+    assert "background: var(--teal)" in rule and "color: var(--on-teal)" in rule
+    assert re.search(r"\.path__primary:focus-visible\s*\{[^}]*outline:", css)
+
+
+def test_paths_without_a_resume_file_nothing_is_primary(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(main.app, "static_folder", str(tmp_path))
+    html = client.get("/").get_data(as_text=True)
+    assert "path__primary" not in html[html.index('<div class="paths">'):html.index('<div class="wrap">')]
 
 
 def test_paths_without_the_resume_file_show_the_note_not_a_dead_link(client, monkeypatch, tmp_path):
