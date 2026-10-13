@@ -2,7 +2,7 @@
    Every template loads this first; rapture.css (Art Deco pages + Console) and profile.css
    (homepage) consume these names and define no palette of their own.
 
-   Palette: dusk blue ground, champagne accent, blue surfaces. The token NAMES are
+   Palette: dusk blue ground, champagne accent, warm-neutral light surfaces. The token NAMES are
    historical (they date from the green-and-gold palette) and are kept so the palette stays
    one file:
      --teal       = the dusk-blue ground (bands: nav, masthead, title bands, footer)
@@ -22,8 +22,8 @@
    color-scheme with them. The OS preference is deliberately NOT followed: every page opens
    light. Neutrals lean warm toward the champagne; none is a pure grey.
    Contrast (WCAG 2.x relative luminance, computed from the hex values), measured 2026-10-13:
-     light: ink/paper 15.8, ink/surface 14.4, muted/paper 6.4, muted/surface 5.8,
-            brass-text/paper 5.7, brass-text/surface 5.2, ok/surface 4.6, down/surface 5.0,
+     light: ink/paper 14.2, ink/surface 15.7, muted/paper 5.6, muted/surface 6.2,
+            brass-text/paper 5.2, brass-text/surface 5.7, ok/surface 5.0, down/surface 5.5,
             on-teal/teal 13.1, brass/teal 7.9, brass-warm/teal 5.6, brass-warm/teal-deep 6.4
      dark:  ink/paper 14.3, ink/surface 12.9, muted/paper 7.0, muted/surface 6.3,
             brass-text/paper 10.9, brass-text/surface 9.8, ok/surface 7.4, down/surface 6.0,
@@ -37,12 +37,17 @@
    (dark) in OKLCH, toward red, lightness held; --brass and --brass-warm are unchanged and no
    pair fell by more than 0.02 (the largest fall: light brass/teal 7.97 -> 7.95). On-teal at 55%
    alpha re-measured the same day: 5.0 light, 5.6 dark.
-   Light surface moved toward blue 2026-10-13: it was #FAFBFE, lighter than --paper and almost neutral
-   (chroma 0.004, 1.06:1 against paper), so cards read as white on white. It is now #E4EBF8 (chroma
-   0.019, hue 263, 1.10:1 against paper), deep enough to separate and no deeper, so --ok (the tightest text pair) clears 4.5 on it.
-   --warn is only a fill or border, so it answers to 3:1 (3.94 on the new surface).
-   Light could not get lighter: at a fixed --paper, a lighter ground needs a lighter --brass to
-   hold brass/teal, and that pulls brass/paper below 1.69.
+   Light ground warmed 2026-10-13: --paper #F2F5FA (blue-white, luminance 0.911) -> #EDE9E1 (OKLCH
+   0.935 / 0.0115 / 84.6, luminance 0.817, about 10% dimmer), --surface #E4EBF8 (a darker blue) ->
+   #F7F4EF (luminance 0.907, so nothing on a light page is brighter than the old ground), --muted
+   #5E5760 (mauve, hue 319) -> #5F5A54 (hue 72). The hue sits in the brass family (--brass is 79.6)
+   at chroma 0.012 or less: a warm neutral, not parchment. Cards are one step LIGHTER than the
+   ground, as on apple.com (separation 1.104:1; the white-on-white defect was 1.06). Chart marks
+   on the card: chart-1..6 7.8, 3.7, 3.6, 3.5, 4.2, 3.5; heatmap cal1..4 1.57, 2.21, 4.63, 9.52.
+   --warn is only a fill or border, so it answers to 3:1 (4.30 on the new surface).
+   The old light ground (#F2F5FA) could not get lighter: at a fixed --paper, a lighter ground needs a
+   lighter --brass to hold brass/teal, and that pulls brass/paper below 1.69. The warmed ground is
+   dimmer, so that limit no longer binds.
    Plain --brass is 1.69 on light paper, so it is for rules, fills and text on the blue band,
    never body text on paper. Words on paper take --brass-text, which is measured to clear AA. */
 
@@ -54,12 +59,12 @@
   --teal: #22254A;          /* bands: nav, masthead, title bands, footer */
   --brass: #E0B978;         /* rules, hairlines, corner ticks, fills, text on teal */
   --brass-warm: #BE9A64;    /* the accent for marks larger than a hairline; never a field */
-  --paper: #F2F5FA;         /* page ground */
+  --paper: #EDE9E1;         /* page ground: a soft warm off-white */
   --ink: #1D1A1F;           /* body text */
 
   /* derived */
-  --surface: #E4EBF8;       /* cards and stat tiles: a blue, one step off paper */
-  --muted: #5E5760;         /* secondary text */
+  --surface: #F7F4EF;       /* cards and stat tiles: warm, one step lighter than paper */
+  --muted: #5F5A54;         /* secondary text: a warm grey */
   --brass-text: #7E5A1C;    /* brass-coloured words on paper */
   --on-teal: #EEF2F9;       /* text on a teal band or over imagery */
   --teal-deep: #181A36;     /* blocks that recede below the teal ground */
@@ -72,14 +77,14 @@
   --warn: #9A6A16;
   --down: #A8432C;
   --cal0: color-mix(in srgb, var(--ink) 8%, transparent);
-  --cal1: #B6C6E2;          /* was #C9D6EA: 1.23 on the blue surface; 1.44 now (1.42 before) */
+  --cal1: #B6C6E2;
   --cal2: #8FA8CE;
   --cal3: #4F6FA3;
   --cal4: #243F6E;
 
   /* chart series (Chart.js reads these at load; plain hex so JS can add alpha) */
   --chart-1: #2E4C7F;
-  --chart-2: #A27820;       /* was #B08428: 2.84 on the blue surface, under the 3:1 mark floor */
+  --chart-2: #A27820;
   --chart-3: #3F8C8A;
   --chart-4: #6A84AD;
   --chart-5: #9C6B3A;
