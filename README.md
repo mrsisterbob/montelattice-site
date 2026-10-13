@@ -96,6 +96,11 @@ or configure manually:
 | Start command | `gunicorn main:app --workers 2 --bind 0.0.0.0:$PORT --timeout 30` |
 | Health check path | `/` |
 
+Auto-deploy is off on purpose (`autoDeploy: false` in `render.yaml`): a push to `master`, whether
+the queue worker's or yours, does not deploy. You deploy from the Render dashboard (Manual Deploy
+→ Deploy latest commit). If the service was created by hand rather than from the blueprint,
+`render.yaml` is ignored; set Settings → Build & Deploy → Auto-Deploy → No there too.
+
 Set these in the dashboard's **Environment** tab (never in git):
 
 - `SITE_SECRET_KEY` — any long random string
