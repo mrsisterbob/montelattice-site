@@ -50,6 +50,28 @@
   <div class="kpi-row kpi-row--4">
     {% for t in dash.primary %}{{ tile(t) }}{% endfor %}
   </div>
+  {# The charts sit directly under the four headline cards, side by side on desktop and stacked on
+     a phone. The wrapper carries data-card so tests/test_job_dashboard.py still sees a card after
+     the tile row; its own surface is switched off in CSS and the two cards inside draw it. #}
+  <div class="data-card dash-charts">
+    <div class="data-card">
+      <h3>Pipeline volume by week</h3>
+      {% if dash.timeline %}
+      <div class="dash-chart-box"><canvas id="chart-volume" aria-label="Listings discovered and roles screened per week"></canvas></div>
+      <script type="application/json" id="volume-data">{{ dash.timeline | tojson }}</script>
+      {% else %}
+      <p class="kpi-empty">No pipeline activity logged in the last twelve weeks.</p>
+      {% endif %}
+    </div>
+    {% if dash.flow %}
+    <div class="data-card">
+      <h3>Where the pipeline stands</h3>
+      {% include "_pipeline_flow.html" %}
+      <p class="kpi-sub">Each band is that stage's own running total, not a conversion from the one above: the counters cover different periods.</p>
+    </div>
+    {% endif %}
+  </div>
+
   <div class="kpi-row kpi-row--3 dash-row">
     {% for t in dash.secondary %}{{ tile(t) }}{% endfor %}
   </div>
@@ -68,24 +90,6 @@
     <p class="kpi-empty">No cached role to time against yet. The timing appears once the screener caches one.</p>
     {% endif %}
   </div>
-
-  <div class="data-card">
-    <h3>Pipeline volume by week</h3>
-    {% if dash.timeline %}
-    <canvas id="chart-volume" height="110" aria-label="Listings discovered and roles screened per week"></canvas>
-    <script type="application/json" id="volume-data">{{ dash.timeline | tojson }}</script>
-    {% else %}
-    <p class="kpi-empty">No pipeline activity logged in the last twelve weeks.</p>
-    {% endif %}
-  </div>
-
-  {% if dash.flow %}
-  <div class="data-card">
-    <h3>Where the pipeline stands</h3>
-    {% include "_pipeline_flow.html" %}
-    <p class="kpi-sub">Each band is that stage's own running total, not a conversion from the one above: the counters cover different periods.</p>
-  </div>
-  {% endif %}
 
   {% if dash.funnel %}
   <h2 class="section-heading dash-funnel-head">Conversion</h2>
@@ -182,6 +186,7 @@
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       animation: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : undefined,
       scales: {
         y: { beginAtZero: true, ticks: { color: tok('--muted'), precision: 0 }, grid: { color: tok('--chart-grid') } },
