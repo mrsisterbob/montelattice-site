@@ -1,0 +1,99 @@
+{# Follow-up date planner. Client-side only: no network, no storage, no third-party script.
+
+   Every number lives in THIS partial (job_engine.html holds no digits: tests/test_job_dashboard.py).
+   They are the gaps job-outreach-engine's own sequencer waits, read from its pipeline_utils.py on
+   2026-10-12 and re-checked by tests/test_followup_planner.py against a real engine checkout:
+     application:  follow-up at day FOLLOWUP_1_DAYS, close-out at day FOLLOWUP_BURY_DAYS
+                   (FOLLOWUP_2_DAYS is a retired rung that never fires, so it is not shown)
+     cold email:   one nudge at day CARMEN_LADDER_DAYS_COLD[0], triage at that + CARMEN_KILL_GRACE_DAYS
+     a real reply: check back REPLY_FOLLOWUP_DAYS after the reply #}
+{% set app_followup = 10 %}
+{% set app_close = 21 %}
+{% set cold_nudge = 4 %}
+{% set cold_close = 21 %}
+{% set reply_checkback = 4 %}
+<style>
+  /* Layout for the planner only (tokens, no hex); this partial owns its few rules so no stylesheet
+     has to change. */
+  .followup-planner__form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 16px; margin: 14px 0 16px; }
+  .followup-planner__form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .followup-planner__form .field { margin: 0; text-transform: none; letter-spacing: normal; font-size: 0.95rem; color: var(--ink); }
+  .followup-planner__out { margin: 0; padding-left: 1.2rem; display: grid; gap: 6px; color: var(--ink); }
+  .followup-planner__out strong { font-family: var(--font-mono); font-weight: 500; }
+</style>
+<div class="data-card followup-planner" id="followup-planner"
+     data-app-followup="{{ app_followup }}" data-app-close="{{ app_close }}"
+     data-cold-nudge="{{ cold_nudge }}" data-cold-close="{{ cold_close }}"
+     data-reply-checkback="{{ reply_checkback }}">
+  <h3>Plan your follow-ups</h3>
+  <p>These are the gaps the engine itself waits. Pick the day you sent an application or a first email, and the dates below are when it would follow up and close the loop.</p>
+  <form class="followup-planner__form" onsubmit="return false">
+    <label>Sent on <input class="field" type="date" name="sent" required></label>
+    <label>It was
+      <select class="field" name="kind">
+        <option value="app">An application</option>
+        <option value="cold">A cold email</option>
+      </select>
+    </label>
+    <label>They replied on (optional) <input class="field" type="date" name="reply"></label>
+  </form>
+  <ol class="followup-planner__out" aria-live="polite">
+    <li>An application: follow up {{ app_followup }} days after you send it, close it out at day {{ app_close }}.</li>
+    <li>A cold email: one nudge at day {{ cold_nudge }}, then triage at day {{ cold_close }}.</li>
+    <li>Once someone replies: check back {{ reply_checkback }} days after the reply.</li>
+  </ol>
+</div>
+<script>
+(function () {
+  var root = document.getElementById('followup-planner');
+  if (!root) return;
+  var form = root.querySelector('form');
+  var out = root.querySelector('.followup-planner__out');
+  var d = root.dataset;
+  var fmt = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+
+  // 'YYYY-MM-DD' -> a local Date at midnight. Calendar-day arithmetic: adding days with the Date
+  // constructor keeps the local wall-clock date across a daylight-saving change.
+  function parse(v) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+  function plus(date, days) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  }
+  function row(label, date) {
+    var li = document.createElement('li');
+    var strong = document.createElement('strong');
+    strong.textContent = date.toLocaleDateString(undefined, fmt);
+    li.appendChild(strong);
+    li.appendChild(document.createTextNode(' – ' + label));
+    return li;
+  }
+  function today() {
+    var n = new Date();
+    return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+  }
+
+  function render() {
+    var sent = parse(form.sent.value);
+    var reply = parse(form.reply.value);
+    out.textContent = '';
+    // A year typed halfway ("0002") fires input events too: only plan for a believable date.
+    function sane(x) { return x && x.getFullYear() >= 2000 && x.getFullYear() <= 2100; }
+    if (!sane(sent)) return;
+    if (!sane(reply) || reply < sent) reply = null;  // a reply cannot predate the send
+    if (form.kind.value === 'cold') {
+      out.appendChild(row('nudge, the one follow-up the engine sends', plus(sent, +d.coldNudge)));
+      out.appendChild(row('triage: close it out if there has been no reply', plus(sent, +d.coldClose)));
+    } else {
+      out.appendChild(row('follow up', plus(sent, +d.appFollowup)));
+      out.appendChild(row('close it out if there has been no reply', plus(sent, +d.appClose)));
+    }
+    if (reply) out.appendChild(row('check back after their reply', plus(reply, +d.replyCheckback)));
+  }
+
+  form.sent.value = today();
+  form.addEventListener('input', render);
+  render();
+})();
+</script>
