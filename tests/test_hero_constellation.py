@@ -25,9 +25,13 @@ def client(monkeypatch):
 
 
 def _rule(css, selector):
-    m = re.search(r"(?:^|\n)" + re.escape(selector) + r"\s*\{([^}]*)\}", css)
-    assert m, selector
-    return m.group(1)
+    """The declarations of every top-level rule whose selector list names `selector` (a shared
+    rule such as `.masthead::before, .contact::before` counts), joined."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    bodies = [m.group(2) for m in re.finditer(r"(?:^|\n)([^\s{}@][^{}]*?)\s*\{([^}]*)\}", css)
+              if selector in [x.strip() for x in m.group(1).split(",")]]
+    assert bodies, selector
+    return "\n".join(bodies)
 
 
 def test_constellation_svg_is_a_small_black_mask_of_points_and_lines(client):
@@ -44,6 +48,7 @@ def test_constellation_svg_is_a_small_black_mask_of_points_and_lines(client):
 @pytest.mark.parametrize("sheet,selector,token", [
     ("rapture.css", ".intro::before", "var(--brass-warm)"),
     ("profile.css", ".masthead::before", "var(--on-teal)"),
+    ("profile.css", ".contact::before", "var(--on-teal)"),
 ])
 def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, sheet, selector, token):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
@@ -58,7 +63,8 @@ def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, 
     assert 0.05 <= opacity <= 0.24, opacity
 
 
-@pytest.mark.parametrize("sheet,selector", [("rapture.css", ".intro::before"), ("profile.css", ".masthead::before")])
+@pytest.mark.parametrize("sheet,selector", [("rapture.css", ".intro::before"), ("profile.css", ".masthead::before"),
+                                            ("profile.css", ".contact::before")])
 def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet, selector):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
     assert "animation:" in _rule(css, selector)
@@ -72,15 +78,22 @@ def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet
     ("rapture.css", ".intro::before", 0.16, 0.24),
     # Brighter than 0.14 over on-teal text drops it under 4.5:1 (measured 2026-10-13).
     ("profile.css", ".masthead::before", 0.10, 0.14),
+    # The contact band's 60%-opacity footnote is the limit (test_constellation_motion.py recomputes it).
+    ("profile.css", ".contact::before", 0.08, 0.11),
 ])
 def test_constellation_drifts_slowly_inside_its_opacity_range(client, sheet, selector, low, high):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
     body = _rule(css, selector)
     assert re.search(r"animation:[^;]*constellation-drift", body), f"{selector} does not move"
-    assert re.search(r"animation:[^;]*\balternate\b", body) and "ease-in-out" in body
-    seconds = float(re.search(r"constellation-drift\s+([\d.]+)s", body).group(1))
-    assert seconds >= 40, seconds
-    assert "@keyframes constellation-drift" in css  # each sheet carries its own copy
+    assert re.search(r"animation:[^;]*\balternate\b", body)
+    # How fast it moves is measured in Chrome (test_constellation_motion.py). This floor only keeps
+    # the cycle slow enough to read as drift: every band runs 40s (phones) or 60s (721px up) one
+    # way, and a cycle under 12s would read as scrolling.
+    seconds = [float(x) for x in re.findall(r"constellation-drift\s+([\d.]+)s", body)]
+    assert seconds and min(seconds) >= 12, seconds
+    # Each sheet carries its own copy (profile.css and rapture.css are separate pages), but within
+    # one sheet there is exactly one.
+    assert len(re.findall(r"@keyframes constellation-drift", css)) == 1
     frames = re.search(r"@keyframes constellation-drift\s*\{(.*?)\}\s*\}", css, re.S).group(1)
     assert "-webkit-mask-position" in frames and re.search(r"(?<!-)mask-position", frames)
     assert "transform" not in frames  # a transform widens the page

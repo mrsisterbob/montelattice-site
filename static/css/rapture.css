@@ -124,8 +124,7 @@ p:last-child { margin-bottom: 0; }
 /* Faint constellation behind the top of the hero: a mask (static/img/constellation.svg) coloured by
    a token, so light and dark both work. It drifts: `cover` always overflows the box on one axis, and
    the mask position slides across that overflow, so nothing is transformed and the page cannot gain
-   a horizontal scroll. The first frame is the old static layout (centred, top edge), and it drifts
-   from there. TASK-20 removed an earlier twinkle; slow motion is back because Kevin asked
+   a horizontal scroll. It is already at cruising speed on the first frame. TASK-20 removed an earlier twinkle; slow motion is back because Kevin asked
    for it, and it is cancelled under prefers-reduced-motion below. Decorative: no pointer events,
    behind the content. Anchored to the top at a bounded height, so on a tall hero (375px wide) it
    keeps its scale instead of `cover`-ing the whole section into a few huge blobs. */
@@ -140,7 +139,12 @@ p:last-child { margin-bottom: 0; }
   opacity: 0.2;
   -webkit-mask: url("../img/constellation.svg") no-repeat center top / cover;
   mask: url("../img/constellation.svg") no-repeat center top / cover;
-  animation: constellation-drift 60s ease-in-out infinite alternate;
+  /* Starts half-way through the cycle (negative delay = half the duration), where the eased
+     speed peaks, so it moves from the first frame instead of creeping off rest. */
+  animation: constellation-drift 40s ease-in-out -20s infinite alternate;
+}
+@media (min-width: 721px) {
+  .intro::before { animation-duration: 60s; animation-delay: -30s; }
 }
 @keyframes constellation-drift {
   from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
