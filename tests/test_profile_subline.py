@@ -29,7 +29,8 @@ def render(monkeypatch):
 
 
 def _masthead(html):
-    return html[html.index('<header class="masthead">'):html.index("</header>")]
+    start = html.index('<header class="masthead">')
+    return html[start:html.index("</header>", start)]  # the shared topbar's </header> comes first
 
 
 def test_subline_renders_directly_after_the_claim(render):

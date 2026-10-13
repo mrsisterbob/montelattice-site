@@ -1,0 +1,96 @@
+/* The site top bar: brand left, icon nav, theme toggle. Shared by base.html (every product page)
+   and profile.html (the homepage), so there is one definition. --wrap and --gutter come from
+   rapture.css on the product pages; the homepage does not load it, so each use carries the
+   same value as its fallback. */
+
+/* --- Top bar: solid teal, wordmark left, icon nav right --- */
+.topbar {
+  background: var(--teal);
+  color: var(--on-teal);
+  border-bottom: 2px solid var(--brass);
+}
+.topbar__inner {
+  max-width: var(--wrap, 1180px);
+  margin: 0 auto;
+  padding: 14px var(--gutter, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+/* The homepage sheet underlines links by default; the bar never does. */
+.topbar a { text-decoration: none; }
+.topbar__brand {
+  color: var(--on-teal);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.topbar__brand:hover { color: var(--brass); }
+
+/* --- Icon nav (this IS the nav) --- */
+.icon-nav {
+  display: flex;
+  gap: 26px;
+  align-items: stretch;
+}
+.icon-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 4px 4px;
+  border-bottom: 2px solid transparent;
+}
+.icon-nav a svg { width: 22px; height: 22px; stroke: currentColor; }
+.icon-nav a:hover { color: var(--on-teal); }
+.icon-nav a.active { color: var(--brass); border-bottom-color: var(--brass); }
+
+/* Light/dark toggle. The site follows the OS by default; this overrides it per browser and is
+   remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
+   pressing it, which is why the sun shows while dark and the moon while light. */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--on-teal) 26%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--brass); border-color: var(--brass); }
+.theme-toggle svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+/* Default (no data-theme, or light): the page is light, so the moon shows - the theme you get
+   by pressing it. Only an explicit dark choice swaps the icons. */
+.theme-toggle__sun { display: none; }
+.theme-toggle__moon { display: block; }
+:root[data-theme="dark"] .theme-toggle__sun { display: block; }
+:root[data-theme="dark"] .theme-toggle__moon { display: none; }
+:root[data-theme="light"] .theme-toggle__sun { display: none; }
+:root[data-theme="light"] .theme-toggle__moon { display: block; }
+
+@media (max-width: 720px) {
+  .topbar__inner { --gutter: 24px; justify-content: center; gap: 14px; }
+  /* Brand on its own row, then the 2x2 icon grid with the theme toggle beside it. The grid's flex
+     basis is small enough that grid + gap + toggle fits a 320px viewport on one row. */
+  .topbar__brand { flex-basis: 100%; text-align: center; }
+  .icon-nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 28px;
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 260px;
+  }
+}
