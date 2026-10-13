@@ -1,5 +1,5 @@
 """The constellation drifts at cruising speed from the first frame (no ease-in ramp), on the
-masthead, the contact band and the /lattice intro, and the contact band's text keeps its contrast
+masthead, the contact band and the tool-web backdrop (/lattice and /), and the contact band's text keeps its contrast
 over it. Motion and contrast are MEASURED: Chrome pauses each ::before animation at fixed times and
 reads the computed mask-position; contrast is recomputed from tokens.css.
 Run: python -m pytest tests -q
@@ -43,7 +43,7 @@ PROBE = r"""<script>
 window.addEventListener("load", function () {
   var TIMES = [0, 1000, 10000, 11000], out = {clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth, bands: {}};
-  [".masthead", ".contact", ".intro"].forEach(function (sel) {
+  [".masthead", ".contact", ".web-backdrop"].forEach(function (sel) {
     var el = document.querySelector(sel);
     if (!el) return;
     var anims = document.getAnimations().filter(function (a) {
@@ -93,9 +93,16 @@ def _measure(path, width, tmp_path):
     return json.loads(htmllib.unescape(found.group(1)))
 
 
-def _offsets(rec):
-    """Pixel offset of the art's top-left corner at each probed time (mask-position % of overflow)."""
-    scale = max(rec["w"] / ART_W, rec["h"] / ART_H)
+BACKDROP_ART_HEIGHT = 1.2  # .web-backdrop::before sizes the art `auto 120%`: a fraction of the box height
+
+
+def _offsets(rec, band=None):
+    """Pixel offset of the art's top-left corner at each probed time (mask-position % of overflow).
+    Bands use `cover`; the tool-web backdrop sizes the art by height (see toolweb.css)."""
+    if band == ".web-backdrop":
+        scale = BACKDROP_ART_HEIGHT * rec["h"] / ART_H
+    else:
+        scale = max(rec["w"] / ART_W, rec["h"] / ART_H)
     ox, oy = max(0.0, ART_W * scale - rec["w"]), max(0.0, ART_H * scale - rec["h"])
     points = []
     for pos in rec["pos"]:
@@ -108,7 +115,7 @@ def _travel(a, b):
     return math.hypot(b[0] - a[0], b[1] - a[1])
 
 
-CASES = [("/", ".masthead"), ("/", ".contact"), ("/lattice", ".intro")]
+CASES = [("/", ".masthead"), ("/", ".contact"), ("/lattice", ".web-backdrop"), ("/", ".web-backdrop")]
 
 
 @pytest.mark.parametrize("width", [375, 1280])
@@ -120,7 +127,7 @@ def test_constellation_moves_from_the_first_second_without_a_ramp(path, band, wi
     out = _measure(path, width, tmp_path)
     rec = out["bands"].get(band)
     assert rec and rec["count"] == 1, (band, out)
-    p = _offsets(rec)
+    p = _offsets(rec, band)
     first, later = _travel(p[0], p[1]), _travel(p[2], p[3])
     assert first >= MIN_FIRST_SECOND_PX, (band, width, "px in the first second", round(first, 2), rec)
     assert first >= NO_RAMP * later, (band, width, "ramp", round(first, 2), round(later, 2), rec)

@@ -4,7 +4,8 @@
    same value as its fallback. */
 
 /* --- The drifting constellation: ONE @keyframes for the whole site ---
-   The masthead, contact band, /lattice intro and both bars point at this. It lives here because
+   The masthead, the contact band, the top bar, the site footer and the tool-web backdrop
+   (.web-backdrop, toolweb.css: /lattice and the homepage) point at this. It lives here because
    topbar.css reaches every page (base.html and profile.html link it, rapture.css imports it). */
 @keyframes constellation-drift {
   from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
