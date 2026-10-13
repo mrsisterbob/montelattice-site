@@ -37,7 +37,7 @@ def test_tool_settle_markup_is_the_settled_grid_by_default(client):
 
 
 def test_tool_settle_every_position_has_a_deterministic_scatter_offset_in_css(client):
-    css = client.get("/static/css/rapture.css").get_data(as_text=True)
+    css = client.get("/static/css/toolweb.css").get_data(as_text=True)
     rules = re.findall(
         r"\.tool-grid \.tool:nth-of-type\((\d+)\) \.tool__mark \{ --sx: (-?\d+)px; --sy: (-?\d+)px; "
         r"--sr: (-?\d+)deg; --i: (\d+); \}", css)
@@ -61,7 +61,7 @@ def test_tool_settle_markup_has_the_core_first_then_one_g_per_tool(client):
 
 
 def test_tool_settle_css_has_the_keyframes_and_a_reduced_motion_block(client):
-    css = client.get("/static/css/rapture.css").get_data(as_text=True)
+    css = client.get("/static/css/toolweb.css").get_data(as_text=True)
     assert "@keyframes tool-settle" in css
     block = re.search(r"@media \(prefers-reduced-motion: reduce\) \{\s*\.tool-grid \.tool__mark \{([^}]*)\}", css)
     assert block, "no reduced-motion block for the tool marks"
@@ -72,9 +72,8 @@ def test_tool_settle_css_has_the_keyframes_and_a_reduced_motion_block(client):
 
 
 def test_tool_settle_script_only_adds_the_classes_behind_the_reduced_motion_check(client):
-    js = client.get("/static/js/site.js").get_data(as_text=True)
+    js = client.get("/static/js/toolweb.js").get_data(as_text=True)
     fn = js[js.index("function armToolSettle"):]
-    fn = fn[:fn.index("// Relative-time formatter")]
     assert fn.index("REDUCE_MOTION") < fn.index('classList.add("is-scattered")')
     assert fn.index("REDUCE_MOTION") < fn.index('classList.add("is-settling")')
     assert "IntersectionObserver" in fn and "observer.disconnect()" in fn  # plays once
@@ -88,7 +87,7 @@ def test_tool_settle_adds_no_script_file(client):
 
 
 def test_tool_settle_has_a_failsafe_and_a_print_rule_so_nothing_stays_invisible(client):
-    js = client.get("/static/js/site.js").get_data(as_text=True)
+    js = client.get("/static/js/toolweb.js").get_data(as_text=True)
     assert "setTimeout(settle" in js
-    css = client.get("/static/css/rapture.css").get_data(as_text=True)
+    css = client.get("/static/css/toolweb.css").get_data(as_text=True)
     assert re.search(r"@media print \{\s*\.tool-grid \.tool__mark \{[^}]*opacity: 1", css)

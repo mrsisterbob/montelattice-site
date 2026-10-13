@@ -27,7 +27,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/topbar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/toolweb.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<script src="{{ url_for('static', filename='js/toolweb.js') }}" defer></script>
 </head>
 <body>
 {# The availability banner: the same partial and the same siteflags switch as the base.html pages.
@@ -35,6 +37,7 @@
 {% include "_availability.html" %}
 {# A system card's measured figures (homepage.system_figures, keyed by the card's slug). Nothing
    renders for a slug with no figures. #}
+{% from "_tools.html" import tool_grid %}
 {% macro sys_figures(slug) %}{% set figs = (p.system_figures or {}).get(slug) %}{% if figs %}
       <ul class="sys-figs">
         {% for f in figs %}<li><span class="sys-fig-n">{{ f.value }}</span> {{ f.label }}</li>{% endfor %}
@@ -103,6 +106,10 @@
     {% endfor %}
   </div>
   {% endif %}
+
+  {# The same tool web as /lattice, drawn by the same macro from tools.py. No heading or prose of
+     its own: the wrapper holds only the SVG, so the page's word count is unchanged. #}
+  {% if tools %}<div class="tool-grid-wrap">{{ tool_grid(tools) }}</div>{% endif %}
 
   {% if p.story %}
   <h2>How I got here</h2>
@@ -264,7 +271,8 @@
    sets a session cookie, so the line would be false for that viewer. #}
 {% if not console_authed %}<p class="privacy-line">This site sets no cookies and loads no trackers.</p>{% endif %}
 
-{# This page loads no other JS, so the 12-line handler is inline rather than pulling in site.js.
+{# This page loads no site.js (toolweb.js only settles the tool web), so the 12-line handler is inline
+   rather than pulling in site.js, whose own toggle handler would cancel this one.
    Every page opens light, so no stored choice means light and the first click goes to dark. #}
 <script>
   (function () {
