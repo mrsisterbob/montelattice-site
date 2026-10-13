@@ -119,7 +119,7 @@ p:last-child { margin-bottom: 0; }
   text-align: center;
   padding-top: 36px;
   position: relative;
-  isolation: isolate;  /* the constellation sits behind the text, inside this box */
+  isolation: isolate;  /* keeps the hero's .web-backdrop layer (toolweb.css) inside this box */
 }
 /* The constellation behind the hero is the shared .web-backdrop (toolweb.css): one layer behind the
    wordmark, the line and the whole tool web, instead of a capped layer on the section's top. */

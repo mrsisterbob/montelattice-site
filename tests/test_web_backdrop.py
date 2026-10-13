@@ -106,7 +106,7 @@ def _art_height_fraction(client):
     return int(m.group(1)) / 100.0
 
 
-@pytest.mark.parametrize("width", [1280, 375, 320])
+@pytest.mark.parametrize("width", [1280, 768, 375, 320])
 @pytest.mark.parametrize("path", ["/lattice", "/"])
 def test_the_backdrop_runs_from_above_the_web_to_past_its_last_label(path, width, tmp_path, monkeypatch, client):
     monkeypatch.setenv("ANALYTICS_ENABLED", "false")
