@@ -26,6 +26,7 @@ import homepage
 import jobstats
 import leads
 import media
+import siteflags
 import tools
 import visits
 
@@ -221,7 +222,8 @@ def public_console_demo() -> bool:
 def _inject_visibility():
     return {"public_crypto": public_crypto(),
             "public_console_demo": public_console_demo(),
-            "console_authed": bool(session.get("console_authed"))}
+            "console_authed": bool(session.get("console_authed")),
+            **siteflags.template_context()}
 
 
 def _public_repos() -> list[dict]:
