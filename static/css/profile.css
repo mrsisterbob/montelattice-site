@@ -66,7 +66,7 @@ img { max-width: 100%; }
 @media (max-width: 560px) {
   .navlinks { margin-left: 0; width: 100%; }
   /* Phone width is the binding constraint: the wider 24px gutter only rewraps text here. */
-  .wrap, .sitenav, .masthead, .contact { padding-left: 20px; padding-right: 20px; }
+  .wrap, .sitenav { padding-left: 20px; padding-right: 20px; }  /* .masthead and .contact: see the end of the sheet */
 }
 
 /* ---- availability banner (templates/_availability.html; same look as rapture.css's, which this
@@ -117,7 +117,7 @@ img { max-width: 100%; }
   .masthead::before { animation: none; }
 }
 .masthead-inner {
-  max-width: 44rem;
+  max-width: calc(44rem - 48px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: 9.5rem 1fr;
@@ -277,8 +277,10 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 
 /* ---- two paths under the masthead, and the closing "You might want to:" row ---- */
 .paths { padding: 1.4rem 24px 0; }
+/* The 24px side padding sits OUTSIDE on .paths and .contact, so these boxes give up 48px to match
+   .wrap, whose 44rem includes its own padding. All three then share one content width. */
 .paths-inner {
-  max-width: 44rem;
+  max-width: calc(44rem - 48px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -420,7 +422,7 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 
 /* ---- contact ---- */
 .contact { margin-top: 3rem; background: var(--teal); color: var(--on-teal); padding: 2.4rem 24px; }
-.contact-inner { max-width: 44rem; margin: 0 auto; }
+.contact-inner { max-width: calc(44rem - 48px); margin: 0 auto; }
 /* Section ornament (same glyph as rapture.css's .section-heading::before; this page loads
    profile.css alone). A mask coloured by --brass-warm (the token for marks larger than a hairline),
    static, invisible to screen readers. Only the section headings that are direct children of
@@ -451,6 +453,9 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
    long ones wrap below it. Kept below the base .line rule, which would otherwise win. */
 @media (max-width: 560px) {
   .line { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+  /* The phone gutter for the two bands. It lives here, below their base rules, because their
+     `padding` shorthand would otherwise win over it. */
+  .masthead, .contact { padding-left: 20px; padding-right: 20px; }
 }
 .footnote {
   margin: 2rem 0 0;
