@@ -219,6 +219,24 @@ p { margin: 0 0 1.05rem; max-width: 36rem; }
 .sys-name { font-weight: 600; margin-bottom: 0.3rem; }
 .sys-name a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--brass); padding-bottom: 1px; }
 .sys-name a:hover { color: var(--brass-text); }
+/* Project status pill (siteflags.PROJECT_STATUS), same look as rapture.css's .status-tag; this page
+   loads profile.css alone. Tokens only. */
+.status-tag {
+  display: inline-block;
+  margin-left: 0.55rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+  color: var(--muted);  /* a status without its own modifier below still reads as a pill */
+}
+.status-tag--live { color: var(--ok); }
+.status-tag--beta { color: var(--brass-text); }
 .sys-desc { font-size: 0.92rem; color: var(--muted); margin: 0 0 0.6rem; }
 .sys-meta {
   font-family: var(--font-mono);
