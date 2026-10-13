@@ -69,6 +69,19 @@ img { max-width: 100%; }
   .wrap, .sitenav, .masthead, .contact { padding-left: 20px; padding-right: 20px; }
 }
 
+/* ---- availability banner (templates/_availability.html; same look as rapture.css's, which this
+   page does not load) ---- */
+.availability {
+  background: var(--teal-deep);
+  color: var(--on-teal);
+  border-bottom: 1px solid var(--brass);
+  padding: 7px 20px;
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+}
+
 /* ---- masthead ---- */
 .masthead {
   background: var(--teal);

@@ -29,6 +29,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
 <body>
+{# The availability banner: the same partial and the same siteflags switch as the base.html pages.
+   Outside the p / no-p branch, so the 503 page shows it too. #}
+{% include "_availability.html" %}
 {# Status pill for a system card, from siteflags.PROJECT_STATUS (the same source as the /lattice
    cards), looked up by the card's path slug. Never typed into this template. #}
 {% macro status_tag(slug) %}{% set st = (project_status or {}).get(slug) %}{% if st %}<span class="status-tag status-tag--{{ st | lower | replace(' ', '-') }}">{{ st }}</span>{% endif %}{% endmacro %}
