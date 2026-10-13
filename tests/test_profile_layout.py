@@ -172,3 +172,68 @@ def test_image_box_portrait_is_square_and_photos_are_not_stretched(monkeypatch, 
     assert len(out["offhours"]) == 2
     for img in out["offhours"]:
         assert 0 < img["h"] < 600, img
+
+
+# ---- shared page edges ----------------------------------------------------------------------
+
+EDGE_PROBE = r"""<script>
+window.addEventListener("load", function () {
+  // The figures grid draws its own 1px border, which is the visible edge: use the border box
+  // there, and the content box (inside padding and border) everywhere else.
+  function edges(sel) {
+    var el = document.querySelector(sel);
+    if (!el) { return null; }
+    var r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+    if (sel === ".figures") { return {left: r.left, right: r.right}; }
+    return {left: r.left + parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth),
+            right: r.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth)};
+  }
+  var out = {clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth};
+  [".masthead-inner", ".paths-inner", ".figures", ".wrap > h2", ".contact-inner"].forEach(function (s) { out[s] = edges(s); });
+  parent.document.getElementById("OUT").textContent = JSON.stringify(out);
+});
+</script>
+"""
+
+EDGE_BANK = {
+    "identity": {"name": "K", "site_email": "kevin.miller@montelattice.com"},
+    "site_profile": {"resume_note": "Available on request.",
+                     "figures": [{"value": "4", "label": "Systems built"}, {"value": "2", "label": "Years"}]},
+}
+
+
+def measure_edges(width, monkeypatch, tmp_path):
+    browser = _browser()
+    if not browser:
+        pytest.skip("no Chrome or Edge found to measure layout")
+    monkeypatch.setenv("ANALYTICS_ENABLED", "false")
+    monkeypatch.setattr(homepage, "load_bank", lambda: EDGE_BANK)
+    page = main.app.test_client().get("/").get_data(as_text=True)
+    page = page.replace('"/static/', '"' + (ROOT / "static").as_uri() + "/")
+    page = page.replace("</body>", EDGE_PROBE + "</body>")
+    (tmp_path / "page.html").write_text(page, encoding="utf-8")
+    (tmp_path / "wrapper.html").write_text(
+        '<!doctype html><html><body style="margin:0"><pre id="OUT"></pre>'
+        f'<iframe src="page.html" scrolling="no" style="width:{width}px;height:800px;border:0"></iframe>'
+        "</body></html>", encoding="utf-8")
+    result = subprocess.run(
+        [browser, "--headless=new", "--disable-gpu", "--no-first-run", "--window-size=1200,900",
+         f"--user-data-dir={tmp_path / 'profile'}", "--allow-file-access-from-files",
+         "--virtual-time-budget=8000", "--dump-dom", (tmp_path / "wrapper.html").as_uri()],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
+    found = re.search(r'<pre id="OUT">(.*?)</pre>', result.stdout, re.S)
+    assert found and found.group(1), f"probe reported nothing: {result.stdout[-2000:]} {result.stderr[-2000:]}"
+    return json.loads(html.unescape(found.group(1)))
+
+
+@pytest.mark.parametrize("width", [1100, 640, 375])
+def test_homepage_blocks_share_the_page_edges(width, monkeypatch, tmp_path):
+    out = measure_edges(width, monkeypatch, tmp_path)
+    selectors = [".masthead-inner", ".paths-inner", ".figures", ".wrap > h2", ".contact-inner"]
+    blocks = {k: out[k] for k in selectors}
+    assert all(blocks.values()), f"a block was not on the page: {blocks}"
+    lefts = [v["left"] for v in blocks.values()]
+    rights = [v["right"] for v in blocks.values()]
+    assert max(lefts) - min(lefts) <= 1, blocks
+    assert max(rights) - min(rights) <= 1, blocks
+    assert out["scrollWidth"] <= out["clientWidth"], out
