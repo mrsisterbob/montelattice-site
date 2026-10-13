@@ -372,6 +372,21 @@ p:last-child { margin-bottom: 0; }
 }
 /* corner ticks sit on the card edge, above the image band */
 .card::before, .card::after { z-index: 2; }
+/* Project status pill (siteflags.PROJECT_STATUS): small, one word, tokens only. */
+.status-tag {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  color: var(--muted);  /* any status without its own modifier below still reads as a pill */
+}
+.status-tag--live { color: var(--ok); }
+.status-tag--beta { color: var(--brass-text); }
 .card__tag.is-private { background: color-mix(in srgb, var(--warn) 18%, transparent); }
 .card h3 { margin-bottom: 8px; }
 .card p { font-size: 0.9rem; color: var(--muted); margin: 0; }

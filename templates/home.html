@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Monte Lattice{% endblock %}
 {% from "_tools.html" import tool_grid %}
+{# A status pill for a card, from siteflags.PROJECT_STATUS (keyed by the card's path slug). Rendered
+   inside card__body: the <a class="card" ...> tag itself must stay exactly as it is, because
+   tests/test_public_console_demo.py matches it. #}
+{% macro status_tag(slug) %}{% set st = (project_status or {}).get(slug) %}{% if st %}<span class="status-tag status-tag--{{ st | lower | replace(' ', '-') }}">{{ st }}</span>{% endif %}{% endmacro %}
 {% block content %}
 
 {# The skyline that used to fill this spot became the fourth card; that card is now a map too. #}
@@ -50,6 +54,7 @@
       <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-job.webp') }}')"></div>
       <div class="card__body">
         <span class="card__tag">Utility &middot; Public</span>
+        {{ status_tag("job-engine") }}
         <h3>Job Outreach Engine</h3>
         <p>AI-screened job-search pipeline with a live CRM, r&eacute;sum&eacute; compiler, and outcome tracking.</p>
       </div>
@@ -59,6 +64,7 @@
       <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-docs.webp') }}')"></div>
       <div class="card__body">
         <span class="card__tag">Marketing &middot; Public</span>
+        {{ status_tag("docfiler") }}
         <h3>DocFiler</h3>
         <p>Automated document intake and filing for small law firms and RIAs.</p>
       </div>
@@ -79,6 +85,7 @@
       <div class="card__img" style="background-image: url('{{ url_for('static', filename='img/card-budget.webp') }}')"></div>
       <div class="card__body">
         <span class="card__tag">Utility &middot; Public</span>
+        {{ status_tag("budget") }}
         <h3>Budget Tracker</h3>
         <p>Personal income and spending tracker, with monthly rollups and a category breakdown.</p>
       </div>
