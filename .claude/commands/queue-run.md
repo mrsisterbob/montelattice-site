@@ -412,6 +412,8 @@ On success - verify, the suite and the review all green:
 
    Removal waits until `master` is proven green, so a reverted merge still has its branch.
    `done/` therefore means merged into `master`; dependency checks (Claim, step 4) rely on it.
+   A worktree kept because it has uncommitted changes does not skip anything below: still move
+   the task, push, and release the lock.
 
    Then push, still holding the lock (2026-10-13: Kevin asked for the worker to push; the Render
    deploy is his). Holding it means no other worker is mid-merge, so the push never carries
@@ -439,7 +441,8 @@ On success - verify, the suite and the review all green:
    rmdir .queue/merge.lock
    ```
 8. Report one line - task id, merged / blocked / held, test counts, review findings, and for a
-   merge "merged <merge-sha>, pushed <hash>" or "merged <merge-sha>, push rejected" - and if
+   merge "merged <merge-sha>, pushed <hash>" or "merged <merge-sha>, push rejected" (or "no merge
+   commit, not pushed" for "Already up to date") - and if
    a `site-planner` session is running, message it the same line plus anything it got wrong
    about the code. If the task was blocked, that message is how the plan gets fixed - say
    what you actually found, not that it failed. Then go back to **Claim** from the main folder.
