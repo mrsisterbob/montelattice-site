@@ -13,7 +13,9 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app --workers 2 --bind 0.0.0.0:$PORT --timeout 30
     healthCheckPath: /
-    autoDeploy: true
+    # 2026-10-13: the queue worker pushes master after every green merge (TASK-59); deploys stay a
+    # manual click in Render, so a push never changes the live site.
+    autoDeploy: false
     envVars:
       # Set the two secrets in the dashboard (Environment tab) so they never land in git:
       #   SITE_SECRET_KEY       - any long random string (Flask session signing)
