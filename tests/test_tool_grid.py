@@ -53,12 +53,37 @@ def test_tool_grid_groups_keep_position_outside_and_drawing_inside(html):
     assert len(groups) == len(tools.TOOLS)
 
 
-def test_tool_grid_a_tool_without_a_mark_is_its_name_as_text(html):
+def _group(html, name):
+    """One tool's outer <g>, up to the two closing </g> (tool__mark, then tool)."""
+    m = re.search(r'<g class="tool" data-tool="' + re.escape(name) + r'".*?</g>\s*</g>', html, re.S)
+    assert m, name
+    return m.group(0)
+
+
+def test_tool_grid_every_tool_is_one_tile_and_one_name_label(html):
+    assert html.count('class="tool__tile"') == len(tools.TOOLS)
+    assert html.count('class="tool__name"') == len(tools.TOOLS)
+    assert "tool__wordmark" not in html
+    for tool in tools.TOOLS:
+        g = _group(html, tool.name)
+        assert g.count('class="tool__tile"') == 1 and g.count('class="tool__name"') == 1, tool.name
+        assert f'class="tool__name" y="28">{tool.name}</text>' in g, tool.name
+        if tool.svg_path is not None:
+            assert tool.svg_path in g and "tool__monogram" not in g, tool.name
+        else:
+            # no licensed mark: a monogram (the name's first letter) and no path data at all
+            assert re.search(r'class="tool__monogram"[^>]*>' + re.escape(tool.name[0]) + "</text>", g), tool.name
+            assert "<path" not in g, tool.name
+
+
+def test_tool_grid_marks_are_sized_so_none_outgrows_its_tile(html):
     for tool in tools.TOOLS:
         if tool.svg_path is None:
-            assert f'<text class="tool__wordmark" y="6">{tool.name}</text>' in html, tool.name
-        else:
-            assert tool.svg_path in html, tool.name
+            continue
+        assert 18 <= tool.mark_size <= 28, (tool.name, tool.mark_size)
+        assert f'width="{tool.mark_size}" height="{tool.mark_size}"' in _group(html, tool.name), tool.name
+    drawn = [t.mark_size for t in tools.TOOLS if t.svg_path is not None]
+    assert max(drawn) - min(drawn) <= 6 and all(s % 2 == 0 for s in drawn)
 
 
 def test_tool_grid_names_no_excluded_service(html):
