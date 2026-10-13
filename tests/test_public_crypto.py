@@ -136,7 +136,7 @@ def test_every_page_loads_tokens_before_its_own_stylesheet(client, monkeypatch, 
 
 def test_one_dark_block_and_light_is_complete():
     css = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
-    assert "prefers-color-scheme" not in css  # dark is opt-in: every page opens light
+    assert "prefers-color-scheme" not in css  # the OS preference is never followed: pages are served data-theme="dark" (2026-10-13)
     forced = re.search(r':root\[data-theme="dark"\] \{(.*?)\}', css, re.S).group(1)
     light = re.search(r':root,\n:root\[data-theme="light"\] \{(.*?)^\}', css, re.S | re.M).group(1)
     light_names = set(re.findall(r"(--[\w-]+):", light))

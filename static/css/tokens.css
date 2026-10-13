@@ -17,10 +17,11 @@
    a drop cap or a 3px cell edge. If a future block wants a solid accent ground, --brass-warm is
    the value to start from, never --brass.
    Rules: the full light palette lives on bare :root (also written :root[data-theme="light"],
-   so an explicit light choice names itself). Dark mode is opt-in: it redefines only token
-   values under an explicit data-theme="dark" (the toggle, or a stored ml-theme=dark), and sets
-   color-scheme with them. The OS preference is deliberately NOT followed: every page opens
-   light. Neutrals lean warm toward the champagne; none is a pure grey.
+   so an explicit light choice names itself). Dark mode redefines only token values under
+   data-theme="dark" and sets color-scheme with them. 2026-10-13: Kevin chose dark as the default,
+   so every page is SERVED with data-theme="dark" on <html> (no script needed, no light frame);
+   a stored ml-theme=light, or the toggle, switches it. The OS preference is deliberately NOT
+   followed. Neutrals lean warm toward the champagne; none is a pure grey.
    Contrast (WCAG 2.x relative luminance, computed from the hex values), measured 2026-10-13:
      light: ink/paper 14.2, ink/surface 15.7, muted/paper 5.6, muted/surface 6.2,
             brass-text/paper 5.2, brass-text/surface 5.7, ok/surface 5.0, down/surface 5.5,
