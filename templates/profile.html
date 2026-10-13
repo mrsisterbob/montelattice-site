@@ -80,7 +80,7 @@
     <div class="path">
       <h2 class="path__title">Hiring?</h2>
       <p class="path__links">
-        {% if resume_pdf %}<a href="{{ url_for('static', filename=resume_pdf) }}" download>Download my r&eacute;sum&eacute;</a>
+        {% if resume_pdf %}<a class="path__primary" href="{{ url_for('static', filename=resume_pdf) }}" download>Download my r&eacute;sum&eacute;</a>
         {% elif p.resume_note %}<span class="path__note">{{ p.resume_note }}</span>{% endif %}
         {% if p.linkedin_url %}<a href="{{ p.linkedin_url }}">LinkedIn</a>{% endif %}
         {# Never a call to action with nothing to click: fall back to the email address. #}
@@ -217,8 +217,6 @@
   <p class="next-steps">
     <span class="next-steps__label">You might want to:</span>
     <a href="/lattice">See my work</a>
-    {% if p.linkedin_url %}<a href="{{ p.linkedin_url }}">LinkedIn</a>{% endif %}
-    {% if resume_pdf %}<a href="{{ url_for('static', filename=resume_pdf) }}" download>R&eacute;sum&eacute;</a>{% endif %}
   </p>
 
 </div>
