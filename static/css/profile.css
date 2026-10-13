@@ -19,6 +19,9 @@ img { max-width: 100%; }
 @media (max-width: 560px) {
   /* Phone width is the binding constraint: the wider 24px gutter only rewraps text here. */
   .wrap { padding-left: 20px; padding-right: 20px; }
+  /* The shared top bar's phone gutter is 24px (topbar.css); on this page the content column is 20px,
+     and the bar's edges should line up with it. Loaded after topbar.css, so it wins here only. */
+  .topbar__inner { --gutter: 20px; }
 }
 
 /* ---- availability banner (templates/_availability.html; same look as rapture.css's, which this
