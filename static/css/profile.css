@@ -264,6 +264,56 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 
 .demo-video { width: 100%; height: auto; display: block; margin-top: 1rem; border: 1px solid var(--rule); }
 
+/* ---- two paths under the masthead, and the closing "You might want to:" row ---- */
+.paths { padding: 1.4rem 24px 0; }
+.paths-inner {
+  max-width: 44rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.path {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--brass);
+  padding: 1rem 1.2rem;
+  min-width: 0;
+}
+/* An h2 (the outline goes h1 -> h2), restyled: it overrides the page's small uppercase section h2. */
+.path__title {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink);
+}
+.path__links { margin: 0; display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; font-size: 0.95rem; }
+.path__note { color: var(--muted); }
+.next-steps {
+  margin: 2.5rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.2rem;
+  font-size: 0.95rem;
+}
+.next-steps__label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+@media (max-width: 560px) {
+  .paths { padding: 1.2rem 20px 0; }
+  .paths-inner { grid-template-columns: 1fr; }
+}
+
 /* ---- timeline: alternating left/right around a centre line; one column below 560px ---- */
 .timeline {
   list-style: none;

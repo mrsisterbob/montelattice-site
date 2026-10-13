@@ -73,6 +73,27 @@
   </div>
 </header>
 
+{# Two clear paths right under the masthead. The résumé and LinkedIn come from the same variables
+   the contact block uses (resume_pdf, the bank's linkedin_url); nothing is typed here. #}
+<div class="paths">
+  <div class="paths-inner">
+    <div class="path">
+      <h2 class="path__title">Hiring?</h2>
+      <p class="path__links">
+        {% if resume_pdf %}<a href="{{ url_for('static', filename=resume_pdf) }}" download>Download my r&eacute;sum&eacute;</a>
+        {% elif p.resume_note %}<span class="path__note">{{ p.resume_note }}</span>{% endif %}
+        {% if p.linkedin_url %}<a href="{{ p.linkedin_url }}">LinkedIn</a>{% endif %}
+        {# Never a call to action with nothing to click: fall back to the email address. #}
+        {% if not resume_pdf and not p.resume_note and not p.linkedin_url and p.email %}<a href="mailto:{{ p.email }}">{{ p.email }}</a>{% endif %}
+      </p>
+    </div>
+    <div class="path">
+      <h2 class="path__title">Building something?</h2>
+      <p class="path__links"><a href="/docfiler#contact-form">Start with the DocFiler audit</a></p>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
 
   {% if p.figures %}
@@ -192,6 +213,13 @@
     {% endfor %}
   </ol>
   {% endif %}
+
+  <p class="next-steps">
+    <span class="next-steps__label">You might want to:</span>
+    <a href="/lattice">See my work</a>
+    {% if p.linkedin_url %}<a href="{{ p.linkedin_url }}">LinkedIn</a>{% endif %}
+    {% if resume_pdf %}<a href="{{ url_for('static', filename=resume_pdf) }}" download>R&eacute;sum&eacute;</a>{% endif %}
+  </p>
 
 </div>
 
