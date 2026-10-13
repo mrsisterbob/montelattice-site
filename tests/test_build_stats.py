@@ -55,7 +55,23 @@ def client(tmp_path, monkeypatch):
 def _profile(client):
     r = client.get("/")
     assert r.status_code == 200
-    return r.get_data(as_text=True)
+    return _without_tool_web(r.get_data(as_text=True))
+
+
+def _without_tool_web(html):
+    """The tool web's SVG path data is digits, and these tests look for build figures by their
+    digits, so the drawing is cut out first. Each mark is a nested <svg>, so the cut balances
+    <svg ...> against </svg> instead of stopping at the first close."""
+    start = html.find('<svg class="tool-grid"')
+    if start < 0:
+        return html
+    depth, pos = 0, start
+    for m in re.finditer(r"<svg\b|</svg>", html[start:]):
+        depth += 1 if m.group(0) == "<svg" else -1
+        pos = start + m.end()
+        if depth == 0:
+            break
+    return html[:start] + html[pos:]
 
 
 def test_profile_shows_measured_figures_with_honest_labels(client):
