@@ -66,6 +66,8 @@ def test_each_bar_layer_is_a_masked_token_behind_the_content(client, selector):
     assert "background-color: var(--on-teal)" in body
     assert "-webkit-mask:" in body and re.search(r"(?<!-)mask:", body)
     assert "constellation-drift" in body
+    seconds = [float(x) for x in re.findall(r"constellation-drift\s+([\d.]+)s", body)]
+    assert seconds and min(seconds) >= 12, seconds  # slow enough to read as drift, not scroll
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", body)
     block = re.search(r"@media \(prefers-reduced-motion: reduce\) \{\s*" + re.escape(selector)
                       + r"\s*\{([^}]*)\}", _strip(css))
