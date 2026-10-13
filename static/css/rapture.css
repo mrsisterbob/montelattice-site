@@ -144,10 +144,7 @@ p:last-child { margin-bottom: 0; }
      speed peaks, so it moves from the first frame instead of creeping off rest. */
   animation: constellation-drift 40s ease-in-out -20s infinite alternate;
 }
-@keyframes constellation-drift {
-  from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
-  to { -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
-}
+/* The drift keyframes live in topbar.css (imported at the top of this sheet). */
 @media (prefers-reduced-motion: reduce) {
   .intro::before { animation: none; }
 }

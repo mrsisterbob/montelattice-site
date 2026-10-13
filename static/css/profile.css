@@ -72,10 +72,7 @@ img { max-width: 100%; }
    contrast on the on-teal text (the 60%-opacity footnote is the limit; tests recompute it). */
 .masthead::before { opacity: 0.12; }
 .contact::before { opacity: 0.10; }
-@keyframes constellation-drift {
-  from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
-  to { -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
-}
+/* The drift keyframes live in topbar.css (loaded by this page): one copy for every band on the site. */
 @media (prefers-reduced-motion: reduce) {
   .masthead::before { animation: none; }
 }
