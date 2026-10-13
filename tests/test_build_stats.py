@@ -150,3 +150,91 @@ def test_only_the_measured_figures_carry_the_live_marker(client):
     # those, not data/build_stats.json: the point is that the marker follows the measured
     # values wherever they come from.
     assert set(live) == {"159", "44,255"}
+
+
+# --- remote snapshot (the build-stats branch) -------------------------------------------------
+
+REMOTE_URL = "https://example.invalid/build_stats.json"
+
+
+class _Resp:
+    def __init__(self, payload):
+        self._b = json.dumps(payload).encode("utf-8")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def read(self, n=-1):
+        return self._b
+
+
+def _remote_payload(hours=777, lines=98765, age_days=0):
+    generated = datetime.now(timezone.utc) - timedelta(days=age_days)
+    return {"generated_at": generated.isoformat(timespec="seconds"), "commit_hours": hours,
+            "tracked_lines": lines, "repos": {"x": {}}, "unreachable": []}
+
+
+@pytest.fixture
+def remote(client, monkeypatch):
+    """The `client` fixture serves a fresh committed file (159 / 44,255). This puts a remote behind it."""
+    monkeypatch.setattr(buildstats, "SNAPSHOT_URL", REMOTE_URL)
+    state = {"payload": _remote_payload(), "error": None, "calls": []}
+
+    def fake_urlopen(req, *a, **k):
+        state["calls"].append(getattr(req, "full_url", req))
+        if state["error"] is not None:
+            raise state["error"]
+        return _Resp(state["payload"])
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    buildstats.reset_cache()
+    return state
+
+
+def test_newer_remote_snapshot_wins_over_the_committed_file(client, remote, tmp_path, monkeypatch):
+    _snapshot(tmp_path / "older.json", age_days=3)
+    monkeypatch.setattr(buildstats, "SNAPSHOT_PATH", str(tmp_path / "older.json"))
+    html = _profile(client)
+    assert remote["calls"] == [REMOTE_URL]
+    assert "777" in html and "98,765" in html
+    assert "159" not in html and "44,255" not in html
+
+
+def test_older_remote_snapshot_loses_to_the_committed_file(client, remote):
+    remote["payload"] = _remote_payload(age_days=3)
+    html = _profile(client)
+    assert "159" in html and "44,255" in html and "98,765" not in html
+
+
+def test_remote_failure_falls_back_to_the_committed_file(client, remote):
+    remote["error"] = OSError("network is down")
+    html = _profile(client)
+    assert "159" in html and "44,255" in html
+
+
+def test_remote_failure_is_cached_so_the_page_never_retries_per_request(client, remote):
+    remote["error"] = OSError("404")
+    for _ in range(3):
+        _profile(client)
+    assert len(remote["calls"]) == 1
+    buildstats.load(now=time.time() + buildstats.CACHE_SECONDS + 60)
+    assert len(remote["calls"]) == 2  # and it tries again once the window is up
+
+
+def test_remote_snapshot_with_zero_figures_is_rejected(client, remote):
+    remote["payload"] = _remote_payload(hours=0, lines=0)
+    html = _profile(client)
+    assert "159" in html and "44,255" in html
+
+
+def test_stale_remote_and_stale_file_give_the_empty_state(client, remote, tmp_path, monkeypatch):
+    remote["payload"] = _remote_payload(age_days=buildstats.MAX_AGE_DAYS + 1)
+    _snapshot(tmp_path / "old.json", age_days=buildstats.MAX_AGE_DAYS + 1)
+    monkeypatch.setattr(buildstats, "SNAPSHOT_PATH", str(tmp_path / "old.json"))
+    buildstats.reset_cache()
+    html = _profile(client)
+    assert "777" not in html and "159" not in html and "44,255" not in html
+    assert html.count(buildstats_empty()) == 2
