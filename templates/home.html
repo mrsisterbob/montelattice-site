@@ -4,6 +4,9 @@
 {# A status pill for a card, from siteflags.PROJECT_STATUS (keyed by the card's path slug). Rendered
    inside card__body: the <a class="card" ...> tag itself must stay exactly as it is, because
    tests/test_public_console_demo.py matches it. #}
+{# One big measured number for a card, from outcomes.card_figures (keyed by the card's href). A card
+   with no figure, or whose figure is unavailable, shows nothing. No number is typed here. #}
+{% macro card_figure(href) %}{% set f = (card_figures or {}).get(href) %}{% if f %}<div class="card__figure"><span class="card__figure-value">{{ f.value }}</span><span class="card__figure-label">{{ f.label }}</span><span class="card__figure-sub">{{ f.sub }}</span></div>{% endif %}{% endmacro %}
 {% macro status_tag(slug) %}{% set st = (project_status or {}).get(slug) %}{% if st %}<span class="status-tag status-tag--{{ st | lower | replace(' ', '-') }}">{{ st }}</span>{% endif %}{% endmacro %}
 {% block content %}
 
@@ -57,6 +60,7 @@
         {{ status_tag("job-engine") }}
         <h3>Job Outreach Engine</h3>
         <p>AI-screened job-search pipeline with a live CRM, r&eacute;sum&eacute; compiler, and outcome tracking.</p>
+        {{ card_figure("/job-engine") }}
       </div>
     </a>
 
@@ -98,6 +102,7 @@
         <span class="card__tag">Utility &middot; Public</span>
         <h3>Monte Lattice (this site)</h3>
         <p>The Flask app serving this page, with a private read-only Console rolling up live metrics from each project&rsquo;s own database.</p>
+        {{ card_figure("/code") }}
       </div>
     </a>
 
