@@ -205,11 +205,20 @@ def build_view(p: dict | None, show_funnel: bool) -> dict | None:
     return view
 
 
+def _row_class(n: int) -> str:
+    """Grid class for a row of n tiles: the fixed 3- and 4-up grids when the row is full, else the
+    base auto-fit grid, so a tile dropped for a missing figure leaves no hole."""
+    return f"kpi-row kpi-row--{n}" if n in (3, 4) else "kpi-row"
+
+
 def _build_view(p: dict, show_funnel: bool) -> dict:
     screened = p.get("roles_screened")
     discovered = p.get("listings_discovered")
+    # A figure whose source could not be read (None) is left out, never printed as an error
+    # sentence: the public page shows what the engine measured and nothing about its plumbing.
+    # The zero and "nothing yet" branches are honest states and stay.
     if screened is None:
-        t_screened = _tile("Roles screened", empty="Screener count unavailable right now.")
+        t_screened = None
     elif screened == 0:
         t_screened = _tile("Roles screened", empty="No roles screened yet.")
     else:
@@ -220,7 +229,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     apps = p.get("applications_sent")
     days = p.get("days_running")
     if apps is None:
-        t_apps = _tile("Applications sent", empty="CRM unreachable right now.")
+        t_apps = None
     elif apps == 0:
         t_apps = _tile("Applications sent", empty="No applications logged yet.")
     else:
@@ -229,7 +238,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
 
     live = p.get("live_conversations")
     if live is None:
-        t_live = _tile("Live conversations", empty="Inbox tray unavailable right now.")
+        t_live = None
     elif live == 0:
         t_live = _tile("Live conversations", empty="No open recruiter threads right now.")
     else:
@@ -237,7 +246,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
 
     dead = p.get("dead_links")
     if dead is None:
-        t_dead = _tile("Dead links retired", empty="Link sweep unavailable right now.")
+        t_dead = None
     elif not dead.get("detected"):
         t_dead = _tile("Dead links retired", empty="No dead links detected yet.")
     else:
@@ -258,7 +267,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
 
     total, used = p.get("tracks_total"), p.get("tracks_used")
     if not total:
-        t_tracks = _tile("Résumé tracks", empty="Track registry unavailable right now.")
+        t_tracks = None
     elif used is None:
         t_tracks = _tile("Résumé tracks", _n(total), "tailored résumé tracks the router chooses between",
                          target=total)
@@ -268,7 +277,7 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     docs = p.get("documents_compiled")
     since = _date(p.get("documents_since"))
     if docs is None:
-        t_docs = _tile("Documents compiled", empty="Document counter unavailable right now.")
+        t_docs = None
     elif docs == 0:
         t_docs = _tile("Documents compiled", empty="None since counting began.")
     else:
@@ -295,8 +304,9 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
     funnel = None
     f = p.get("funnel")
     # Shown only when BOTH services allow it: the engine leaves the funnel out of its payload
-    # unless its own PUBLIC_FUNNEL_STATS is true. A CRM outage is already stated on the
-    # Applications tile, so an absent funnel just means no Conversion section.
+    # unless its own PUBLIC_FUNNEL_STATS is true. During a CRM outage the engine sends no
+    # funnel either, so an absent funnel just means no Conversion section; nothing on the page
+    # says why (the public page does not print the engine's plumbing).
     if show_funnel and f:
         def rate(r):
             return f"{r:g}% of applications" if r is not None else "no applications to rate against yet"
@@ -310,9 +320,13 @@ def _build_view(p: dict, show_funnel: bool) -> dict:
         ], "empty": ""}
 
     flow = flow_stages(p, show_funnel)
+    primary = [t for t in (t_screened, t_apps, t_live, t_dead) if t]
+    secondary = [t for t in (t_fit, t_tracks, t_docs) if t]
     return {
-        "primary": [t_screened, t_apps, t_live, t_dead],
-        "secondary": [t_fit, t_tracks, t_docs],
+        "primary": primary,
+        "primary_row": _row_class(len(primary)),
+        "secondary": secondary,
+        "secondary_row": _row_class(len(secondary)) + " dash-row",
         "drafting": drafting,
         "timeline": timeline,
         "funnel": funnel,

@@ -47,9 +47,14 @@
   </div>
   {% else %}
 
-  <div class="kpi-row kpi-row--4">
+  {# A tile whose source could not be read is not in dash.primary (jobstats._build_view). The row
+     class follows the count so a dropped tile leaves no hole; with fewer than three, the base
+     .kpi-row auto-fit fills the width. No tiles, no row. #}
+  {% if dash.primary %}
+  <div class="{{ dash.primary_row }}">
     {% for t in dash.primary %}{{ tile(t) }}{% endfor %}
   </div>
+  {% endif %}
   {# The charts sit directly under the four headline cards, side by side on desktop and stacked on
      a phone. The wrapper carries data-card so tests/test_job_dashboard.py still sees a card after
      the tile row; its own surface is switched off in CSS and the two cards inside draw it. #}
@@ -72,9 +77,11 @@
     {% endif %}
   </div>
 
-  <div class="kpi-row kpi-row--3 dash-row">
+  {% if dash.secondary %}
+  <div class="{{ dash.secondary_row }}">
     {% for t in dash.secondary %}{{ tile(t) }}{% endfor %}
   </div>
+  {% endif %}
 
   <div class="data-card dash-drafting">
     <h3>Match to sendable draft</h3>
