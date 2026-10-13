@@ -322,6 +322,28 @@ p:last-child { margin-bottom: 0; }
 .title-band {
   background: var(--teal);
   color: var(--on-teal);
+  position: relative;
+  isolation: isolate;  /* the constellation sits behind the page name, inside the band */
+}
+/* The masthead's drifting constellation behind the page name (2026-10-13: Kevin wanted the lines on
+   every product page's header). Same svg, same keyframes (topbar.css), same opacity and the same
+   mid-cycle start as the masthead (profile.css), so it moves from the first frame. The top bar
+   above and the footer below stay plain. Decorative: no pointer events, behind the content,
+   inside the band (inset 0). 0.12 is the contrast budget for the on-teal title (tests recompute). */
+.title-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--on-teal);
+  opacity: 0.12;
+  -webkit-mask: url("../img/constellation.svg") no-repeat center / cover;
+  mask: url("../img/constellation.svg") no-repeat center / cover;
+  animation: constellation-drift 40s ease-in-out -20s infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .title-band::before { animation: none; }
 }
 .title-band__inner {
   max-width: var(--wrap);
