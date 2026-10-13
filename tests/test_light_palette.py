@@ -98,15 +98,18 @@ def test_light_secondary_text_is_a_warm_grey_that_still_reads(palettes):
 
 def test_light_text_pairs_clear_4_5_and_marks_clear_their_floors_on_the_new_card(palettes):
     p = palettes["light"]
+    # Status colours also set text straight on the (dimmer) ground, e.g. .status-tag--live, so they
+    # are held on --paper as well as on cards.
     for fg, bg in [("--ink", "--paper"), ("--ink", "--surface"), ("--brass-text", "--paper"),
-                   ("--brass-text", "--surface"), ("--ok", "--surface"), ("--down", "--surface")]:
+                   ("--brass-text", "--surface"), ("--ok", "--surface"), ("--down", "--surface"),
+                   ("--ok", "--paper"), ("--down", "--paper")]:
         assert contrast(p[fg], p[bg]) >= 4.5, (fg, bg, round(contrast(p[fg], p[bg]), 2))
     # Chart marks drawn inside cards (non-text, 3:1); the heatmap's first step must read as a step off
     # the card; --warn is only a fill or border.
     for name in ("--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5", "--chart-6"):
         assert contrast(p[name], p["--surface"]) >= 3.0, name
     assert contrast(p["--cal1"], p["--surface"]) >= 1.4
-    assert contrast(p["--warn"], p["--surface"]) >= 3.0
+    assert contrast(p["--warn"], p["--surface"]) >= 3.0 and contrast(p["--warn"], p["--paper"]) >= 3.0
 
 
 def test_the_dark_block_and_the_teal_bands_did_not_move(palettes):

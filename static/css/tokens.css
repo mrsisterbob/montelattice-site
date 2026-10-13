@@ -45,8 +45,9 @@
    ground, as on apple.com (separation 1.104:1; the white-on-white defect was 1.06). Chart marks
    on the card: chart-1..6 7.8, 3.7, 3.6, 3.5, 4.2, 3.5; heatmap cal1..4 1.57, 2.21, 4.63, 9.52.
    --warn is only a fill or border, so it answers to 3:1 (4.30 on the new surface).
-   Light could not get lighter: at a fixed --paper, a lighter ground needs a lighter --brass to
-   hold brass/teal, and that pulls brass/paper below 1.69.
+   The old light ground (#F2F5FA) could not get lighter: at a fixed --paper, a lighter ground needs a
+   lighter --brass to hold brass/teal, and that pulls brass/paper below 1.69. The warmed ground is
+   dimmer, so that limit no longer binds.
    Plain --brass is 1.69 on light paper, so it is for rules, fills and text on the blue band,
    never body text on paper. Words on paper take --brass-text, which is measured to clear AA. */
 
