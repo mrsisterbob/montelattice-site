@@ -14,7 +14,7 @@
 
 /* --- Top bar: solid teal, wordmark left, icon nav right ---
    Plain on purpose (2026-10-13: Kevin reverted the constellation layers on the bars; the lines
-   live in the masthead, the contact band and the tool webs only). */
+   live in the masthead, the contact band, the product pages' title band and the tool webs only). */
 .topbar {
   background: var(--teal);
   color: var(--on-teal);
