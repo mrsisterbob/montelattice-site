@@ -86,6 +86,7 @@
   letter-spacing: 0.02em;
   text-anchor: middle;
 }
+.tool-grid[data-web="repos"] .tool__name { fill: var(--ink); }  /* the repo name above its stack */
 .tool-grid[data-web="repos"] .tool:nth-of-type(2) .tool__mark { --sx: 30px; --sy: -10px; --sr: -34deg; --i: 0; }
 .tool-grid[data-web="repos"] .tool:nth-of-type(3) .tool__mark { --sx: -30px; --sy: 20px; --sr: 19deg; --i: 1; }
 .tool-grid[data-web="repos"] .tool:nth-of-type(4) .tool__mark { --sx: 35px; --sy: -20px; --sr: -19deg; --i: 2; }

@@ -54,9 +54,8 @@ def test_code_has_one_repo_web_with_the_m_above_the_repo_list(client, monkeypatc
 
 @pytest.mark.parametrize("crypto,count", [(False, 4), (True, 5)])
 def test_tiles_are_the_public_repos_in_order(client, monkeypatch, crypto, count):
-    html = _code(client, monkeypatch, crypto)
+    html = _code(client, monkeypatch, crypto)  # sets PUBLIC_CRYPTO, which _public_repos reads
     names = [htmllib.unescape(n) for n in re.findall(r'<g class="tool" data-tool="([^"]*)"', html)]
-    monkeypatch.setenv("PUBLIC_CRYPTO", "true" if crypto else "false")
     assert names == [r["name"] for r in main._public_repos()]
     assert len(names) == count
     assert ("crypto-trading-engine" in names) is crypto
@@ -158,12 +157,13 @@ def _overlap(a, b):
 @pytest.mark.parametrize("crypto", [False, True])
 def test_repo_web_text_is_legible_inside_the_svg_and_never_overlaps(width, crypto, tmp_path, monkeypatch):
     out = _measure(width, crypto, tmp_path, monkeypatch)
-    expected = len(main._public_repos())  # PUBLIC_CRYPTO is still set by _measure
+    # every repo name plus every stack line, exactly: none dropped, none duplicated
+    expected = sum(1 + len(r["stack"].split(" · ")) for r in main._public_repos())
     assert out["scrollWidth"] <= out["clientWidth"], out
     for state in ("settled", "scattered"):
         snap = out[state]
         box, texts = snap["box"], snap["texts"]
-        assert len(texts) >= expected * 2, (state, len(texts))
+        assert len(texts) == expected, (state, len(texts), expected)
         for t in texts:
             assert t["l"] >= box["l"] - 0.5 and t["r"] <= box["r"] + 0.5, (state, "outside the svg", t, box)
             assert t["t"] >= box["t"] - 0.5 and t["b"] <= box["b"] + 0.5, (state, "outside the svg", t, box)
