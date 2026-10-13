@@ -59,13 +59,16 @@ def _values(html):
 def test_empty_dataset_renders_honest_empty_states_not_numbers(client, monkeypatch):
     _feed(monkeypatch, EMPTY)
     html = _page(client)
-    for sentence in ("No roles screened yet.", "CRM unreachable right now.",
+    for sentence in ("No roles screened yet.",
                      "No open recruiter threads right now.", "No dead links detected yet.",
                      "No scored roles yet.", "None since counting began.",
                      "No cached role to time against yet.",
                      "No pipeline activity logged in the last twelve weeks."):
         assert sentence in html, sentence
     assert _values(html) == ["0 of 8"]  # the one real figure: the registry has 8 tracks, none used yet
+    # applications_sent is None here (the CRM could not be read): the tile is left out, not explained
+    assert '<span class="kpi-label">Applications sent</span>' not in html
+    assert "unreachable right now" not in html and "unavailable right now" not in html
     assert 'id="chart-volume"' not in html
 
 
@@ -111,6 +114,41 @@ def test_primary_and_secondary_rows_are_full_in_both_flag_states(client, monkeyp
         html = _page(client)
         rows = re.findall(r'<div class="kpi-row kpi-row--(\d)[^"]*">(.*?)</div>\s*(?=<div class="kpi-row|<div class="data-card|<h2)', html, re.S)
         assert [(n, r.count('class="kpi-tile"')) for n, r in rows[:2]] == [("4", 4), ("3", 3)]
+
+
+UNREAD = [
+    ("roles_screened", "Roles screened"), ("applications_sent", "Applications sent"),
+    ("live_conversations", "Live conversations"), ("dead_links", "Dead links retired"),
+    ("tracks_total", "Résumé tracks"), ("documents_compiled", "Documents compiled"),
+]
+
+
+@pytest.mark.parametrize("key,label", UNREAD)
+def test_a_figure_that_could_not_be_read_drops_its_tile_and_prints_no_error(client, monkeypatch, key, label):
+    _feed(monkeypatch, dict(FULL, **{key: None}))
+    html = _page(client)
+    assert f'<span class="kpi-label">{label}</span>' not in html, label
+    assert "unreachable right now" not in html and "unavailable right now" not in html
+    # every other tile with a figure still renders
+    for _, other in UNREAD:
+        if other != label:
+            assert f'<span class="kpi-label">{other}</span>' in html, other
+
+
+def test_a_dropped_primary_tile_leaves_no_hole_and_no_tiles_means_no_row(client, monkeypatch):
+    _feed(monkeypatch, dict(FULL, applications_sent=None))
+    html = _page(client)
+    rows = re.findall(r'<div class="(kpi-row[^"]*)">(.*?)</div>\s*(?=<div class="kpi-row|<div class="data-card|<h2)', html, re.S)
+    assert rows[0][0] == "kpi-row kpi-row--3" and rows[0][1].count('class="kpi-tile"') == 3
+    _feed(monkeypatch, dict(FULL, roles_screened=None, applications_sent=None, live_conversations=None,
+                            dead_links=None))
+    html = _page(client)
+    assert "kpi-row--4" not in html and 'class="kpi-tile"' in html  # no empty primary row; the rest stays
+
+
+def test_zero_states_stay_honest_and_stay(client, monkeypatch):
+    _feed(monkeypatch, dict(FULL, applications_sent=0))
+    assert "No applications logged yet." in _page(client)
 
 
 def test_template_holds_no_hardcoded_figures():
