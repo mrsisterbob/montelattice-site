@@ -129,13 +129,40 @@
   </div>
   {% endfor %}
 
+  {# Five groups, each shown only when the bank has something for it; with none, no heading. #}
+  {% if p.education or p.certificates or p.research or p.memberships or p.athletics %}
   <h2>Credentials and research</h2>
+  {% if p.education %}
+  <h3>Education</h3>
   <ul class="plain">
-    {% for c in p.credentials %}<li>{{ c }}</li>{% endfor %}
+    {% for e in p.education %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% if p.certificates %}
+  <h3>Licenses and certificates</h3>
+  <ul class="plain">
+    {% for c in p.certificates %}<li>{{ c }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% if p.research %}
+  <h3>Research</h3>
+  <ul class="plain">
     {% for r in p.research %}<li>{{ r.kind }}: <em>{{ r.title }}</em>{% if r.tail %}, {{ r.tail }}{% endif %}</li>{% endfor %}
-    {% if p.memberships %}<li>{{ p.memberships }}</li>{% endif %}
+  </ul>
+  {% endif %}
+  {% if p.memberships %}
+  <h3>Memberships</h3>
+  <ul class="plain">
+    <li>{{ p.memberships }}</li>
+  </ul>
+  {% endif %}
+  {% if p.athletics %}
+  <h3>Athletics</h3>
+  <ul class="plain">
     {% for a in p.athletics %}<li>{{ a }}</li>{% endfor %}
   </ul>
+  {% endif %}
+  {% endif %}
 
   <h2>Proof: the systems</h2>
   <p>

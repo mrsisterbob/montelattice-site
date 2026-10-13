@@ -182,13 +182,18 @@ def _roles(site: dict, experience: list) -> list[dict]:
     return roles
 
 
-def _credentials(bank: dict) -> list[str]:
+def _education(bank: dict) -> list[str]:
     lines = []
     for edu in bank.get("education", []):
         degree = str(edu.get("degree", "")).replace(", B.A.", " and B.A.")
-        lines.append(", ".join(p for p in (degree, edu.get("school", ""), _year(edu.get("end", ""))) if p))
-    lines.extend(str(c) for c in bank.get("certificates", []))
+        line = ", ".join(p for p in (degree, edu.get("school", ""), _year(edu.get("end", ""))) if p)
+        if line:
+            lines.append(line)
     return lines
+
+
+def _certificates(bank: dict) -> list[str]:
+    return [str(c) for c in bank.get("certificates", []) if str(c).strip()]
 
 
 def _research(bank: dict) -> list[dict]:
@@ -276,7 +281,9 @@ def _athletics(bank: dict) -> list[str]:
     for a in bank.get("athletics", []):
         head = ", ".join(p for p in (a.get("honor", ""), a.get("sport", ""), a.get("school", "")) if p)
         pbs = [f"{pb.get('time')} ({pb.get('event')})" for pb in a.get("personal_bests", [])]
-        lines.append(f"{head}. Personal bests {' and '.join(pbs)}" if pbs else head)
+        line = f"{head}. Personal bests {' and '.join(pbs)}" if pbs else head
+        if line:
+            lines.append(line)
     return lines
 
 
@@ -301,7 +308,8 @@ def build_profile(bank: dict, build: dict | None = None) -> dict:
         "system_figures_note": _system_figures_note(build, system_figures),
         "story": [{"text": s.get("text", ""), "pull": bool(s.get("pull"))} for s in site.get("story", [])],
         "roles": _roles(site, experience),
-        "credentials": _credentials(bank),
+        "education": _education(bank),
+        "certificates": _certificates(bank),
         "research": _research(bank),
         "memberships": ", ".join(bank.get("memberships", [])),
         "athletics": _athletics(bank),
