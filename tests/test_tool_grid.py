@@ -101,10 +101,9 @@ def test_tool_grid_adds_no_script(client, html):
 
 
 def test_tool_grid_css_block_uses_tokens_only(client):
-    css = client.get("/static/css/rapture.css").get_data(as_text=True)
+    css = client.get("/static/css/toolweb.css").get_data(as_text=True)
     start = css.index("/* --- Tool grid")
-    end = css.index("/* --- Project card grid")
-    block = css[start:end]
+    block = css[start:]
     assert ".tool-grid" in block and ".tool__mark" in block
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", block)
     assert "var(--" in block

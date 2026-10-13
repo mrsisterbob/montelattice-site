@@ -264,6 +264,7 @@ def profile():
                    for o in (p["offhours"] or []) if o.get("photo")}
     return render_template("profile.html", p=p, resume_pdf=_resume_pdf(),
                            portrait=portrait, photo_sizes=photo_sizes,
+                           tools=tools.TOOLS,
                            demo_video=DEMO_VIDEO if media.has_file(app.static_folder, DEMO_VIDEO) else None)
 
 

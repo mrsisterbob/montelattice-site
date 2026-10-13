@@ -1,8 +1,7 @@
-/* Monte Lattice - the site's two animations, both played once when scrolled into view:
-   the figures on /lattice and /job-engine count up, and the tool logos on /lattice settle into
-   their grid around the mark. Everything else on the site is static. Both respect
-   prefers-reduced-motion (the number snaps to its final value; the logos never scatter), and
-   the server-rendered markup is already the finished state with JS off. */
+/* Monte Lattice - the figures on /lattice and /job-engine count up once when scrolled into view
+   (the number snaps to its final value under prefers-reduced-motion), plus the theme toggle and
+   the Console helpers. The tool logos' settle animation lives in toolweb.js. The server-rendered
+   markup is already the finished state with JS off. */
 (function () {
   var REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -55,26 +54,6 @@
     els.forEach(function (el) { observer.observe(el); });
   }
 
-  // Tool logos on /lattice: scattered, then settling into the grid once when it is on screen.
-  // The markup is the settled grid; this only adds the classes, and only when motion is allowed.
-  function armToolSettle() {
-    var grid = document.querySelector(".tool-grid");
-    if (!grid || REDUCE_MOTION || !("IntersectionObserver" in window)) return;
-    grid.classList.add("is-scattered");
-    function settle() {
-      grid.classList.remove("is-scattered");
-      grid.classList.add("is-settling");
-      observer.disconnect();
-    }
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { if (entry.isIntersecting) settle(); });
-    }, { threshold: 0.4 });
-    observer.observe(grid);
-    // Failsafe: a grid that never intersects (hidden container, a preview that does not scroll)
-    // must not stay invisible.
-    setTimeout(settle, 6000);
-  }
-
   // Relative-time formatter shared by the Console cockpit (freshness stamps, Today strip).
   function formatRelative(ts) {
     if (!ts) return "never";
@@ -108,7 +87,6 @@
 
   function armAll() {
     armThemeToggle();
-    armToolSettle();
   }
 
   if (document.readyState === "loading") {
