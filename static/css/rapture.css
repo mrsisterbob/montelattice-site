@@ -384,6 +384,26 @@ p:last-child { margin-bottom: 0; }
 }
 /* corner ticks sit on the card edge, above the image band */
 .card::before, .card::after { z-index: 2; }
+/* One measured number on a project card (outcomes.py): big value, then what it counts. Tokens only. */
+.card__figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.card__figure-value {
+  font-family: var(--font-mono);
+  font-size: clamp(1.7rem, 5vw, 2.2rem);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--brass-text);
+  line-height: 1.1;
+}
+.card__figure-label { font-size: 0.82rem; color: var(--ink); }
+.card__figure-sub { font-size: 0.74rem; color: var(--muted); }
+
 /* Project status pill (siteflags.PROJECT_STATUS): small, one word, tokens only. */
 .status-tag {
   display: inline-block;
