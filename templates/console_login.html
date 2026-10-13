@@ -1,10 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Console &middot; Monte Lattice</title>
 <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+{# Served dark (2026-10-13); a stored choice from the toggle elsewhere on the site wins, applied
+   before the stylesheet like the other pages. This page has no toggle of its own. #}
+<script>
+  try {
+    var t = localStorage.getItem("ml-theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) { /* private mode: storage unreadable, so the page stays on the served dark default */ }
+</script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/rapture.css') }}">

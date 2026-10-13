@@ -149,4 +149,5 @@ def test_the_web_lays_out_below_the_paths_and_inside_the_viewport(width, monkeyp
     assert out["scrollWidth"] <= out["clientWidth"], out
     assert out["minName"] >= 8, ("tool names render below 8px", out)
     assert "is-settling" in out["cls"], ("the settle never ran", out)
-    assert out["theme"] == "dark", ("one click must flip to dark; a second handler would cancel it", out)
+    # Served dark since 2026-10-13, so one click leaves light; a second handler would cancel it.
+    assert out["theme"] == "light", ("one click must flip to light; a second handler would cancel it", out)

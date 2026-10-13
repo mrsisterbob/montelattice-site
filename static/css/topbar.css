@@ -93,8 +93,8 @@
 .icon-nav a:hover { color: var(--on-teal); }
 .icon-nav a.active { color: var(--brass); border-bottom-color: var(--brass); }
 
-/* Light/dark toggle. The site follows the OS by default; this overrides it per browser and is
-   remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
+/* Light/dark toggle. The site opens dark and never follows the OS (2026-10-13: Kevin chose dark
+   as the default); this switches it per browser and is remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
    pressing it, which is why the sun shows while dark and the moon while light. */
 .theme-toggle {
   display: flex;
@@ -111,8 +111,8 @@
 }
 .theme-toggle:hover { color: var(--brass); border-color: var(--brass); }
 .theme-toggle svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
-/* Default (no data-theme, or light): the page is light, so the moon shows - the theme you get
-   by pressing it. Only an explicit dark choice swaps the icons. */
+/* Pages are served with data-theme="dark", so the sun shows by default (the theme you get by
+   pressing it). With no attribute at all the light palette applies and the moon shows. */
 .theme-toggle__sun { display: none; }
 .theme-toggle__moon { display: block; }
 :root[data-theme="dark"] .theme-toggle__sun { display: block; }

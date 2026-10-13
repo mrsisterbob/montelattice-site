@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,13 +19,16 @@
 <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/card-site.webp', _external=True) }}{% endblock %}">
 <meta property="og:url" content="{{ request.url }}">
 <meta name="twitter:card" content="summary_large_image">
-{# Applied BEFORE the stylesheet so a chosen theme never flashes the other one first. Inline and
-   synchronous on purpose: a deferred script runs after first paint, which is the flash. #}
+{# 2026-10-13: Kevin chose dark as the default, so <html> is SERVED with data-theme="dark" (no
+   script needed, no light frame). This script, applied BEFORE the stylesheet so a chosen theme
+   never flashes the other one first, only changes it when the visitor stored a choice (light, or
+   dark again). Inline and synchronous on purpose: a deferred script runs after first paint, which
+   is the flash. #}
 <script>
   try {
     var t = localStorage.getItem("ml-theme");
     if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { /* private mode: storage unreadable, so the page stays on the light default */ }
+  } catch (e) { /* private mode: storage unreadable, so the page stays on the served dark default */ }
 </script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">

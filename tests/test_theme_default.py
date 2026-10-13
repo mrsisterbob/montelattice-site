@@ -1,6 +1,7 @@
-"""Every public page opens light whatever the OS prefers; dark is only what the toggle (or a
-stored ml-theme=dark) chooses. The Flask test client cannot see a browser's OS preference, so
-this proves the pages carry no OS-following rule at all. Run: python -m pytest tests -q
+"""Every public page opens dark whatever the OS prefers (2026-10-13: Kevin chose dark as the
+default; before that every page opened light). The Flask test client cannot see a browser's OS
+preference, so this proves the pages carry no OS-following rule at all; tests/test_dark_default.py
+measures the default in a real browser. Run: python -m pytest tests -q
 """
 import re
 import sys
@@ -53,8 +54,8 @@ def test_theme_default_dark_is_still_available_by_explicit_choice(client):
     assert ':root[data-theme="light"]' in tokens
 
 
-def test_theme_default_toggle_with_no_stored_choice_goes_to_dark_first(client):
+def test_theme_default_toggle_with_no_stored_choice_goes_to_light_first(client):
     js = client.get("/static/js/site.js").get_data(as_text=True)
-    assert 'if (!current) current = "light";' in js
+    assert 'if (!current) current = "dark";' in js
     assert "prefers-color-scheme" not in js
-    assert 'if (!current) current = "light";' in client.get("/").get_data(as_text=True)
+    assert 'if (!current) current = "dark";' in client.get("/").get_data(as_text=True)

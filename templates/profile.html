@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,12 +17,14 @@
 <meta property="og:image" content="{{ url_for('static', filename='img/card-site.webp', _external=True) }}">
 <meta property="og:url" content="{{ request.url }}">
 <meta name="twitter:card" content="summary_large_image">
-{# Must stay ABOVE tokens.css and stay synchronous, or the stored theme flashes the other one. #}
+{# Must stay ABOVE tokens.css and stay synchronous, or the stored theme flashes the other one.
+   <html> is served with data-theme="dark" (Kevin chose dark as the default, 2026-10-13); a stored
+   choice replaces it here before first paint. #}
 <script>
   try {
     var t = localStorage.getItem("ml-theme");
     if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { /* private mode: storage unreadable, so the page stays on the light default */ }
+  } catch (e) { /* private mode: storage unreadable, so the page stays on the served dark default */ }
 </script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
@@ -273,7 +275,8 @@
 
 {# This page loads no site.js (toolweb.js only settles the tool web), so the 12-line handler is inline
    rather than pulling in site.js, whose own toggle handler would cancel this one.
-   Every page opens light, so no stored choice means light and the first click goes to dark. #}
+   Every page is served dark (2026-10-13), so no attribute is read as dark and the first click goes to
+   light. #}
 <script>
   (function () {
     var btn = document.getElementById("theme-toggle");
@@ -281,7 +284,7 @@
     btn.addEventListener("click", function () {
       var root = document.documentElement;
       var current = root.getAttribute("data-theme");
-      if (!current) current = "light";
+      if (!current) current = "dark";
       var next = current === "dark" ? "light" : "dark";
       root.setAttribute("data-theme", next);
       try { localStorage.setItem("ml-theme", next); } catch (e) { /* private mode: this session only */ }
