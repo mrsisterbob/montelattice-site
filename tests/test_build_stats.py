@@ -238,3 +238,66 @@ def test_stale_remote_and_stale_file_give_the_empty_state(client, remote, tmp_pa
     html = _profile(client)
     assert "777" not in html and "159" not in html and "44,255" not in html
     assert html.count(buildstats_empty()) == 2
+
+
+# --- per-repo figures (the Proof cards read these) ----------------------------------------------
+
+def _git_repo(path, files, untracked=None):
+    path.mkdir()
+    run = lambda *a: subprocess.run(["git", "-C", str(path), *a], check=True, capture_output=True)
+    run("init", "-q")
+    for name, text in files.items():
+        (path / name).write_text(text, encoding="utf-8")
+    run("add", ".")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "c")
+    for name, text in (untracked or {}).items():
+        (path / name).write_text(text, encoding="utf-8")
+
+
+def test_measure_counts_test_functions_per_repo_from_tracked_python_only(tmp_path):
+    _git_repo(tmp_path / "one", {
+        "test_a.py": "def test_one():\n    pass\n\nasync def test_two():\n    pass\n\ndef helper():\n    pass\n"
+                     "class T:\n    def test_method(self):\n        pass\n",
+        "notes.md": "def test_in_markdown(): pass\n",
+        "app.js": "function test_js() {}\n",
+    }, untracked={"test_untracked.py": "def test_never_counted():\n    pass\n"})
+    stats = build_stats.measure(str(tmp_path), ["one"])
+    assert stats["repos"]["one"]["test_functions"] == 3  # test_one, test_two, T.test_method
+    assert "test_functions" not in {k for k in stats if k != "repos"}  # no top-level total
+
+
+def test_load_exposes_each_repos_lines_and_test_functions(tmp_path, monkeypatch):
+    snap = tmp_path / "s.json"
+    generated = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    snap.write_text(json.dumps({
+        "generated_at": generated, "commit_hours": 10, "tracked_lines": 500,
+        "repos": {"a": {"tracked_lines": 300, "test_functions": 12, "commit_hours": 4, "by_extension": {".py": 300}},
+                  "b": {"tracked_lines": 200, "test_functions": 0}}, "unreachable": []}), encoding="utf-8")
+    monkeypatch.setattr(buildstats, "SNAPSHOT_PATH", str(snap))
+    buildstats.reset_cache()
+    stats = buildstats.load()
+    assert stats["repos"] == {"a": {"tracked_lines": 300, "test_functions": 12},
+                              "b": {"tracked_lines": 200, "test_functions": 0}}
+    assert stats["repo_count"] == 2
+
+
+def test_malformed_per_repo_figures_are_dropped_and_the_rest_kept(tmp_path, monkeypatch):
+    snap = tmp_path / "s.json"
+    generated = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    snap.write_text(json.dumps({
+        "generated_at": generated, "commit_hours": 10, "tracked_lines": 500,
+        "repos": {"a": {"tracked_lines": "lots", "test_functions": 12},
+                  "b": {"tracked_lines": -3, "test_functions": True},
+                  "c": {"tracked_lines": 7},
+                  "d": "garbage"}, "unreachable": []}), encoding="utf-8")
+    monkeypatch.setattr(buildstats, "SNAPSHOT_PATH", str(snap))
+    buildstats.reset_cache()
+    assert buildstats.load()["repos"] == {"a": {"test_functions": 12}, "c": {"tracked_lines": 7}}
+
+
+def test_snapshot_without_per_repo_figures_still_loads_with_an_empty_dict(tmp_path, monkeypatch):
+    snap = _snapshot(tmp_path / "s.json")  # the repos here are {name: {}}
+    monkeypatch.setattr(buildstats, "SNAPSHOT_PATH", str(snap))
+    buildstats.reset_cache()
+    stats = buildstats.load()
+    assert stats["repos"] == {} and stats["repo_count"] == len(build_stats.REPOS)

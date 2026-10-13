@@ -8,7 +8,7 @@ Render has only this repo, so production never measures anything. It reads the c
 snapshot (see buildstats.py), which is why the figures refresh when this script is re-run and
 the JSON is committed and deployed, and not otherwise.
 
-Two figures, both measured, neither estimated:
+Two figures, both measured, neither estimated, plus a per-repo test-function count:
   commit_hours   Distinct clock-hours ("%Y-%m-%d %H" of the author date) containing at least one
                  commit, unioned across every repo so an hour with commits in two repos counts
                  once. A FLOOR, not a total: hours with no commit (debugging, reading, deploys)
@@ -16,13 +16,22 @@ Two figures, both measured, neither estimated:
   tracked_lines  Lines in git-tracked code files only (CODE_EXTENSIONS), so virtualenvs, build
                  artifacts, data dumps and lockfiles never inflate it.
 
+A third figure is kept per repo, never summed:
+  test_functions Lines that start (after any indent) with `def test_` or `async def test_`,
+                 across the repo's git-tracked .py files.
+                 A static count of test FUNCTIONS, not of test cases run: a parametrized test
+                 counts once, and a helper named test_*, or a line inside a string that looks
+                 like one, counts too. It is read from the working tree, like tracked_lines.
+
 A repo that is missing or fails to read is listed under "unreachable" and left out of both
-figures. The script never fills a gap with a guess.
+figures (a failure while counting test functions marks the repo unreachable too). The script
+never fills a gap with a guess.
 """
 from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 from datetime import datetime, timezone
 
@@ -59,6 +68,23 @@ def tracked_lines(repo_path: str) -> dict[str, int]:
     return counts
 
 
+TEST_DEF = re.compile(r"^\s*(?:async\s+)?def test_", re.M)
+
+
+def count_test_functions(repo_path: str) -> int:
+    """Count of `def test_` lines in the repo's tracked .py files (see the module docstring)."""
+    total = 0
+    for rel in _git(repo_path, "ls-files", "-z").split("\0"):
+        if not rel or os.path.splitext(rel)[1].lower() != ".py":
+            continue
+        try:
+            with open(os.path.join(repo_path, rel), "r", encoding="utf-8", errors="replace") as f:
+                total += len(TEST_DEF.findall(f.read()))
+        except OSError:
+            continue  # tracked but deleted from the working tree
+    return total
+
+
 def measure(parent: str = PARENT, repos: list[str] = REPOS) -> dict:
     hours: set[str] = set()
     per_repo, unreachable = {}, []
@@ -68,6 +94,7 @@ def measure(parent: str = PARENT, repos: list[str] = REPOS) -> dict:
         try:
             h = commit_hours(path)
             lines = tracked_lines(path)
+            tests = count_test_functions(path)
         except (OSError, subprocess.CalledProcessError):
             unreachable.append(name)
             continue
@@ -75,7 +102,8 @@ def measure(parent: str = PARENT, repos: list[str] = REPOS) -> dict:
         if h:
             first = min(first or min(h), min(h))
             last = max(last or max(h), max(h))
-        per_repo[name] = {"commit_hours": len(h), "tracked_lines": sum(lines.values()), "by_extension": lines}
+        per_repo[name] = {"commit_hours": len(h), "tracked_lines": sum(lines.values()), "test_functions": tests,
+                          "by_extension": lines}
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "commit_hours": len(hours),
