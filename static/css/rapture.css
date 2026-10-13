@@ -3,6 +3,10 @@
    a gold hairline under headings, a subtle sunburst divider, gold corner-ticks on the
    home project cards, and one Deco display face reserved for the wordmark. */
 
+/* The top bar lives in topbar.css (shared with the homepage). base.html links it directly; this
+   import is for the pages that load only rapture.css and still draw a .topbar (console_login). */
+@import url("topbar.css");
+
 :root {
   /* Palette and type come from tokens.css (loaded first). Only layout constants live here. */
   --wrap: 1180px;
@@ -62,80 +66,7 @@ p:last-child { margin-bottom: 0; }
   line-height: 1.35;
 }
 
-/* --- Top bar: solid teal, wordmark left, icon nav right --- */
-.topbar {
-  background: var(--teal);
-  color: var(--on-teal);
-  border-bottom: 2px solid var(--brass);
-}
-.topbar__inner {
-  max-width: var(--wrap);
-  margin: 0 auto;
-  padding: 14px var(--gutter);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-.topbar__brand {
-  color: var(--on-teal);
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.topbar__brand:hover { color: var(--brass); }
-
-/* --- Icon nav (this IS the nav) --- */
-.icon-nav {
-  display: flex;
-  gap: 26px;
-  align-items: stretch;
-}
-.icon-nav a {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 2px 4px 4px;
-  border-bottom: 2px solid transparent;
-}
-.icon-nav a svg { width: 22px; height: 22px; stroke: currentColor; }
-.icon-nav a:hover { color: var(--on-teal); }
-.icon-nav a.active { color: var(--brass); border-bottom-color: var(--brass); }
-
-/* Light/dark toggle. The site follows the OS by default; this overrides it per browser and is
-   remembered. Only one of the two icons is ever shown: the one for the theme you would GET by
-   pressing it, which is why the sun shows while dark and the moon while light. */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--on-teal) 26%, transparent);
-  border-radius: 50%;
-  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
-  cursor: pointer;
-}
-.theme-toggle:hover { color: var(--brass); border-color: var(--brass); }
-.theme-toggle svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
-/* Default (no data-theme, or light): the page is light, so the moon shows - the theme you get
-   by pressing it. Only an explicit dark choice swaps the icons. */
-.theme-toggle__sun { display: none; }
-.theme-toggle__moon { display: block; }
-:root[data-theme="dark"] .theme-toggle__sun { display: block; }
-:root[data-theme="dark"] .theme-toggle__moon { display: none; }
-:root[data-theme="light"] .theme-toggle__sun { display: none; }
-:root[data-theme="light"] .theme-toggle__moon { display: block; }
+/* --- Top bar: moved to topbar.css (one definition, shared with the homepage). --- */
 
 /* --- Layout --- */
 .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
@@ -683,14 +614,6 @@ canvas { max-width: 100%; }
 /* --- Mobile: 375px, no horizontal scroll --- */
 @media (max-width: 720px) {
   :root { --gutter: 24px; }
-  .topbar__inner { justify-content: center; gap: 14px; }
-  .icon-nav {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px 28px;
-    width: 100%;
-    max-width: 300px;
-  }
 
   .intro { padding-top: 28px; }
 

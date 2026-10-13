@@ -16,57 +16,9 @@ body {
 }
 img { max-width: 100%; }
 .wrap { max-width: 44rem; margin: 0 auto; padding: 0 24px 3rem; }
-
-/* ---- site nav ---- */
-.sitenav {
-  background: var(--teal);
-  color: var(--on-teal);
-  padding: 0.85rem 24px;
-  border-bottom: 1px solid color-mix(in srgb, var(--brass) 28%, transparent);
-}
-.sitenav-inner {
-  max-width: 60rem;
-  margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem 1.5rem;
-}
-.wordmark {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--on-teal);
-  text-decoration: none;
-  opacity: 0.85;
-}
-.navlinks {
-  margin-left: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.35rem;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.navlinks a {
-  color: var(--on-teal);
-  opacity: 0.58;
-  text-decoration: none;
-  padding-bottom: 2px;
-  border-bottom: 1px solid transparent;
-  transition: opacity 0.15s ease, border-color 0.15s ease;
-}
-.navlinks a:hover, .navlinks a:focus-visible {
-  opacity: 1;
-  border-bottom-color: var(--brass);
-}
 @media (max-width: 560px) {
-  .navlinks { margin-left: 0; width: 100%; }
   /* Phone width is the binding constraint: the wider 24px gutter only rewraps text here. */
-  .wrap, .sitenav { padding-left: 20px; padding-right: 20px; }  /* .masthead and .contact: see the end of the sheet */
+  .wrap { padding-left: 20px; padding-right: 20px; }
 }
 
 /* ---- availability banner (templates/_availability.html; same look as rapture.css's, which this
@@ -494,28 +446,3 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 a { color: var(--brass-text); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .contact a { color: var(--on-teal); }
 a:focus-visible, .line-v:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
-
-/* Light/dark toggle. Duplicated from rapture.css because this page loads profile.css alone.
-   The visible icon is the theme you would GET by pressing it: sun while dark, moon while light. */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-left: auto;
-  padding: 0;
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--on-teal) 26%, transparent);
-  border-radius: 50%;
-  color: color-mix(in srgb, var(--on-teal) 72%, transparent);
-  cursor: pointer;
-}
-.theme-toggle:hover { color: var(--brass); border-color: var(--brass); }
-.theme-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
-.theme-toggle__sun { display: none; }
-.theme-toggle__moon { display: block; }
-:root[data-theme="dark"] .theme-toggle__sun { display: block; }
-:root[data-theme="dark"] .theme-toggle__moon { display: none; }
-:root[data-theme="light"] .theme-toggle__sun { display: none; }
-:root[data-theme="light"] .theme-toggle__moon { display: block; }

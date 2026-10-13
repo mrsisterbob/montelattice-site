@@ -28,7 +28,7 @@ def client(monkeypatch):
 def test_availability_profile_shows_the_exact_text_once(client):
     html = client.get("/").get_data(as_text=True)
     assert html.count(TEXT) == 1
-    assert html.index('class="availability"') < html.index('<nav class="sitenav"')
+    assert html.index('class="availability"') < html.index('<header class="topbar"')
 
 
 def test_availability_profile_503_page_still_shows_it(client, monkeypatch):

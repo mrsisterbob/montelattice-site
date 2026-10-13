@@ -26,6 +26,7 @@
 </script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/topbar.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
 <body>
@@ -42,24 +43,7 @@
    cards), looked up by the card's path slug. Never typed into this template. #}
 {% macro status_tag(slug) %}{% set st = (project_status or {}).get(slug) %}{% if st %}<span class="status-tag status-tag--{{ st | lower | replace(' ', '-') }}">{{ st }}</span>{% endif %}{% endmacro %}
 
-<nav class="sitenav" aria-label="Site">
-  <div class="sitenav-inner">
-    <a class="wordmark" href="/">Monte Lattice</a>
-    <div class="navlinks">
-      <a href="/lattice">The Lattice</a>
-      <a href="/job-engine">Job Engine</a>
-      <a href="/docfiler">DocFiler</a>
-      {% if public_crypto %}<a href="/crypto">Crypto</a>{% endif %}
-      <a href="/budget">Budget</a>
-      <a href="/code">Code</a>
-    </div>
-    <button type="button" class="theme-toggle" id="theme-toggle"
-            aria-label="Switch between light and dark" title="Light / dark">
-      <svg class="theme-toggle__sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      <svg class="theme-toggle__moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
-    </button>
-  </div>
-</nav>
+{% include "_topbar.html" %}
 
 {% if not p %}
 <div class="wrap">
