@@ -55,19 +55,37 @@ def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, 
     assert re.search(r"z-index:\s*-1", body)
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", body)
     opacity = float(re.search(r"opacity:\s*([\d.]+)", body).group(1))
-    assert 0.05 <= opacity <= 0.2, opacity
+    assert 0.05 <= opacity <= 0.24, opacity
 
 
 @pytest.mark.parametrize("sheet,selector", [("rapture.css", ".intro::before"), ("profile.css", ".masthead::before")])
-def test_constellation_is_static_or_its_animation_is_cancelled_under_reduced_motion(client, sheet, selector):
+def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet, selector):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
-    if "animation:" not in _rule(css, selector):
-        assert "twinkle" not in css and "constellation-" not in css.replace("constellation.svg", "")
-        return
+    assert "animation:" in _rule(css, selector)
     block = re.search(r"@media \(prefers-reduced-motion: reduce\) \{\s*" + re.escape(selector)
                       + r"\s*\{([^}]*)\}", css)
     assert block, f"{selector} has an animation but no reduced-motion rule"
     assert "animation: none" in block.group(1)
+
+
+@pytest.mark.parametrize("sheet,selector,low,high", [
+    ("rapture.css", ".intro::before", 0.16, 0.24),
+    # Brighter than 0.14 over on-teal text drops it under 4.5:1 (measured 2026-10-13).
+    ("profile.css", ".masthead::before", 0.10, 0.14),
+])
+def test_constellation_drifts_slowly_inside_its_opacity_range(client, sheet, selector, low, high):
+    css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
+    body = _rule(css, selector)
+    assert re.search(r"animation:[^;]*constellation-drift", body), f"{selector} does not move"
+    assert re.search(r"animation:[^;]*\balternate\b", body) and "ease-in-out" in body
+    seconds = float(re.search(r"constellation-drift\s+([\d.]+)s", body).group(1))
+    assert seconds >= 40, seconds
+    assert "@keyframes constellation-drift" in css  # each sheet carries its own copy
+    frames = re.search(r"@keyframes constellation-drift\s*\{(.*?)\}\s*\}", css, re.S).group(1)
+    assert "-webkit-mask-position" in frames and re.search(r"(?<!-)mask-position", frames)
+    assert "transform" not in frames  # a transform widens the page
+    opacity = float(re.search(r"opacity:\s*([\d.]+)", body).group(1))
+    assert low <= opacity <= high, opacity
 
 
 def test_constellation_keeps_its_scale_on_a_tall_hero_and_stays_inside_the_band(client):

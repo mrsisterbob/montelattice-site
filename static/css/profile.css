@@ -92,8 +92,11 @@ img { max-width: 100%; }
   isolation: isolate;  /* the constellation sits behind the text, inside this band */
 }
 /* Faint constellation behind the masthead: a mask (static/img/constellation.svg) coloured by a
-   token, so light and dark both work. Static: no motion to cancel. Decorative: no pointer events,
-   behind the content, and `inset: 0` keeps it inside the band (it cannot widen the page). */
+   token, so light and dark both work. It drifts: `cover` always overflows the box on one axis, and the mask
+   position slides across that overflow, so nothing is transformed and the band cannot widen the
+   page. TASK-20 removed an earlier twinkle; slow motion is back because Kevin asked for it, and it
+   is cancelled under prefers-reduced-motion below. Opacity stays at 0.12 or under: brighter lines
+   cost contrast on the on-teal text. Decorative: no pointer events, behind the content, and `inset: 0` keeps it inside the band (it cannot widen the page). */
 .masthead::before {
   content: "";
   position: absolute;
@@ -101,9 +104,17 @@ img { max-width: 100%; }
   z-index: -1;
   pointer-events: none;
   background-color: var(--on-teal);
-  opacity: 0.1;
+  opacity: 0.12;
   -webkit-mask: url("../img/constellation.svg") no-repeat center / cover;
   mask: url("../img/constellation.svg") no-repeat center / cover;
+  animation: constellation-drift 60s ease-in-out infinite alternate;
+}
+@keyframes constellation-drift {
+  from { -webkit-mask-position: 50% 0%; mask-position: 50% 0%; }
+  to { -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .masthead::before { animation: none; }
 }
 .masthead-inner {
   max-width: 44rem;
