@@ -269,9 +269,9 @@
 </div>
 {% endif %}
 
-{# Outside the p/no-p branch so the 503 page carries it. Hidden once signed in: the owner's login
-   sets a session cookie, so the line would be false for that viewer. #}
-{% if not console_authed %}<p class="privacy-line">This site sets no cookies and loads no trackers.</p>{% endif %}
+{# Outside the p/no-p branch so the 503 page carries the footer and its privacy line (which is hidden
+   once signed in, inside the partial). #}
+{% include "_footer.html" %}
 
 {# This page loads no site.js (toolweb.js only settles the tool web), so the 12-line handler is inline
    rather than pulling in site.js, whose own toggle handler would cancel this one.

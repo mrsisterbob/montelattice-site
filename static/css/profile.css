@@ -288,6 +288,8 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 }
 .path__primary:hover { background: var(--teal-deep); text-decoration: underline; }
 .path__primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* "See my work" is its own outlined box, in the card colour, so it reads as separate from the
+   dark band below it (surface against paper is 1.10:1; the border carries the rest). */
 .next-steps {
   margin: 2.5rem 0 0;
   display: flex;
@@ -295,6 +297,11 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
   align-items: baseline;
   gap: 0.4rem 1.2rem;
   font-size: 0.95rem;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  padding: 0.9rem 1.1rem;
+  max-width: none;  /* the page-wide <p> measure would stop the box short of the column */
 }
 .next-steps__label {
   font-family: var(--font-mono);
@@ -406,7 +413,12 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 }
 
 /* ---- contact ---- */
+/* The bottom twin of the masthead: a 2px brass rule at its top edge (like the top bar's rule above
+   the masthead), the lines inside the box (its ::before is inset 0, so it sits inside the border and
+   never crosses the rule), and below it the footer bar, whose own 2px top border is the single rule
+   between the two (.contact + .site-footer in topbar.css drops the footer's margin). */
 .contact { margin-top: 3rem; background: var(--teal); color: var(--on-teal); padding: 2.4rem 24px;
+  border-top: 2px solid var(--brass);
   position: relative; isolation: isolate;  /* the constellation sits behind the text, inside this band */ }
 .contact-inner { max-width: calc(44rem - 48px); margin: 0 auto; }
 /* Section ornament (same glyph as rapture.css's .section-heading::before; this page loads
@@ -443,17 +455,14 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
      `padding` shorthand would otherwise win over it. */
   .masthead, .contact { padding-left: 20px; padding-right: 20px; }
 }
+/* The footnote is its own marked-off block under the contact rows: a clear brass rule and more room. */
 .footnote {
-  margin: 2rem 0 0;
-  padding-top: 1.25rem;
-  border-top: 1px solid color-mix(in srgb, var(--brass) 25%, transparent);
+  margin: 2.75rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--brass);  /* the 0.6 opacity below makes it a 60% rule */
   font-size: 0.88rem;
   opacity: 0.6;
   max-width: 34rem;
-}
-.privacy-line {
-  margin: 0; padding: 1rem 24px 1.4rem; text-align: center;
-  font-size: 0.78rem; letter-spacing: 0.04em; color: var(--muted);
 }
 a { color: var(--brass-text); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .contact a { color: var(--on-teal); }
