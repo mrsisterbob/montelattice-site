@@ -1,10 +1,16 @@
 {# The site top bar: brand, icon nav, theme toggle. One partial for base.html and profile.html, so
    the homepage and the product pages cannot drift. active_page is unset on the homepage, so no
-   link is active there. The toggle's id is read by site.js and by profile.html's inline handler. #}
+   link is active there; /lattice passes "home". n_links (5, 6 or 7) picks the phone column count
+   in topbar.css, so no row of the grid holds a single link. The toggle's id is read by site.js and by profile.html's inline handler. #}
   <header class="topbar">
     <div class="topbar__inner">
       <a class="topbar__brand" href="/">Monte&nbsp;Lattice</a>
-      <nav class="icon-nav" aria-label="Products">
+      {% set n_links = 5 + (1 if public_crypto else 0) + (1 if (public_console_demo or console_authed) else 0) %}
+      <nav class="icon-nav icon-nav--n{{ n_links }}" aria-label="Products">
+        <a href="/lattice" class="{{ 'active' if active_page == 'home' else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V5M14.2 10.7l3.9-2.3M14.2 13.3l3.9 2.3M12 14.5V19M9.8 13.3l-3.9 2.3M9.8 10.7 5.9 8.4"/><circle cx="12" cy="3.5" r="1.5"/><circle cx="19.4" cy="7.75" r="1.5"/><circle cx="19.4" cy="16.25" r="1.5"/><circle cx="12" cy="20.5" r="1.5"/><circle cx="4.6" cy="16.25" r="1.5"/><circle cx="4.6" cy="7.75" r="1.5"/></svg>
+          <span>Lattice</span>
+        </a>
         <a href="/job-engine" class="{{ 'active' if active_page == 'job-engine' else '' }}">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
           <span>Job</span>
