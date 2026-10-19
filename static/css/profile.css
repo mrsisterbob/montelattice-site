@@ -44,8 +44,9 @@ img { max-width: 100%; }
   padding: 2.75rem 24px 2.5rem;
   border-bottom: 2px solid var(--brass);
   position: relative;
+  isolation: isolate;  /* keeps the constellation layer inside the band */
 }
-/* Faint constellation behind the contact band (the masthead is plain): a mask (static/img/constellation.svg)
+/* Faint constellation behind the masthead and the contact band (2026-10-19: Kevin asked for the masthead to match): a mask (static/img/constellation.svg)
    coloured by a token, so light and dark both work. It drifts: `cover` always overflows the box on
    one axis, and the mask position slides across that overflow, so nothing is transformed and the
    band cannot widen the page. TASK-20 removed an earlier twinkle; slow motion is back because Kevin
@@ -56,7 +57,7 @@ img { max-width: 100%; }
    375px), so each cycle starts HALF-WAY through (a negative delay of half the duration), where the
    eased speed is at its peak. One duration at every width, so resizing across a breakpoint never
    makes the drift jump to another phase. */
-.contact::before {
+.masthead::before, .contact::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -69,10 +70,10 @@ img { max-width: 100%; }
 }
 /* Opacity stays at 0.10 on the contact band: brighter lines cost contrast on the on-teal text
    (the 60%-opacity footnote is the limit; tests recompute it). */
-.contact::before { opacity: 0.10; }
+.masthead::before, .contact::before { opacity: 0.10; }
 /* The drift keyframes live in topbar.css (loaded by this page): one copy for every band on the site. */
 @media (prefers-reduced-motion: reduce) {
-  .contact::before { animation: none; }
+  .masthead::before, .contact::before { animation: none; }
 }
 .masthead-inner {
   max-width: calc(44rem - 48px);

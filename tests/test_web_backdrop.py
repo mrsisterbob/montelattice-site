@@ -166,7 +166,7 @@ def test_tile_names_keep_4_5_to_1_with_a_line_pixel_under_them(client, mode):
     assert float(re.search(r"\.web-backdrop::before\s*\{[^}]*opacity:\s*([\d.]+)", css).group(1)) == LAYER_OPACITY
 
 
-def test_the_class_is_on_lattice_and_home_and_not_on_code(client, monkeypatch):
+def test_the_class_is_on_lattice_home_and_code(client, monkeypatch):
     assert 'class="intro__hero web-backdrop"' in client.get("/lattice").get_data(as_text=True)
     assert 'class="web-backdrop"' in client.get("/").get_data(as_text=True)
-    assert "web-backdrop" not in client.get("/code").get_data(as_text=True)
+    assert "web-backdrop" in client.get("/code").get_data(as_text=True)

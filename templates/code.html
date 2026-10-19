@@ -20,9 +20,9 @@
 {% set repo_slots = [(95, 50), (465, 50), (95, 227), (465, 227), (280, 400)] %}
 
 <div class="wrap section">
-  <div class="tool-grid-wrap">{{ tool_grid(ns.items, slots=repo_slots, view_h=(530 if ns.items|length > 4 else 362), web="repos", core_y=181,
+  <div class="web-backdrop"><div class="tool-grid-wrap">{{ tool_grid(ns.items, slots=repo_slots, view_h=(530 if ns.items|length > 4 else 362), web="repos", core_y=181,
       title="The Monte Lattice mark surrounded by Kevin's public repositories and the tools in each stack",
-      label="The Monte Lattice mark in the centre, surrounded by Kevin's public repositories and the tools in each one's stack: " ~ ns.parts|join("; ") ~ ".") }}</div>
+      label="The Monte Lattice mark in the centre, surrounded by Kevin's public repositories and the tools in each one's stack: " ~ ns.parts|join("; ") ~ ".") }}</div></div>
   <div class="repo-list">
     {% for r in repos %}
     <a class="repo-card" href="{{ r.url }}" target="_blank" rel="noopener">

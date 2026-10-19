@@ -75,7 +75,7 @@ def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, 
 def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet, selector):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
     assert "animation:" in _rule(css, selector)
-    block = re.search(r"@media \(prefers-reduced-motion: reduce\) \{\s*" + re.escape(selector)
+    block = re.search(r"@media \(prefers-reduced-motion: reduce\) \{\s*(?:\.masthead::before,\s*)?" + re.escape(selector)
                       + r"\s*\{([^}]*)\}", css)
     assert block, f"{selector} has an animation but no reduced-motion rule"
     assert "animation: none" in block.group(1)
@@ -123,9 +123,10 @@ def test_constellation_keeps_its_scale_on_a_tall_hero_and_stays_inside_the_band(
     assert "inset: 0" in _rule(toolweb, ".web-backdrop::before")
 
 
-def test_masthead_has_no_constellation_layer(client):
-    css = re.sub(r"/\*.*?\*/", "", client.get("/static/css/profile.css").get_data(as_text=True), flags=re.S)
-    assert ".masthead::before" not in css
+def test_masthead_shares_the_contact_bands_constellation_layer(client):
+    css = client.get("/static/css/profile.css").get_data(as_text=True)
+    assert "constellation.svg" in _rule(css, ".masthead::before")
+    assert "isolation: isolate" in _rule(css, ".masthead")
     assert 'class="masthead' in client.get("/").get_data(as_text=True)
 
 
