@@ -467,3 +467,8 @@ ul.plain li::before { content: "\2014"; position: absolute; left: 0; color: var(
 a { color: var(--brass-text); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .contact a { color: var(--on-teal); }
 a:focus-visible, .line-v:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+/* Wide screens: the cover renders at 110%, as browser zoom would (scales rem and px alike).
+   Not on body or html: the top bar and footer are shared chrome and must match the product pages. */
+@media (min-width: 1000px) {
+  .masthead, .paths, .wrap, .contact { zoom: 1.1; }
+}

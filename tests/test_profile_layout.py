@@ -164,11 +164,14 @@ def measure_images(width, monkeypatch, tmp_path):
 
 def test_image_box_portrait_is_square_and_photos_are_not_stretched(monkeypatch, tmp_path):
     # The tags carry height="900"; without height:auto in the CSS that becomes the rendered height.
-    out = measure_images(1100, monkeypatch, tmp_path)
+    width = 1100
+    out = measure_images(width, monkeypatch, tmp_path)
     box = out["portrait"]
     assert box, out
     assert abs(box["w"] - box["h"]) <= 1, box
-    assert box["w"] <= 9.5 * box["rem"] + 1, box
+    # From 1000px the cover is zoomed 1.1 (TASK-64), so the 9.5rem box renders 1.1x.
+    zoom = 1.1 if width >= 1000 else 1
+    assert box["w"] <= 9.5 * box["rem"] * zoom + 1, box
     assert len(out["offhours"]) == 2
     for img in out["offhours"]:
         assert 0 < img["h"] < 600, img
