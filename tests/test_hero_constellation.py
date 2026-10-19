@@ -1,4 +1,4 @@
-"""A faint constellation sits behind the two heroes, themed by a token, behind the text, and
+"""A faint constellation sits behind the contact band and the tool-web backdrop (not the masthead), themed by a token, behind the text, and
 static under prefers-reduced-motion. Run: python -m pytest tests -q
 """
 import re
@@ -55,7 +55,6 @@ def test_constellation_svg_is_a_small_black_mask_of_points_and_lines(client):
 
 @pytest.mark.parametrize("sheet,selector,token", [
     ("toolweb.css", ".web-backdrop::before", "var(--brass-warm)"),
-    ("profile.css", ".masthead::before", "var(--on-teal)"),
     ("profile.css", ".contact::before", "var(--on-teal)"),
 ])
 def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, sheet, selector, token):
@@ -71,7 +70,7 @@ def test_constellation_pseudo_element_is_a_masked_token_behind_the_text(client, 
     assert 0.05 <= opacity <= 0.24, opacity
 
 
-@pytest.mark.parametrize("sheet,selector", [("toolweb.css", ".web-backdrop::before"), ("profile.css", ".masthead::before"),
+@pytest.mark.parametrize("sheet,selector", [("toolweb.css", ".web-backdrop::before"),
                                             ("profile.css", ".contact::before")])
 def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet, selector):
     css = client.get(f"/static/css/{sheet}").get_data(as_text=True)
@@ -84,8 +83,6 @@ def test_constellation_animation_is_cancelled_under_reduced_motion(client, sheet
 
 @pytest.mark.parametrize("sheet,selector,low,high", [
     ("toolweb.css", ".web-backdrop::before", 0.16, 0.24),
-    # Brighter than 0.14 over on-teal text drops it under 4.5:1 (measured 2026-10-13).
-    ("profile.css", ".masthead::before", 0.10, 0.14),
     # The contact band's 60%-opacity footnote is the limit (test_constellation_motion.py recomputes it).
     ("profile.css", ".contact::before", 0.08, 0.11),
 ])
@@ -124,9 +121,12 @@ def test_constellation_keeps_its_scale_on_a_tall_hero_and_stays_inside_the_band(
     backdrop = _rule(toolweb, ".web-backdrop")
     assert "isolation: isolate" in backdrop and "position: relative" in backdrop
     assert "inset: 0" in _rule(toolweb, ".web-backdrop::before")
-    masthead = _rule(profile, ".masthead")
-    assert "isolation: isolate" in masthead and "position: relative" in masthead
-    assert "inset: 0" in _rule(profile, ".masthead::before")
+
+
+def test_masthead_has_no_constellation_layer(client):
+    css = re.sub(r"/\*.*?\*/", "", client.get("/static/css/profile.css").get_data(as_text=True), flags=re.S)
+    assert ".masthead::before" not in css
+    assert 'class="masthead' in client.get("/").get_data(as_text=True)
 
 
 def test_constellation_the_heroes_still_render(client):

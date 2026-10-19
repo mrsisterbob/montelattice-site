@@ -1,5 +1,5 @@
 """The constellation drifts at cruising speed from the first frame (no ease-in ramp), on the
-masthead, the contact band and the tool-web backdrop (/lattice and /), and the contact band's text keeps its contrast
+the contact band and the tool-web backdrop (/lattice and /), and the contact band's text keeps its contrast
 over it. Motion and contrast are MEASURED: Chrome pauses each ::before animation at fixed times and
 reads the computed mask-position; contrast is recomputed from tokens.css.
 Run: python -m pytest tests -q
@@ -43,7 +43,7 @@ PROBE = r"""<script>
 window.addEventListener("load", function () {
   var TIMES = [0, 1000, 10000, 11000], out = {clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth, bands: {}};
-  [".masthead", ".contact", ".web-backdrop"].forEach(function (sel) {
+  [".contact", ".web-backdrop"].forEach(function (sel) {
     var el = document.querySelector(sel);
     if (!el) return;
     var anims = document.getAnimations().filter(function (a) {
@@ -115,7 +115,7 @@ def _travel(a, b):
     return math.hypot(b[0] - a[0], b[1] - a[1])
 
 
-CASES = [("/", ".masthead"), ("/", ".contact"), ("/lattice", ".web-backdrop"), ("/", ".web-backdrop")]
+CASES = [("/", ".contact"), ("/lattice", ".web-backdrop"), ("/", ".web-backdrop")]
 
 
 @pytest.mark.parametrize("width", [375, 1280])

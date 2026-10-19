@@ -1,7 +1,7 @@
 """Where the constellation lives, and where it does not.
 
-2026-10-13: Kevin reverted the bar layers; the lines live in the masthead, contact band and tool webs
-only. The top bar and the site footer are plain teal bars (see tests/test_contact_separation.py for
+2026-10-13: Kevin reverted the bar layers; the lines live in the contact band and tool webs
+only (the title bands and the masthead are plain). The top bar and the site footer are plain teal bars (see tests/test_contact_separation.py for
 the measured side). What stays pinned here: the ONE shared @keyframes, and that every page has the
 shared top bar and the shared footer. Run: python -m pytest tests -q
 """

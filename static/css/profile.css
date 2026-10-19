@@ -44,20 +44,19 @@ img { max-width: 100%; }
   padding: 2.75rem 24px 2.5rem;
   border-bottom: 2px solid var(--brass);
   position: relative;
-  isolation: isolate;  /* the constellation sits behind the text, inside this band */
 }
-/* Faint constellation behind the masthead and the contact band: a mask (static/img/constellation.svg)
+/* Faint constellation behind the contact band (the masthead is plain): a mask (static/img/constellation.svg)
    coloured by a token, so light and dark both work. It drifts: `cover` always overflows the box on
    one axis, and the mask position slides across that overflow, so nothing is transformed and the
    band cannot widen the page. TASK-20 removed an earlier twinkle; slow motion is back because Kevin
-   asked for it, and it is cancelled under prefers-reduced-motion below. Both bands share these
-   declarations and ONE @keyframes; only opacity is per band. Decorative: no
+   asked for it, and it is cancelled under prefers-reduced-motion below. It shares ONE @keyframes
+   with the tool-web backdrop. Decorative: no
    pointer events, behind the content, and `inset: 0` keeps it inside the band.
    No ramp: ease-in-out from rest looked frozen for the first seconds (0.07px in the first second at
    375px), so each cycle starts HALF-WAY through (a negative delay of half the duration), where the
    eased speed is at its peak. One duration at every width, so resizing across a breakpoint never
    makes the drift jump to another phase. */
-.masthead::before, .contact::before {
+.contact::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -68,14 +67,10 @@ img { max-width: 100%; }
   mask: url("../img/constellation.svg") no-repeat center / cover;
   animation: constellation-drift 40s ease-in-out -20s infinite alternate;
 }
-/* Opacity stays at 0.12 or under on the masthead and 0.10 on the contact band: brighter lines cost
-   contrast on the on-teal text (the 60%-opacity footnote is the limit; tests recompute it). */
-.masthead::before { opacity: 0.12; }
+/* Opacity stays at 0.10 on the contact band: brighter lines cost contrast on the on-teal text
+   (the 60%-opacity footnote is the limit; tests recompute it). */
 .contact::before { opacity: 0.10; }
 /* The drift keyframes live in topbar.css (loaded by this page): one copy for every band on the site. */
-@media (prefers-reduced-motion: reduce) {
-  .masthead::before { animation: none; }
-}
 @media (prefers-reduced-motion: reduce) {
   .contact::before { animation: none; }
 }
