@@ -19,7 +19,7 @@ import os
 import sqlite3
 from functools import wraps
 
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
 import buildstats
 import homepage
@@ -27,6 +27,7 @@ import jobstats
 import leads
 import media
 import outcomes
+import resume_alert
 import siteflags
 import tools
 import visits
@@ -280,6 +281,19 @@ DEMO_VIDEO = "video/demo.mp4"
 def _resume_pdf() -> str | None:
     """The résumé's static filename if the file is actually present, else None."""
     return RESUME_PDF if os.path.isfile(os.path.join(app.static_folder, RESUME_PDF)) else None
+
+
+@app.route(f"/resume/{RESUME_PDF}")
+def resume_download():
+    """Serve the resume and tell Kevin (see resume_alert.py). A missing file is a plain 404 with
+    no alert; a failed alert never costs the visitor the PDF."""
+    if not os.path.isfile(os.path.join(app.static_folder, RESUME_PDF)):
+        abort(404)
+    try:
+        resume_alert.notify(request, session)
+    except Exception as e:  # noqa: BLE001 - the alert is never allowed to fail the download
+        logging.warning("Resume alert failed: %s", e)
+    return send_from_directory(app.static_folder, RESUME_PDF)
 
 
 @app.route("/lattice")
