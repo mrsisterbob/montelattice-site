@@ -169,7 +169,10 @@ def test_homepage_bottom_mirrors_the_top(width, theme, tmp_path, monkeypatch, cl
     assert out["theme"] == theme, out
     assert out["barBefore"] == "none" and out["footBefore"] == "none", out  # plain bars
     c, f = out["contact"], out["footer"]
-    assert c["borderTop"] >= 2 and c["borderTopColor"] == brass, ("the band's top rule", c)
+    # From 1000px the cover is zoomed 1.1 (TASK-64): a 2px rule renders 2 device px, reported as 2/1.1.
+    zoomed = width >= 1000
+    rule_min, hair_min = (1.8, 0.9) if zoomed else (2, 1)
+    assert c["borderTop"] >= rule_min and c["borderTopColor"] == brass, ("the band's top rule", c)
     assert c["borderBottom"] == 0, c  # one rule between band and footer: the footer's own top border
     assert abs(f["top"] - c["bottom"]) < 0.5, ("a gap between the band and the footer", f, c)
     assert f["marginTop"] == 0 and f["borderTop"] == 2 and f["borderTopColor"] == brass, ("the single rule", f)
@@ -178,9 +181,9 @@ def test_homepage_bottom_mirrors_the_top(width, theme, tmp_path, monkeypatch, cl
     assert c["beforeContent"] != "none" and c["beforeAnim"] == "constellation-drift", c
     s = out["steps"]
     assert s["bg"] not in ("rgba(0, 0, 0, 0)", "transparent") and s["bg"] != s["body"], s
-    assert s["border"] >= 1, s
+    assert s["border"] >= hair_min, s  # 1px renders as 1/1.1 when zoomed (TASK-64)
     n = out["note"]
-    assert n["borderTop"] >= 1 and n["marginTop"] >= 40, n
+    assert n["borderTop"] >= hair_min and n["marginTop"] >= 40, n
     assert out["scrollWidth"] <= out["clientWidth"], out
 
 
