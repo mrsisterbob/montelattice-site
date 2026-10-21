@@ -64,18 +64,27 @@ def test_signal_line_carries_the_confirmed_title_and_dates(text):
 
 def test_headline_figures_present(text):
     flat = _norm(text)
-    assert "60 minutes to 20" in flat
+    assert "60 to 20 minutes" in flat
     assert "10 critical SLA breaches" in flat
 
 
+# Banked proper names and facts that contain a gate word; they are not statements about Kevin.
+GATE_EXEMPT = ("Schwab Limited Power of Attorney", "host their own websites at no cost")
+
+
 def test_no_negations_about_himself(text):
-    assert NEGATIONS.findall(text) == []
+    flat = _norm(text)
+    for phrase in GATE_EXEMPT:
+        assert phrase in flat
+        flat = flat.replace(phrase, "")
+    assert NEGATIONS.findall(flat) == []
 
 
 def test_name_first_then_headings_in_order(text):
     assert text.lstrip().startswith("Kevin Miller")
     positions = [text.upper().find(h) for h in
-                 ("SUMMARY", "EXPERIENCE", "TECHNICAL PROJECTS", "EDUCATION", "CERTIFICATES", "SKILLS")]
+                 ("SUMMARY", "PROFESSIONAL EXPERIENCE", "TECHNICAL PROJECTS", "EDUCATION & CREDENTIALS",
+                  "SKILLS & SYSTEMS")]
     assert all(p >= 0 for p in positions)
     assert positions == sorted(positions)
 
@@ -87,27 +96,35 @@ def test_metadata_names_kevin_not_a_posting(reader):
 
 
 def _typ_bullets() -> list[str]:
-    out, cur = [], None
-    for line in TYP.read_text(encoding="utf-8").splitlines():
-        if line.startswith("  - "):
-            cur = [line[4:]]
-            out.append(cur)
-        elif cur is not None and line.startswith("    ") and line.strip():
-            cur.append(line.strip())
-        else:
-            cur = None
-    return [_norm(" ".join(b)) for b in out]
+    """List items in the Typst source: one `- ` line each, with Typst escapes undone."""
+    lines = TYP.read_text(encoding="utf-8").splitlines()
+    unescape = re.compile(r"[\\](.)")
+    return [_norm(unescape.sub(r"\1", l[2:]).replace("--", chr(0x2013))) for l in lines if l.startswith("- ")]
 
 
-def test_every_bullet_is_word_for_word_in_the_evidence_bank():
+def _strings(node):
+    if isinstance(node, str):
+        yield node
+    elif isinstance(node, dict):
+        for v in node.values():
+            yield from _strings(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _strings(v)
+
+
+def test_every_bullet_is_word_for_word_in_the_engine_banks():
     source = homepage.bank_source()
     if source.startswith(("http://", "https://")) or not Path(source).exists():
         pytest.skip("evidence bank not readable locally")
+    bullets_path = Path(source).with_name("resume_bullets_bank.json")
     try:
         bank = json.loads(Path(source).read_text(encoding="utf-8"))
+        pool = json.loads(bullets_path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        pytest.skip("evidence bank not readable locally")
-    banked = {_norm(b) for sect in ("experience", "projects") for e in bank[sect] for b in e["bullets"]}
+        pytest.skip("engine banks not readable locally")
+    banked = {_norm(t) for sect in ("experience", "projects") for e in bank[sect] for t in e["bullets"]}
+    banked |= {_norm(t) for t in _strings(pool)}
     bullets = _typ_bullets()
     assert len(bullets) >= 10
     assert [b for b in bullets if b not in banked] == []
